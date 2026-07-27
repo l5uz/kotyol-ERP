@@ -38,6 +38,7 @@ export const EmployeeFilterBar = ({
           value={positionFilter}
           onChange={(e) => onPositionChange(e.target.value)}
           options={positionOptions}
+          containerClass="mb-0 text-start"
         />
       </div>
       <div className="col-12 col-sm-6 col-md-4">
@@ -45,6 +46,7 @@ export const EmployeeFilterBar = ({
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value)}
           options={statusOptions}
+          containerClass="mb-0 text-start"
         />
       </div>
     </div>

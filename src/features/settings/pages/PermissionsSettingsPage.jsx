@@ -37,7 +37,7 @@ export const PermissionsSettingsPage = () => {
       <SettingsSubNav />
 
       <PageHeader
-        title="Ruxsatlar Matritsasi (Permission Matrix)"
+        title="Ruxsatlar Matritsasi"
         subtitle="Rollar bo'yicha modullarga kirish va amallar huquqlarini sozlash"
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },

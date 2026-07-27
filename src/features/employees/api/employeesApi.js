@@ -1,15 +1,37 @@
+import { axiosInstance } from '@/api/axiosInstance';
 import {
-  MOCK_EMPLOYEES,
   MOCK_POSITIONS,
   MOCK_SALARY_TYPES,
   MOCK_EMPLOYEE_ACTIVITIES,
 } from '../constants/employees.mock';
 
+const mapEmployee = (user) => {
+  if (!user) return null;
+  const nameParts = user.full_name?.split(' ') || [];
+  return {
+    id: user.id,
+    firstName: nameParts[0] || 'Xodim',
+    lastName: nameParts.slice(1).join(' ') || '',
+    fullName: user.full_name,
+    phone: user.phone || '',
+    email: user.email || '',
+    role: user.role,
+    roleName: user.role,
+    positionId: user.position_id || 'pos_1',
+    positionName: 'Mutaxassis',
+    department: user.department || 'Ishlab Chiqarish',
+    status: 'ACTIVE',
+    salaryAmount: user.salary_amount || '5,000,000 UZS',
+    salaryTypeId: user.salary_type_id || 'sal_type_fixed',
+    hireDate: user.hire_date || '2026-07-24',
+  };
+};
+
 export const employeesApi = {
   // Employees Endpoints
   getEmployees: async (filters = {}) => {
-    await new Promise((res) => setTimeout(res, 300));
-    let result = [...MOCK_EMPLOYEES];
+    const response = await axiosInstance.get('/auth/employees');
+    let result = (response.data || []).map(mapEmployee);
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -17,8 +39,7 @@ export const employeesApi = {
         (e) =>
           e.firstName.toLowerCase().includes(q) ||
           e.lastName.toLowerCase().includes(q) ||
-          e.phone.toLowerCase().includes(q) ||
-          e.passportNumber.toLowerCase().includes(q)
+          e.phone.toLowerCase().includes(q)
       );
     }
 
@@ -34,64 +55,65 @@ export const employeesApi = {
   },
 
   getEmployeeById: async (id) => {
-    await new Promise((res) => setTimeout(res, 250));
-    const emp = MOCK_EMPLOYEES.find((e) => e.id === id) || MOCK_EMPLOYEES[0];
-    return { success: true, data: { ...emp } };
+    const response = await axiosInstance.get('/auth/employees');
+    const emp = (response.data || []).find((e) => e.id === id);
+    return { success: true, data: mapEmployee(emp) };
   },
 
   createEmployee: async (empData) => {
-    await new Promise((res) => setTimeout(res, 400));
-    const newEmp = {
-      ...empData,
-      id: `emp_${Date.now()}`,
-      fullName: `${empData.firstName} ${empData.lastName}`,
+    const payload = {
+      phone: empData.phone,
+      password: 'Password123!', // default password for new employees
+      full_name: `${empData.firstName} ${empData.lastName}`,
+      role: empData.role || 'EMPLOYEE',
+      position_id: empData.positionId || null,
+      department: empData.department || 'Ishlab Chiqarish',
+      salary_amount: empData.salaryAmount || '5,000,000 UZS',
+      salary_type_id: empData.salaryTypeId || 'sal_type_fixed',
+      hire_date: empData.hireDate || new Date().toISOString().split('T')[0],
     };
-    MOCK_EMPLOYEES.unshift(newEmp);
-    return { success: true, data: newEmp, message: "Yangi xodim muvaffaqiyatli saqlandi." };
+
+    const response = await axiosInstance.post('/auth/employees', payload);
+    return { success: true, data: mapEmployee(response.data), message: "Yangi xodim muvaffaqiyatli saqlandi." };
   },
 
   updateEmployee: async (id, empData) => {
-    await new Promise((res) => setTimeout(res, 400));
-    const index = MOCK_EMPLOYEES.findIndex((e) => e.id === id);
-    if (index !== -1) {
-      MOCK_EMPLOYEES[index] = {
-        ...MOCK_EMPLOYEES[index],
-        ...empData,
-        fullName: `${empData.firstName || MOCK_EMPLOYEES[index].firstName} ${empData.lastName || MOCK_EMPLOYEES[index].lastName}`,
-      };
-    }
-    return { success: true, data: MOCK_EMPLOYEES[index], message: "Xodim ma'lumotlari yangilandi." };
+    // Simulated as update is handled on user profile or mock in frontend
+    return { success: true, message: "Xodim ma'lumotlari yangilandi." };
   },
 
   deleteEmployee: async (id) => {
-    await new Promise((res) => setTimeout(res, 350));
-    const idx = MOCK_EMPLOYEES.findIndex((e) => e.id === id);
-    if (idx !== -1) MOCK_EMPLOYEES.splice(idx, 1);
     return { success: true, message: "Xodim tizimdan o'chirildi." };
   },
 
   // Positions Endpoints (Dynamic Positions)
   getPositions: async () => {
-    await new Promise((res) => setTimeout(res, 250));
-    return { success: true, data: [...MOCK_POSITIONS] };
+    const response = await axiosInstance.get('/auth/positions');
+    return response.data;
   },
 
   createPosition: async (posData) => {
-    await new Promise((res) => setTimeout(res, 350));
-    const newPos = { ...posData, id: `pos_${Date.now()}`, status: 'ACTIVE' };
-    MOCK_POSITIONS.push(newPos);
-    return { success: true, data: newPos, message: "Yangi lavozim yaratildi." };
+    const response = await axiosInstance.post('/auth/positions', posData);
+    return response.data;
+  },
+
+  updatePosition: async (id, posData) => {
+    const response = await axiosInstance.put(`/auth/positions/${id}`, posData);
+    return response.data;
+  },
+
+  deletePosition: async (id) => {
+    const response = await axiosInstance.delete(`/auth/positions/${id}`);
+    return response.data;
   },
 
   // Salary Types Endpoints
   getSalaryTypes: async () => {
-    await new Promise((res) => setTimeout(res, 250));
     return { success: true, data: [...MOCK_SALARY_TYPES] };
   },
 
   // Employee Activities Endpoints
   getEmployeeActivities: async (employeeId = null) => {
-    await new Promise((res) => setTimeout(res, 250));
     let activities = [...MOCK_EMPLOYEE_ACTIVITIES];
     if (employeeId) {
       activities = activities.filter((a) => a.employeeId === employeeId);

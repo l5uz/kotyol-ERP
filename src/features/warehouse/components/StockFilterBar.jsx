@@ -34,6 +34,7 @@ export const StockFilterBar = ({
             { value: '', label: 'Barcha Kategoriya' },
             ...categories.map((c) => ({ value: c.id, label: c.name })),
           ]}
+          containerClass="mb-0 text-start"
         />
       </div>
       <div className="col-12 col-sm-6 col-md-3">
@@ -44,6 +45,7 @@ export const StockFilterBar = ({
             { value: '', label: 'Barcha Omborlar' },
             ...warehouses.map((w) => ({ value: w.id, label: w.name })),
           ]}
+          containerClass="mb-0 text-start"
         />
       </div>
       <div className="col-12 col-sm-6 col-md-2">
@@ -54,6 +56,7 @@ export const StockFilterBar = ({
             { value: '', label: 'Barcha Materiallar' },
             ...materialTypes.map((m) => ({ value: m.id, label: m.name })),
           ]}
+          containerClass="mb-0 text-start"
         />
       </div>
       <div className="col-12 col-sm-6 col-md-2">
@@ -62,10 +65,11 @@ export const StockFilterBar = ({
           onChange={(e) => onStatusChange(e.target.value)}
           options={[
             { value: '', label: 'Barcha Status' },
-            { value: 'ACTIVE', label: 'Mavjud (Faol)' },
-            { value: 'LOW_STOCK', label: 'Kam Qolgan (Low Stock)' },
-            { value: 'OUT_OF_STOCK', label: 'Tugagan (Out of Stock)' },
+            { value: 'ACTIVE', label: 'Mavjud' },
+            { value: 'LOW_STOCK', label: 'Kam Qolgan' },
+            { value: 'OUT_OF_STOCK', label: 'Tugagan' },
           ]}
+          containerClass="mb-0 text-start"
         />
       </div>
     </div>

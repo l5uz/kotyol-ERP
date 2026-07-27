@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
+import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { Button } from '@/components/common/Button/Button';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { ROUTES } from '@/constants/routes.constants';
 
 export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) => {
-  const movementTypeOptions = dynamicSettingsService.getMovementTypeOptions();
-  const movementReasonOptions = dynamicSettingsService.getMovementReasonOptions();
-  const warehouseOptions = dynamicSettingsService.getWarehouseOptions();
+  const [movementTypeOptions, setMovementTypeOptions] = useState(dynamicSettingsService.getMovementTypeOptions());
+  const [movementReasonOptions, setMovementReasonOptions] = useState(dynamicSettingsService.getMovementReasonOptions());
+  const [warehouseOptions, setWarehouseOptions] = useState(dynamicSettingsService.getWarehouseOptions());
   const productOptions = products.map((p) => ({ value: p.id || p.productId, label: p.productName || p.name }));
 
   const [formData, setFormData] = useState({
@@ -32,6 +34,20 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
       });
     }
   }, [isOpen]);
+
+  const handleAddNewWarehouse = (newRecord) => {
+    const newWH = { value: `wh_${Date.now()}`, label: newRecord.name };
+    setWarehouseOptions((prev) => [...prev, newWH]);
+    setFormData((prev) => ({ ...prev, warehouseId: newWH.value }));
+    return newWH;
+  };
+
+  const handleAddNewReason = (newRecord) => {
+    const newReas = { value: newRecord.name, label: newRecord.name };
+    setMovementReasonOptions((prev) => [...prev, newReas]);
+    setFormData((prev) => ({ ...prev, reason: newReas.value }));
+    return newReas;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -76,33 +92,47 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
               options={productOptions}
             />
           </div>
+
+          {/* Dynamic Warehouse Select */}
           <div className="col-12 col-md-6">
-            <Select
-              label="Ombor (Dinamik)"
+            <DynamicSelect
+              label="Omborxona"
               value={formData.warehouseId}
               onChange={(e) => setFormData({ ...formData, warehouseId: e.target.value })}
               options={warehouseOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS_WAREHOUSE}
+              onAddNew={handleAddNewWarehouse}
+              entityTitle="Ombor"
+              required
             />
           </div>
+
           <div className="col-12 col-md-6">
             <Select
-              label="Harakat Turi (Sozlamalardan Dinamik)"
+              label="Harakat Turi"
               value={formData.movementTypeCode}
               onChange={(e) => setFormData({ ...formData, movementTypeCode: e.target.value })}
               options={movementTypeOptions}
             />
           </div>
+
+          {/* Dynamic Movement Reason Select */}
           <div className="col-12 col-md-6">
-            <Select
-              label="Harakat Sababi (Sozlamalardan Dinamik)"
+            <DynamicSelect
+              label="Harakat Sababi"
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
               options={movementReasonOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS}
+              onAddNew={handleAddNewReason}
+              entityTitle="Harakat Sababi"
+              required
             />
           </div>
+
           <div className="col-12 col-md-6">
             <Input
-              label="Miqdori (Quantity)"
+              label="Miqdori"
               placeholder="100"
               type="number"
               value={formData.quantity}
@@ -117,7 +147,7 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
               rows="3"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Shartnoma raqami yoki ish topshirig'i (WO) ma'lumoti..."
+              placeholder="Shartnoma raqami yoki ish topshirig'i ma'lumoti..."
             ></textarea>
           </div>
         </div>

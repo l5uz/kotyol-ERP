@@ -10,6 +10,7 @@ export const Select = forwardRef(
       className = '',
       id,
       placeholder = 'Select an option',
+      containerClass = 'mb-3 text-start',
       ...props
     },
     ref
@@ -17,7 +18,7 @@ export const Select = forwardRef(
     const selectId = id || `select_${Math.random().toString(36).substring(2, 7)}`;
 
     return (
-      <div className="mb-3 text-start">
+      <div className={containerClass}>
         {label && (
           <label htmlFor={selectId} className="form-label fw-medium fs-7 mb-1 text-main">
             {label}
@@ -30,11 +31,11 @@ export const Select = forwardRef(
           {...props}
         >
           {placeholder && <option value="">{placeholder}</option>}
-          {options.map((opt) => {
-            const val = typeof opt === 'object' ? opt.value : opt;
-            const lbl = typeof opt === 'object' ? opt.label : opt;
+          {options.map((opt, idx) => {
+            const val = typeof opt === 'object' ? (opt.value ?? opt.id ?? '') : opt;
+            const lbl = typeof opt === 'object' ? (opt.label ?? opt.name ?? val) : opt;
             return (
-              <option key={val} value={val}>
+              <option key={`${val}-${idx}`} value={val}>
                 {lbl}
               </option>
             );

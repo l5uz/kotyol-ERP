@@ -1,0 +1,301 @@
+import React, { useState, useEffect } from 'react';
+import { Modal } from '@/components/common/Modal/Modal';
+import { Input } from '@/components/common/Input/Input';
+import { Select } from '@/components/common/Select/Select';
+import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
+import { Button } from '@/components/common/Button/Button';
+import { FileUpload } from '@/components/common/FileUpload/FileUpload';
+import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { useFormDraftStore } from '@/store/useFormDraftStore';
+import { ROUTES } from '@/constants/routes.constants';
+import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck } from 'react-icons/lu';
+
+export const CustomerFormModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  customer = null,
+}) => {
+  const FORM_KEY = customer ? `draft_customer_${customer.id}` : 'draft_customer_new';
+  const { saveDraft, getDraft, clearDraft } = useFormDraftStore();
+
+  const [customerTypeOptions, setCustomerTypeOptions] = useState(dynamicSettingsService.getCustomerTypeOptions());
+  const [regionOptions, setRegionOptions] = useState(dynamicSettingsService.getRegionOptions());
+
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isDraftRestored, setIsDraftRestored] = useState(false);
+
+  const [formData, setFormData] = useState({
+    customerTypeId: customerTypeOptions[0]?.value || '',
+    customerName: '',
+    phone: '',
+    altPhone: '',
+    email: '',
+    tin: '',
+    passport: '',
+    region: regionOptions[0]?.value || 'Toshkent shahri',
+    district: '',
+    address: '',
+    notes: '',
+    status: 'ACTIVE',
+  });
+
+  useEffect(() => {
+    if (customer) {
+      setFormData({
+        customerTypeId: customer.customerTypeId || (customerTypeOptions[0]?.value || ''),
+        customerName: customer.customerName || '',
+        phone: customer.phone || '',
+        altPhone: customer.altPhone || '',
+        email: customer.email || '',
+        tin: customer.tin || '',
+        passport: customer.passport || '',
+        region: customer.region || 'Toshkent shahri',
+        district: customer.district || '',
+        address: customer.address || '',
+        notes: customer.notes || '',
+        status: customer.status || 'ACTIVE',
+      });
+      setIsDraftRestored(false);
+    } else if (isOpen) {
+      const savedDraft = getDraft(FORM_KEY);
+      if (savedDraft) {
+        setFormData(savedDraft);
+        setIsDraftRestored(true);
+      } else {
+        setFormData({
+          customerTypeId: customerTypeOptions[0]?.value || '',
+          customerName: '',
+          phone: '+998 ',
+          altPhone: '',
+          email: '',
+          tin: '',
+          passport: '',
+          region: 'Toshkent shahri',
+          district: '',
+          address: '',
+          notes: '',
+          status: 'ACTIVE',
+        });
+        setIsDraftRestored(false);
+      }
+      setShowAdvanced(false);
+    }
+  }, [customer, isOpen]);
+
+  // Real-time draft auto-save
+  const handleFieldChange = (field, value) => {
+    const updated = { ...formData, [field]: value };
+    setFormData(updated);
+    if (!customer) {
+      saveDraft(FORM_KEY, updated);
+    }
+  };
+
+  const handleAddNewCustomerType = (newRecord) => {
+    const newCT = { value: `ctype_${Date.now()}`, label: newRecord.name };
+    setCustomerTypeOptions((prev) => [...prev, newCT]);
+    handleFieldChange('customerTypeId', newCT.value);
+    return newCT;
+  };
+
+  const handleAddNewRegion = (newRecord) => {
+    const newReg = { value: newRecord.name, label: newRecord.name };
+    setRegionOptions((prev) => [...prev, newReg]);
+    handleFieldChange('region', newReg.value);
+    return newReg;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const selectedType = customerTypeOptions.find((ct) => ct.value === formData.customerTypeId);
+
+    clearDraft(FORM_KEY);
+    onSubmit({
+      ...formData,
+      customerTypeName: selectedType ? selectedType.label : '',
+    });
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <div className="d-flex align-items-center gap-2">
+          <span>{customer ? "Mijoz Ma'lumotlarini Tahrirlash" : "Yangi Mijoz Qo'shish"}</span>
+          {isDraftRestored && (
+            <span className="badge bg-success bg-opacity-10 text-success fs-8 d-flex align-items-center gap-1">
+              <LuFileCheck /> 📝 Qoralama saqlangan ma'lumotdan tiklandi
+            </span>
+          )}
+        </div>
+      }
+      size="xl"
+      footer={
+        <div className="d-flex justify-content-end gap-2 w-100">
+          <Button variant="outline-secondary" size="sm" onClick={onClose}>
+            Bekor qilish
+          </Button>
+          <Button variant="primary" size="sm" onClick={handleSubmit}>
+            {customer ? 'Saqlash' : "Mijozni Saqlash"}
+          </Button>
+        </div>
+      }
+    >
+      <form onSubmit={handleSubmit}>
+        {/* Core Primary Fields */}
+        <div className="row g-3 mb-3">
+          {/* Dynamic Customer Type Select */}
+          <div className="col-12 col-md-4">
+            <DynamicSelect
+              label="Mijoz Turi"
+              value={formData.customerTypeId}
+              onChange={(e) => handleFieldChange('customerTypeId', e.target.value)}
+              options={customerTypeOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS}
+              onAddNew={handleAddNewCustomerType}
+              entityTitle="Mijoz Turi"
+              required
+            />
+          </div>
+
+          <div className="col-12 col-md-5">
+            <Input
+              label="Mijoz F.I.SH / Korxona Nomi"
+              placeholder="Orienta Sanoat MCHJ yoki Alisher Qodirov"
+              value={formData.customerName}
+              onChange={(e) => handleFieldChange('customerName', e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="col-12 col-md-3">
+            <Input
+              label="Asosiy Telefon Raqami"
+              placeholder="+998 90 123 45 67"
+              value={formData.phone}
+              onChange={(e) => handleFieldChange('phone', e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Collapsible Section for Progressive Disclosure */}
+        <div className="border-custom rounded-3 p-2 mb-3 bg-body-custom">
+          <button
+            type="button"
+            className="btn btn-link text-decoration-none text-main fs-7 fw-semibold d-flex align-items-center justify-content-between w-100 p-1"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            <div className="d-flex align-items-center gap-2">
+              <LuSlidersHorizontal className="text-primary" />
+              <span>Qo'shimcha Rekvizitlar</span>
+            </div>
+            {showAdvanced ? <LuChevronUp /> : <LuChevronDown />}
+          </button>
+
+          {showAdvanced && (
+            <div className="row g-3 pt-3 border-top border-custom mt-2">
+              <div className="col-12 col-md-4">
+                <Input
+                  label="Qo'shimcha Telefon Raqami"
+                  placeholder="+998 71 200 11 22"
+                  value={formData.altPhone}
+                  onChange={(e) => handleFieldChange('altPhone', e.target.value)}
+                />
+              </div>
+
+              <div className="col-12 col-md-4">
+                <Input
+                  label="Elektron Pochta"
+                  type="email"
+                  placeholder="info@orienta.uz"
+                  value={formData.email}
+                  onChange={(e) => handleFieldChange('email', e.target.value)}
+                />
+              </div>
+
+              <div className="col-12 col-md-4">
+                <Select
+                  label="Status"
+                  value={formData.status}
+                  onChange={(e) => handleFieldChange('status', e.target.value)}
+                  options={[
+                    { value: 'ACTIVE', label: 'Faol — Hamkorlikda' },
+                    { value: 'INACTIVE', label: 'Nofaol' },
+                  ]}
+                />
+              </div>
+
+              <div className="col-12 col-md-6">
+                <Input
+                  label="STIR (Yuridik shaxslar uchun)"
+                  placeholder="305981244"
+                  value={formData.tin}
+                  onChange={(e) => handleFieldChange('tin', e.target.value)}
+                />
+              </div>
+
+              <div className="col-12 col-md-6">
+                <Input
+                  label="Pasport / JShSHIR"
+                  placeholder="AA 9876543 / 3120495810023"
+                  value={formData.passport}
+                  onChange={(e) => handleFieldChange('passport', e.target.value)}
+                />
+              </div>
+
+              {/* Dynamic Region Select */}
+              <div className="col-12 col-md-4">
+                <DynamicSelect
+                  label="Viloyat / Hudud"
+                  value={formData.region}
+                  onChange={(e) => handleFieldChange('region', e.target.value)}
+                  options={regionOptions}
+                  managePath={ROUTES.PROTECTED.SETTINGS}
+                  onAddNew={handleAddNewRegion}
+                  entityTitle="Viloyat"
+                />
+              </div>
+
+              <div className="col-12 col-md-4">
+                <Input
+                  label="Tuman / Shahar"
+                  placeholder="Yakkasaroy tumani"
+                  value={formData.district}
+                  onChange={(e) => handleFieldChange('district', e.target.value)}
+                />
+              </div>
+
+              <div className="col-12 col-md-4">
+                <Input
+                  label="Ko'cha va Uy Manzili"
+                  placeholder="Shota Rustaveli ko'chasi, 45-uy"
+                  value={formData.address}
+                  onChange={(e) => handleFieldChange('address', e.target.value)}
+                />
+              </div>
+
+              <div className="col-12">
+                <label className="form-label fs-7 fw-medium text-main">Shartnoma Izohi va Eslatmalar</label>
+                <textarea
+                  className="form-control fs-7"
+                  rows="2"
+                  value={formData.notes}
+                  onChange={(e) => handleFieldChange('notes', e.target.value)}
+                  placeholder="Xarid afzalliklari yoki maxsus shartlar..."
+                ></textarea>
+              </div>
+
+              <div className="col-12">
+                <label className="form-label fs-7 fw-medium text-main">Shartnoma, Pasport va Soliq Hujjatlarini Yuklash</label>
+                <FileUpload label="Mijoz hujjatlarini yuklash" maxSizeMB={5} />
+              </div>
+            </div>
+          )}
+        </div>
+      </form>
+    </Modal>
+  );
+};

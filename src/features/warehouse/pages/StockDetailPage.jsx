@@ -5,7 +5,6 @@ import { Card } from '@/components/common/Card/Card';
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Timeline } from '@/components/common/Timeline/Timeline';
-import { WarehouseSubNav } from '../components/WarehouseSubNav';
 import { warehouseApi } from '../api/warehouseApi';
 import { ROUTES } from '@/constants/routes.constants';
 
@@ -33,7 +32,6 @@ export const StockDetailPage = () => {
   if (isLoading || !stockItem) {
     return (
       <div className="stock-detail-page animate-fade-in pb-5">
-        <WarehouseSubNav />
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Yuklanmoqda...</span>
@@ -53,7 +51,6 @@ export const StockDetailPage = () => {
 
   return (
     <div className="stock-detail-page animate-fade-in pb-5">
-      <WarehouseSubNav />
 
       <PageHeader
         title={`Ombor Zaxira Kartochkasi: ${stockItem.productName}`}
@@ -102,7 +99,7 @@ export const StockDetailPage = () => {
                 </strong>
               </div>
               <div>
-                <small className="text-muted-custom d-block">Minimal Chegara (Min Stock):</small>
+                <small className="text-muted-custom d-block">Minimal Chegara:</small>
                 <strong className="text-main">{stockItem.minQuantity} {stockItem.unitName}</strong>
               </div>
               <div>
@@ -121,37 +118,37 @@ export const StockDetailPage = () => {
         <div className="col-12 col-lg-8">
           <div className="d-flex flex-column gap-3">
             {/* Purchase History Placeholder */}
-            <Card title="Xaridlar va Ta'minot Kirimi Tarixi (Purchase History)">
+            <Card title="Xaridlar va Ta'minot Kirimi Tarixi">
               <div className="p-3 bg-body-custom rounded-3 border-custom text-center">
                 <LuBadgeDollarSign className="fs-3 text-muted-custom mb-2 d-block mx-auto" />
                 <p className="fs-7 text-muted-custom mb-0">
-                  Ushbu mahsulotning kirim va hisob-fakturalari kelgusi **Xaridlar va Ta'minot (Purchasing)** moduliga avtomatik bog'lanadi.
+                  Ushbu mahsulotning kirim va hisob-fakturalari **Xaridlar va Ta'minot** moduliga avtomatik bog'lanadi.
                 </p>
               </div>
             </Card>
 
             {/* Production Usage Placeholder */}
-            <Card title="Ishlab Chiqarish Sarfi va Liniya Topshiriqlari (Production Usage)">
+            <Card title="Ishlab Chiqarish Sarfi va Liniya Topshiriqlari">
               <div className="p-3 bg-body-custom rounded-3 border-custom text-center">
                 <LuSettings2 className="fs-3 text-muted-custom mb-2 d-block mx-auto" />
                 <p className="fs-7 text-muted-custom mb-0">
-                  Liniya topshiriqlari va BOM retseptlari bo'yicha xomashyo sarfi kelgusi **Ishlab Chiqarish (Production)** modulida aks etadi.
+                  Liniya topshiriqlari va BOM retseptlari bo'yicha xomashyo sarfi **Ishlab Chiqarish** modulida aks etadi.
                 </p>
               </div>
             </Card>
 
             {/* Sales Placeholder */}
-            <Card title="Sotuv va Mijozlarga Jo'natmalar (Sales)">
+            <Card title="Sotuv va Mijozlarga Jo'natmalar">
               <div className="p-3 bg-body-custom rounded-3 border-custom text-center">
                 <LuShoppingCart className="fs-3 text-muted-custom mb-2 d-block mx-auto" />
                 <p className="fs-7 text-muted-custom mb-0">
-                  Tijorat sotuvlari va ombordan mijozga yuklash hisoboti kelgusi **Sotuv va CRM (Sales)** modulida ko'rsatiladi.
+                  Tijorat sotuvlari va ombordan mijozga yuklash hisoboti **Sotuv va CRM** modulida ko'rsatiladi.
                 </p>
               </div>
             </Card>
 
             {/* Timeline */}
-            <Card title="Ombor Zaxirasi Harakatlar Tarixi (Stock Timeline)">
+            <Card title="Ombor Zaxirasi Harakatlar Tarixi">
               <Timeline items={timelineItems} />
             </Card>
           </div>

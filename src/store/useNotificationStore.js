@@ -2,6 +2,13 @@ import { create } from 'zustand';
 
 export const useNotificationStore = create((set) => ({
   notifications: [],
+  isDrawerOpen: false,
+  unreadCount: 3,
+
+  openDrawer: () => set({ isDrawerOpen: true }),
+  closeDrawer: () => set({ isDrawerOpen: false }),
+  toggleDrawer: () => set((state) => ({ isDrawerOpen: !state.isDrawerOpen })),
+  setUnreadCount: (count) => set({ unreadCount: count }),
 
   addNotification: ({ type = 'info', title = '', message = '', duration = 4000 }) => {
     const id = Date.now() + Math.random();

@@ -34,6 +34,7 @@ export const ProductFilterBar = ({
             { value: '', label: 'Barcha Kategoriya' },
             ...categories.map((c) => ({ value: c.id, label: c.name })),
           ]}
+          containerClass="mb-0 text-start"
         />
       </div>
       <div className="col-12 col-sm-6 col-md-2">
@@ -44,6 +45,7 @@ export const ProductFilterBar = ({
             { value: '', label: 'Barcha Materiallar' },
             ...materialTypes.map((m) => ({ value: m.id, label: m.name })),
           ]}
+          containerClass="mb-0 text-start"
         />
       </div>
       <div className="col-12 col-sm-6 col-md-2">
@@ -54,6 +56,7 @@ export const ProductFilterBar = ({
             { value: '', label: 'Barcha Ta\'minotchi' },
             ...suppliers.map((s) => ({ value: s.id, label: s.companyName })),
           ]}
+          containerClass="mb-0 text-start"
         />
       </div>
       <div className="col-12 col-sm-6 col-md-2">
@@ -65,6 +68,7 @@ export const ProductFilterBar = ({
             { value: 'ACTIVE', label: 'Faol' },
             { value: 'INACTIVE', label: 'Nofaol' },
           ]}
+          containerClass="mb-0 text-start"
         />
       </div>
     </div>

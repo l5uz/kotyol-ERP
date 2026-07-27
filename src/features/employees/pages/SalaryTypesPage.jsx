@@ -6,7 +6,6 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
-import { EmployeeSubNav } from '../components/EmployeeSubNav';
 import { employeesApi } from '../api/employeesApi';
 import { notifySuccess } from '@/services/notification.service';
 import { ERP_ICONS } from '@/shared/icons';
@@ -33,7 +32,6 @@ export const SalaryTypesPage = () => {
 
   return (
     <div className="salary-types-page animate-fade-in pb-5">
-      <EmployeeSubNav />
 
       <PageHeader
         title="Oylik Maosh Turlari va Modellari"

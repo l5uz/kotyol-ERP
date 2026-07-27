@@ -4,11 +4,10 @@ import { LuLayoutDashboard, LuBoxes, LuArrowLeftRight, LuBadgeDollarSign, LuClip
 import { ROUTES } from '@/constants/routes.constants';
 
 const SUB_NAV_ITEMS = [
-  { label: 'Umumiy Ko\'rinish (Overview)', path: ROUTES.PROTECTED.WAREHOUSE, icon: LuLayoutDashboard },
-  { label: 'Ombordagi Mahsulotlar (Stock)', path: ROUTES.PROTECTED.WAREHOUSE_STOCK, icon: LuBoxes },
-  { label: 'Harakatlar (Movements)', path: ROUTES.PROTECTED.WAREHOUSE_MOVEMENTS, icon: LuArrowLeftRight },
-  { label: 'Qayta Baholash (Revaluation)', path: ROUTES.PROTECTED.WAREHOUSE_REVALUATION, icon: LuBadgeDollarSign },
-  { label: 'Inventarizatsiya (Count)', path: ROUTES.PROTECTED.WAREHOUSE_INVENTORY_COUNT, icon: LuClipboardCheck },
+  { label: 'Ombordagi Mahsulotlar', path: ROUTES.PROTECTED.WAREHOUSE_STOCK, icon: LuBoxes },
+  { label: 'Harakatlar', path: ROUTES.PROTECTED.WAREHOUSE_MOVEMENTS, icon: LuArrowLeftRight },
+  { label: 'Qayta Baholash', path: ROUTES.PROTECTED.WAREHOUSE_REVALUATION, icon: LuBadgeDollarSign },
+  { label: 'Inventarizatsiya', path: ROUTES.PROTECTED.WAREHOUSE_INVENTORY_COUNT, icon: LuClipboardCheck },
 ];
 
 export const WarehouseSubNav = () => {
@@ -21,7 +20,7 @@ export const WarehouseSubNav = () => {
             <li key={item.path} className="nav-item">
               <NavLink
                 to={item.path}
-                end={item.path === ROUTES.PROTECTED.WAREHOUSE}
+                end
                 className={({ isActive }) =>
                   `nav-link d-flex align-items-center gap-2 fs-7 px-3 py-2 fw-medium rounded-2 transition-all ${
                     isActive ? 'active bg-primary text-white shadow-sm' : 'text-main hover-bg-custom'

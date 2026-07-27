@@ -30,7 +30,7 @@ export const CurrencySettingsPage = () => {
     { header: 'Simvol', accessor: 'symbol' },
     { header: 'USD Kursi', cell: (row) => row.rateToUSD },
     {
-      header: 'Standart (Default)',
+      header: 'Asosiy Valyuta',
       cell: (row) =>
         row.isDefault ? (
           <span className="badge bg-success bg-opacity-10 text-success fw-semibold">

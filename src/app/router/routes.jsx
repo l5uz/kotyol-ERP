@@ -6,12 +6,37 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { PublicRoute } from './PublicRoute';
 
 import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { RegisterPage } from '@/features/auth/pages/RegisterPage';
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { ProfilePage } from '@/features/auth/pages/ProfilePage';
 import { ChangePasswordPage } from '@/features/auth/pages/ChangePasswordPage';
 import { SessionExpiredPage } from '@/features/auth/pages/SessionExpiredPage';
 
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
+import { SystemPage } from '@/features/system';
+import { AuditLogPage, AuditDetailPage } from '@/features/audit';
+import { ActivitiesPage } from '@/features/activities';
+
+import {
+  GeneralReportPage,
+  SalesReportPage,
+  WarehouseReportPage,
+  ProductionReportPage,
+  FinanceReportPage,
+  ServiceReportPage,
+} from '@/features/reports';
+
+import { FinancePage, ExpensesPage, IncomesPage, FinanceDetailPage } from '@/features/finance';
+import { ServicesPage } from '@/features/services/pages/ServicesPage';
+import { ServiceDetailPage } from '@/features/services/pages/ServiceDetailPage';
+import { ProductionPage } from '@/features/production/pages/ProductionPage';
+import { ProductionDetailPage } from '@/features/production/pages/ProductionDetailPage';
+import { SalesPage, SaleDetailPage } from '@/features/sales';
+import { OrdersPage, OrderDetailPage } from '@/features/orders';
+import { BoilersPage, BoilerDetailPage } from '@/features/boilers';
+import { RecipesPage } from '@/features/recipes/pages/RecipesPage';
+import { RecipeDetailPage } from '@/features/recipes/pages/RecipeDetailPage';
+import { PurchasingPage, PurchaseDetailPage } from '@/features/purchasing';
 
 import {
   WarehousePage,
@@ -22,13 +47,11 @@ import {
   InventoryCountPage,
 } from '@/features/warehouse';
 
-import { ProductionPage } from '@/features/production/pages/ProductionPage';
-import { SalesPage } from '@/features/sales/pages/SalesPage';
-import { FinancePage } from '@/features/finance/pages/FinancePage';
-import { CustomersPage } from '@/features/customers/pages/CustomersPage';
+import { CustomersPage, CustomerDetailPage } from '@/features/customers';
 
 import { SuppliersPage, SupplierDetailPage } from '@/features/suppliers';
-import { ProductsPage, ProductDetailPage } from '@/features/products';
+import { ProductsPage } from '@/features/products/pages/ProductsPage';
+import { ProductDetailPage } from '@/features/products/pages/ProductDetailPage';
 
 import {
   EmployeesPage,
@@ -39,7 +62,6 @@ import {
 } from '@/features/employees';
 
 import {
-  SettingsPage,
   CompanySettingsPage,
   CurrencySettingsPage,
   WarehouseSettingsPage,
@@ -53,6 +75,9 @@ import {
   ProductionStagesSettingsPage,
   RolesSettingsPage,
   PermissionsSettingsPage,
+  MasterDataManagementPage,
+  BranchesManagementPage,
+  BranchesStatisticsPage,
 } from '@/features/settings';
 
 import { Forbidden403Page } from '@/pages/errors/Forbidden403Page';
@@ -70,6 +95,7 @@ export const router = createBrowserRouter([
         element: <AuthLayout />,
         children: [
           { path: '/login', element: <LoginPage /> },
+          { path: '/register', element: <RegisterPage /> },
           { path: '/forgot-password', element: <ForgotPasswordPage /> },
         ],
       },
@@ -87,8 +113,58 @@ export const router = createBrowserRouter([
           { path: '/profile', element: <ProfilePage /> },
           { path: '/change-password', element: <ChangePasswordPage /> },
 
+          // System Administration & Audit Routes
+          { path: '/system', element: <SystemPage /> },
+          { path: '/audit', element: <AuditLogPage /> },
+          { path: '/audit/:id', element: <AuditDetailPage /> },
+
+          // Global Activity Center Route
+          { path: '/activities', element: <ActivitiesPage /> },
+
+          // Reports Routes
+          { path: '/reports', element: <GeneralReportPage /> },
+          { path: '/reports/sales', element: <SalesReportPage /> },
+          { path: '/reports/warehouse', element: <WarehouseReportPage /> },
+          { path: '/reports/production', element: <ProductionReportPage /> },
+          { path: '/reports/finance', element: <FinanceReportPage /> },
+          { path: '/reports/services', element: <ServiceReportPage /> },
+
+          // Finance Routes
+          { path: '/finance', element: <FinancePage /> },
+          { path: '/finance/expenses', element: <ExpensesPage /> },
+          { path: '/finance/incomes', element: <IncomesPage /> },
+          { path: '/finance/:id', element: <FinanceDetailPage /> },
+
+          // Services Routes
+          { path: '/services', element: <ServicesPage /> },
+          { path: '/services/:id', element: <ServiceDetailPage /> },
+
+          // Sales Routes
+          { path: '/sales', element: <SalesPage /> },
+          { path: '/sales/:id', element: <SaleDetailPage /> },
+
+          // Production Routes
+          { path: '/production', element: <ProductionPage /> },
+          { path: '/production/:id', element: <ProductionDetailPage /> },
+
+          // Orders Routes
+          { path: '/orders', element: <OrdersPage /> },
+          { path: '/orders/:id', element: <OrderDetailPage /> },
+
+          // Boilers (Finished Products) Routes
+          { path: '/boilers', element: <BoilersPage /> },
+          { path: '/boilers/:id', element: <BoilerDetailPage /> },
+
+          // Recipe Routes
+          { path: '/recipes', element: <RecipesPage /> },
+          { path: '/recipes/:id', element: <RecipeDetailPage /> },
+
+          // Purchasing Routes
+          { path: '/purchasing', element: <PurchasingPage /> },
+          { path: '/purchasing/:id', element: <PurchaseDetailPage /> },
+
           // Warehouse Routes
-          { path: '/warehouse', element: <WarehousePage /> },
+          { path: '/warehouse', element: <Navigate to="/warehouse/stock" replace /> },
           { path: '/warehouse/stock', element: <WarehousePage /> },
           { path: '/warehouse/stock/:id', element: <StockDetailPage /> },
           { path: '/warehouse/movements', element: <MovementsPage /> },
@@ -96,16 +172,15 @@ export const router = createBrowserRouter([
           { path: '/warehouse/revaluation', element: <RevaluationPage /> },
           { path: '/warehouse/inventory-count', element: <InventoryCountPage /> },
 
-          { path: '/production', element: <ProductionPage /> },
-          { path: '/sales', element: <SalesPage /> },
-          { path: '/finance', element: <FinancePage /> },
+          // Customers Routes
           { path: '/customers', element: <CustomersPage /> },
+          { path: '/customers/:id', element: <CustomerDetailPage /> },
 
           // Suppliers Routes
           { path: '/suppliers', element: <SuppliersPage /> },
           { path: '/suppliers/:id', element: <SupplierDetailPage /> },
 
-          // Products & Materials Routes
+          // Products & Raw Materials Routes
           { path: '/products', element: <ProductsPage /> },
           { path: '/products/:id', element: <ProductDetailPage /> },
 
@@ -117,7 +192,7 @@ export const router = createBrowserRouter([
           { path: '/employees/activity', element: <EmployeeActivityPage /> },
 
           // Settings Routes
-          { path: '/settings', element: <SettingsPage /> },
+          { path: '/settings', element: <Navigate to="/settings/company" replace /> },
           { path: '/settings/company', element: <CompanySettingsPage /> },
           { path: '/settings/currency', element: <CurrencySettingsPage /> },
           { path: '/settings/warehouse', element: <WarehouseSettingsPage /> },
@@ -131,6 +206,9 @@ export const router = createBrowserRouter([
           { path: '/settings/production-stages', element: <ProductionStagesSettingsPage /> },
           { path: '/settings/roles', element: <RolesSettingsPage /> },
           { path: '/settings/permissions', element: <PermissionsSettingsPage /> },
+          { path: '/settings/master-data', element: <MasterDataManagementPage /> },
+          { path: '/settings/branches', element: <BranchesManagementPage /> },
+          { path: '/settings/branches/stats', element: <BranchesStatisticsPage /> },
         ],
       },
     ],

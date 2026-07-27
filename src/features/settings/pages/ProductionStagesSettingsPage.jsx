@@ -58,8 +58,8 @@ export const ProductionStagesSettingsPage = () => {
       <SettingsSubNav />
 
       <PageHeader
-        title="Ishlab Chiqarish Texnologik Bosqichlari (Stages)"
-        subtitle="Sex zanjiri ketma-ketligi va standart bosqich narxlari. Elementlarni tortib (Drag & Drop) tartibni o'zgartiring."
+        title="Ishlab Chiqarish Texnologik Bosqichlari"
+        subtitle="Sex zanjiri ketma-ketligi va standart bosqich narxlari. Elementlarni tortib tartibni o'zgartiring."
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },
           { label: 'Sozlamalar', path: '/settings' },
@@ -72,7 +72,7 @@ export const ProductionStagesSettingsPage = () => {
         }
       />
 
-      <Card title="Texnologik Ketma-ketlik va Bosqichlar (Drag & Drop Reorderable)">
+      <Card title="Texnologik Ketma-ketlik va Bosqichlar">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={stages.map((s) => s.id)} strategy={verticalListSortingStrategy}>
             <div className="stages-list py-2">

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
+import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { Button } from '@/components/common/Button/Button';
 import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { ROUTES } from '@/constants/routes.constants';
 
 export const ProductFormModal = ({
   isOpen,
@@ -13,11 +15,15 @@ export const ProductFormModal = ({
   product = null,
   suppliers = [],
 }) => {
-  const categoryOptions = dynamicSettingsService.getCategoryOptions();
-  const materialOptions = dynamicSettingsService.getMaterialTypeOptions();
-  const unitOptions = dynamicSettingsService.getUnitOptions();
-  const currencyOptions = dynamicSettingsService.getCurrencyOptions();
-  const supplierOptions = suppliers.map((s) => ({ value: s.id, label: s.companyName }));
+  const [categoryOptions, setCategoryOptions] = useState(dynamicSettingsService.getCategoryOptions());
+  const [materialOptions, setMaterialOptions] = useState(dynamicSettingsService.getMaterialTypeOptions());
+  const [unitOptions, setUnitOptions] = useState(dynamicSettingsService.getUnitOptions());
+  const [currencyOptions, setCurrencyOptions] = useState(dynamicSettingsService.getCurrencyOptions());
+  const [supplierOptions, setSupplierOptions] = useState(suppliers.map((s) => ({ value: s.id, label: s.companyName })));
+
+  useEffect(() => {
+    setSupplierOptions(suppliers.map((s) => ({ value: s.id, label: s.companyName })));
+  }, [suppliers]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -71,6 +77,34 @@ export const ProductFormModal = ({
     }
   }, [product, isOpen]);
 
+  const handleAddNewCategory = (newRecord) => {
+    const newCat = { value: `cat_${Date.now()}`, label: newRecord.name };
+    setCategoryOptions((prev) => [...prev, newCat]);
+    setFormData((prev) => ({ ...prev, categoryId: newCat.value }));
+    return newCat;
+  };
+
+  const handleAddNewMaterial = (newRecord) => {
+    const newMat = { value: `mat_${Date.now()}`, label: newRecord.name };
+    setMaterialOptions((prev) => [...prev, newMat]);
+    setFormData((prev) => ({ ...prev, materialTypeId: newMat.value }));
+    return newMat;
+  };
+
+  const handleAddNewUnit = (newRecord) => {
+    const newUnit = { value: `unit_${Date.now()}`, label: newRecord.name };
+    setUnitOptions((prev) => [...prev, newUnit]);
+    setFormData((prev) => ({ ...prev, unitId: newUnit.value }));
+    return newUnit;
+  };
+
+  const handleAddNewSupplier = (newRecord) => {
+    const newSup = { value: `sup_${Date.now()}`, label: newRecord.name };
+    setSupplierOptions((prev) => [...prev, newSup]);
+    setFormData((prev) => ({ ...prev, supplierId: newSup.value }));
+    return newSup;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const selectedCat = categoryOptions.find((c) => c.value === formData.categoryId);
@@ -120,45 +154,70 @@ export const ProductFormModal = ({
           </div>
           <div className="col-12 col-md-4">
             <Input
-              label="Ichki Kodi (Nomenklatura SKU)"
+              label="Ichki Kodi"
               placeholder="SKU-ST-1001"
               value={formData.internalCode}
               onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
               required
             />
           </div>
+
+          {/* Dynamic Category Select */}
           <div className="col-12 col-md-6">
-            <Select
-              label="Kategoriya (Sozlamalardan Dinamik)"
+            <DynamicSelect
+              label="Kategoriya"
               value={formData.categoryId}
               onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
               options={categoryOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS_CATEGORIES}
+              onAddNew={handleAddNewCategory}
+              entityTitle="Kategoriya"
+              required
             />
           </div>
+
+          {/* Dynamic Material Type Select */}
           <div className="col-12 col-md-6">
-            <Select
-              label="Material Turi (Sozlamalardan Dinamik)"
+            <DynamicSelect
+              label="Material Turi"
               value={formData.materialTypeId}
               onChange={(e) => setFormData({ ...formData, materialTypeId: e.target.value })}
               options={materialOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS}
+              onAddNew={handleAddNewMaterial}
+              entityTitle="Material Turi"
+              required
             />
           </div>
+
+          {/* Dynamic Unit Select */}
           <div className="col-12 col-md-6">
-            <Select
-              label="O'lchov Birligi (Dinamik)"
+            <DynamicSelect
+              label="O'lchov Birligi"
               value={formData.unitId}
               onChange={(e) => setFormData({ ...formData, unitId: e.target.value })}
               options={unitOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS_UNITS}
+              onAddNew={handleAddNewUnit}
+              entityTitle="O'lchov Birligi"
+              required
             />
           </div>
+
+          {/* Dynamic Supplier Select */}
           <div className="col-12 col-md-6">
-            <Select
-              label="Ta'minotchi Korxona (Dinamik)"
+            <DynamicSelect
+              label="Ta'minotchi Korxona"
               value={formData.supplierId}
               onChange={(e) => setFormData({ ...formData, supplierId: e.target.value })}
               options={supplierOptions}
+              managePath={ROUTES.PROTECTED.SUPPLIERS}
+              onAddNew={handleAddNewSupplier}
+              entityTitle="Ta'minotchi"
+              required
             />
           </div>
+
           <div className="col-12 col-md-4">
             <Input
               label="Xarid Narxi Stavkasi"
@@ -169,14 +228,20 @@ export const ProductFormModal = ({
               required
             />
           </div>
+
+          {/* Dynamic Currency Select */}
           <div className="col-12 col-md-4">
-            <Select
-              label="Valyuta (Dinamik)"
+            <DynamicSelect
+              label="Valyuta"
               value={formData.currency}
               onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
               options={currencyOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS_CURRENCY}
+              entityTitle="Valyuta"
+              required
             />
           </div>
+
           <div className="col-12 col-md-4">
             <Input
               label="Eng Kam Zaxira Chegarasi (Min Stock)"

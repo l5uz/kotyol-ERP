@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
+import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { Button } from '@/components/common/Button/Button';
 import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { ROUTES } from '@/constants/routes.constants';
 
 export const EmployeeFormModal = ({
   isOpen,
@@ -14,7 +16,12 @@ export const EmployeeFormModal = ({
   positions = [],
   salaryTypes = [],
 }) => {
-  const roleOptions = dynamicSettingsService.getRoleOptions();
+  const [roleOptions, setRoleOptions] = useState(dynamicSettingsService.getRoleOptions());
+  const [localPositions, setLocalPositions] = useState(positions);
+
+  useEffect(() => {
+    setLocalPositions(positions);
+  }, [positions]);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -39,7 +46,7 @@ export const EmployeeFormModal = ({
         phone: employee.phone || '',
         email: employee.email || '',
         passportNumber: employee.passportNumber || '',
-        positionId: employee.positionId || (positions[0]?.id || ''),
+        positionId: employee.positionId || (localPositions[0]?.id || ''),
         role: employee.role || (roleOptions[0]?.value || 'Administrator'),
         salaryTypeId: employee.salaryTypeId || (salaryTypes[0]?.id || ''),
         salaryAmount: employee.salaryAmount || '',
@@ -54,7 +61,7 @@ export const EmployeeFormModal = ({
         phone: '+998 ',
         email: '',
         passportNumber: '',
-        positionId: positions[0]?.id || '',
+        positionId: localPositions[0]?.id || '',
         role: roleOptions[0]?.value || 'Administrator',
         salaryTypeId: salaryTypes[0]?.id || '',
         salaryAmount: '',
@@ -63,11 +70,29 @@ export const EmployeeFormModal = ({
         notes: '',
       });
     }
-  }, [employee, positions, salaryTypes, isOpen]);
+  }, [employee, localPositions, salaryTypes, isOpen]);
+
+  const handleAddNewPosition = (newRecord) => {
+    const newPos = {
+      id: `pos_${Date.now()}`,
+      name: newRecord.name,
+      description: newRecord.description || '',
+    };
+    setLocalPositions((prev) => [...prev, newPos]);
+    setFormData((prev) => ({ ...prev, positionId: newPos.id }));
+    return { value: newPos.id, label: newPos.name };
+  };
+
+  const handleAddNewRole = (newRecord) => {
+    const newRole = { value: newRecord.name, label: newRecord.name };
+    setRoleOptions((prev) => [...prev, newRole]);
+    setFormData((prev) => ({ ...prev, role: newRole.value }));
+    return newRole;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const selectedPos = positions.find((p) => p.id === formData.positionId);
+    const selectedPos = localPositions.find((p) => p.id === formData.positionId);
     const selectedSal = salaryTypes.find((s) => s.id === formData.salaryTypeId);
 
     onSubmit({
@@ -141,22 +166,35 @@ export const EmployeeFormModal = ({
               required
             />
           </div>
+
+          {/* Dynamic Position Selector */}
           <div className="col-12 col-md-6">
-            <Select
-              label="Lavozimi (Dinamik)"
+            <DynamicSelect
+              label="Lavozimi"
               value={formData.positionId}
               onChange={(e) => setFormData({ ...formData, positionId: e.target.value })}
-              options={positions.map((p) => ({ value: p.id, label: p.name }))}
+              options={localPositions.map((p) => ({ value: p.id, label: p.name }))}
+              managePath={ROUTES.PROTECTED.EMPLOYEES_POSITIONS}
+              onAddNew={handleAddNewPosition}
+              entityTitle="Lavozim"
+              required
             />
           </div>
+
+          {/* Dynamic Role Selector */}
           <div className="col-12 col-md-6">
-            <Select
-              label="Tizim Roli (Sozlamalardan Dinamik)"
+            <DynamicSelect
+              label="Tizim Roli"
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               options={roleOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS_ROLES}
+              onAddNew={handleAddNewRole}
+              entityTitle="Tizim Roli"
+              required
             />
           </div>
+
           <div className="col-12 col-md-6">
             <Select
               label="Oylik Maosh Turi"

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/common/Card/Card';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
-import { EmployeeSubNav } from '../components/EmployeeSubNav';
 import { EmployeeActivityTimeline } from '../components/EmployeeActivityTimeline';
 import { employeesApi } from '../api/employeesApi';
 
@@ -19,7 +18,6 @@ export const EmployeeActivityPage = () => {
 
   return (
     <div className="employee-activity-page animate-fade-in pb-5">
-      <EmployeeSubNav />
 
       <PageHeader
         title="Xodimlar Ish Faolligi va Harakatlar Jurnali"

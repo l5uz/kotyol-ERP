@@ -4,7 +4,6 @@ import { LuChevronLeft, LuArrowLeftRight } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Timeline } from '@/components/common/Timeline/Timeline';
-import { WarehouseSubNav } from '../components/WarehouseSubNav';
 import { warehouseApi } from '../api/warehouseApi';
 import { ROUTES } from '@/constants/routes.constants';
 
@@ -27,7 +26,6 @@ export const MovementDetailPage = () => {
   if (isLoading || !movement) {
     return (
       <div className="movement-detail-page animate-fade-in pb-5">
-        <WarehouseSubNav />
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Yuklanmoqda...</span>
@@ -56,7 +54,6 @@ export const MovementDetailPage = () => {
 
   return (
     <div className="movement-detail-page animate-fade-in pb-5">
-      <WarehouseSubNav />
 
       <PageHeader
         title={`Ombor Harakati Tafsiloti: ${movement.movementNumber}`}
@@ -111,11 +108,11 @@ export const MovementDetailPage = () => {
                 <strong className="text-success fs-5">{movement.quantity} {movement.unitName}</strong>
               </div>
               <div>
-                <small className="text-muted-custom d-block">Operatsiya Sababi (Dinamik):</small>
+                <small className="text-muted-custom d-block">Operatsiya Sababi:</small>
                 <strong className="text-main">{movement.reason}</strong>
               </div>
               <div>
-                <small className="text-muted-custom d-block">Mas'ul Xodim (User):</small>
+                <small className="text-muted-custom d-block">Mas'ul Xodim:</small>
                 <strong className="text-main">{movement.createdBy}</strong>
               </div>
             </div>
@@ -129,7 +126,7 @@ export const MovementDetailPage = () => {
               <p className="fs-7 text-main mb-0">{movement.notes || 'Qo\'shimcha izoh kiritilmagan.'}</p>
             </Card>
 
-            <Card title="Operatsiyaning Ishchi Taymlayni (Timeline)">
+            <Card title="Operatsiyaning Ishchi Taymlayni">
               <Timeline items={timelineItems} />
             </Card>
           </div>

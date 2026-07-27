@@ -2,114 +2,146 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
-import { Button } from '@/components/common/Button/Button';
+import { suppliersApi } from '../api/suppliersApi';
 
-export const SupplierFormModal = ({ isOpen, onClose, onSubmit, supplier = null }) => {
+export const SupplierFormModal = ({ isOpen, onClose, supplier, onSave }) => {
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
-    companyName: '',
+    name: '',
+    categoryId: '',
     contactPerson: '',
     phone: '',
     email: '',
     address: '',
-    tin: '',
     status: 'ACTIVE',
-    notes: '',
   });
+
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   useEffect(() => {
     if (supplier) {
       setFormData({
-        companyName: supplier.companyName || '',
+        name: supplier.name || '',
+        categoryId: supplier.categoryId || '',
         contactPerson: supplier.contactPerson || '',
         phone: supplier.phone || '',
         email: supplier.email || '',
         address: supplier.address || '',
-        tin: supplier.tin || '',
         status: supplier.status || 'ACTIVE',
-        notes: supplier.notes || '',
       });
     } else {
       setFormData({
-        companyName: '',
+        name: '',
+        categoryId: '',
         contactPerson: '',
-        phone: '+998 ',
+        phone: '',
         email: '',
         address: '',
-        tin: '',
         status: 'ACTIVE',
-        notes: '',
       });
     }
+    setErrors({});
   }, [supplier, isOpen]);
 
-  const handleSubmit = (e) => {
+  const loadCategories = async () => {
+    const res = await suppliersApi.getSupplierCategories();
+    if (res.success) setCategories(res.data);
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!formData.name.trim()) errs.name = "Ta'minotchi korxona nomini kiriting";
+    if (!formData.categoryId) errs.categoryId = 'Kategoriyani tanlang';
+    if (!formData.contactPerson.trim()) errs.contactPerson = "Mas'ul shaxs ismini kiriting";
+    if (!formData.phone.trim()) errs.phone = 'Telefon raqamini kiriting';
+    return errs;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    if (supplier) {
+      await suppliersApi.updateSupplier(supplier.id, formData);
+    } else {
+      await suppliersApi.createSupplier(formData);
+    }
+
+    onSave();
+    onClose();
   };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={supplier ? "Ta'minotchi Ma'lumotlarini Tahrirlash" : "Yangi Ta'minotchi Qo'shish"}
-      size="lg"
-      footer={
-        <div className="d-flex justify-content-end gap-2 w-100">
-          <Button variant="outline-secondary" size="sm" onClick={onClose}>
-            Bekor qilish
-          </Button>
-          <Button variant="primary" size="sm" onClick={handleSubmit}>
-            {supplier ? 'Saqlash' : "Qo'shish"}
-          </Button>
-        </div>
-      }
+      title={supplier ? "Ta'minotchi Korxonani Tahrirlash" : "Yangi Ta'minotchi Korxona Qo'shish"}
     >
-      <form onSubmit={handleSubmit}>
-        <div className="row g-3">
+      <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
+        <Input
+          label="Korxona Nomi"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          error={errors.name}
+          placeholder="Masalan: Steel Supply MChJ"
+          required
+        />
+
+        <Select
+          label="Ta'minot Kategoriya Turi"
+          value={formData.categoryId}
+          onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+          error={errors.categoryId}
+          options={[
+            { value: '', label: 'Kategoriyani Tanlang' },
+            ...categories.map((c) => ({ value: c.id, label: c.name })),
+          ]}
+          required
+        />
+
+        <div className="row g-2">
           <div className="col-12 col-md-6">
             <Input
-              label="Ta'minotchi Korxona Nomi"
-              placeholder="Toshkent Po'lat Sanoat MCHJ"
-              value={formData.companyName}
-              onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-              required
-            />
-          </div>
-          <div className="col-12 col-md-6">
-            <Input
-              label="Mas'ul Shaxs (Contact Person)"
-              placeholder="Akmal Karimov"
+              label="Mas'ul Shaxs"
               value={formData.contactPerson}
               onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+              error={errors.contactPerson}
+              placeholder="Ism Familiya"
               required
             />
           </div>
+
           <div className="col-12 col-md-6">
             <Input
               label="Telefon Raqami"
-              placeholder="+998 71 234 56 78"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              error={errors.phone}
+              placeholder="+998 90 123 45 67"
               required
             />
           </div>
+        </div>
+
+        <div className="row g-2">
           <div className="col-12 col-md-6">
             <Input
-              label="Email Manzili"
-              placeholder="info@supplier.uz"
+              label="Elektron Pochta"
+              type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="info@steelsupply.uz"
             />
           </div>
-          <div className="col-12 col-md-6">
-            <Input
-              label="STIR / TIN Raqami"
-              placeholder="302987654"
-              value={formData.tin}
-              onChange={(e) => setFormData({ ...formData, tin: e.target.value })}
-              required
-            />
-          </div>
+
           <div className="col-12 col-md-6">
             <Select
               label="Status"
@@ -121,24 +153,22 @@ export const SupplierFormModal = ({ isOpen, onClose, onSubmit, supplier = null }
               ]}
             />
           </div>
-          <div className="col-12">
-            <Input
-              label="Yuridik va Ombor Manzili"
-              placeholder="Toshkent viloyati, Chirchiq sanoat zonasi"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            />
-          </div>
-          <div className="col-12">
-            <label className="form-label fs-7 fw-medium text-main">Qo'shimcha Izoh va Shartnoma Shartlari</label>
-            <textarea
-              className="form-control fs-7"
-              rows="3"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Yetkazish muddatlari, shartnoma raqami..."
-            ></textarea>
-          </div>
+        </div>
+
+        <Input
+          label="Yuridik va Pochta Manzili"
+          value={formData.address}
+          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          placeholder="Shahar, tuman, ko'cha nomi"
+        />
+
+        <div className="d-flex justify-content-end gap-2 pt-3 border-top border-custom mt-2">
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onClose}>
+            Bekor Qilish
+          </button>
+          <button type="submit" className="btn btn-primary btn-sm">
+            Saqlash
+          </button>
         </div>
       </form>
     </Modal>

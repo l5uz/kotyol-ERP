@@ -7,7 +7,6 @@ import { Button } from '@/components/common/Button/Button';
 import { SearchInput } from '@/components/common/SearchInput/SearchInput';
 import { Select } from '@/components/common/Select/Select';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
-import { WarehouseSubNav } from '../components/WarehouseSubNav';
 import { MovementFormModal } from '../components/MovementFormModal';
 import { warehouseApi } from '../api/warehouseApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
@@ -89,10 +88,9 @@ export const MovementsPage = () => {
 
   return (
     <div className="movements-page animate-fade-in pb-5">
-      <WarehouseSubNav />
 
       <PageHeader
-        title="Ombor Harakatlari Jurnali (Stock Movements Log)"
+        title="Ombor Harakatlari Jurnali"
         subtitle="Xomashyo va mahsulotlarning kirim, chiqim, sarf va ko'chirish operatsiyalari"
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },

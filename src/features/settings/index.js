@@ -1,4 +1,3 @@
-export * from './pages/SettingsPage';
 export * from './pages/CompanySettingsPage';
 export * from './pages/CurrencySettingsPage';
 export * from './pages/WarehouseSettingsPage';
@@ -12,3 +11,7 @@ export * from './pages/InsuranceTypesSettingsPage';
 export * from './pages/ProductionStagesSettingsPage';
 export * from './pages/RolesSettingsPage';
 export * from './pages/PermissionsSettingsPage';
+export * from './pages/MasterDataManagementPage';
+export * from './pages/BranchesManagementPage';
+export * from './pages/BranchesStatisticsPage';
+

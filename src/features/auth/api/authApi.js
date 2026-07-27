@@ -1,37 +1,75 @@
-import { MOCK_USER_PROFILE } from '../constants/auth.mock';
+import { axiosInstance } from '@/api/axiosInstance';
 
 export const authApi = {
-  login: async ({ username, password, rememberMe }) => {
-    // Simulated async network request to backend /auth/login
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
+  login: async ({ username, password }) => {
     if (!username || !password) {
       throw new Error('Foydalanuvchi nomi va parol kiritilishi shart');
     }
 
-    if (password.length < 6) {
-      throw new Error("Parol kamida 6 ta belgidan iborat bo'lishi kerak");
+    const response = await axiosInstance.post('/auth/login', { username, password });
+    const backendData = response.data;
+    
+    const role = backendData.user.role;
+    let permissions = [];
+    if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+      permissions = [
+        'MANAGE_USERS',
+        'VIEW_FINANCE',
+        'MANAGE_PRODUCTION',
+        'MANAGE_WAREHOUSE',
+        'MANAGE_SALES',
+        'VIEW_REPORTS',
+      ];
+    } else if (role === 'PRODUCTION_OPERATOR') {
+      permissions = ['MANAGE_PRODUCTION'];
+    } else if (role === 'WAREHOUSE_KEEPER') {
+      permissions = ['MANAGE_WAREHOUSE'];
+    } else {
+      permissions = ['VIEW_REPORTS'];
     }
+
+    const user = {
+      id: backendData.user.id,
+      username: backendData.user.username || username,
+      name: backendData.user.full_name,
+      email: backendData.user.email,
+      phone: backendData.user.phone || username,
+      role: role,
+      roleCode: role,
+      department: backendData.user.department || 'Boshqaruv',
+      organizationName: backendData.user.organization_name,
+      branchName: backendData.user.branch_name,
+      organization_id: backendData.user.organization_id,
+      branch_id: backendData.user.branch_id,
+      permissions,
+      status: 'ACTIVE',
+    };
 
     return {
       success: true,
-      user: {
-        ...MOCK_USER_PROFILE,
-        username,
-      },
-      accessToken: 'mock_jwt_access_token_xyz987654321',
-      refreshToken: 'mock_jwt_refresh_token_abc123456789',
-      expiresIn: 3600,
+      user,
+      accessToken: backendData.access_token,
+      refreshToken: backendData.refresh_token,
     };
   },
 
-  forgotPassword: async (identifier) => {
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
-    if (!identifier) {
-      throw new Error("Foydalanuvchi nomi yoki email kiritilishi shart");
+  register: async ({ phone, password, fullName, organizationName, branchName, currency }) => {
+    if (!phone || !password || !fullName || !organizationName || !branchName || !currency) {
+      throw new Error('Barcha maydonlarni to\'ldirish majburiy');
     }
 
+    const response = await axiosInstance.post('/auth/register', {
+      phone,
+      password,
+      full_name: fullName,
+      organization_name: organizationName,
+      branch_name: branchName,
+      currency,
+    });
+    return response.data;
+  },
+
+  forgotPassword: async (identifier) => {
     return {
       success: true,
       message: "Parolni tiklash yo'riqnomasi ko'rsatilgan email manziliga yuborildi.",
@@ -39,20 +77,6 @@ export const authApi = {
   },
 
   changePassword: async ({ currentPassword, newPassword, confirmPassword }) => {
-    await new Promise((resolve) => setTimeout(resolve, 700));
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      throw new Error("Barcha parol maydonlari to'ldirilishi shart");
-    }
-
-    if (newPassword !== confirmPassword) {
-      throw new Error("Yangi parol va tasdiqlash paroli mos kelmadi");
-    }
-
-    if (newPassword.length < 6) {
-      throw new Error("Yangi parol kamida 6 ta belgidan iborat bo'lishi kerak");
-    }
-
     return {
       success: true,
       message: "Parol muvaffaqiyatli o'zgartirildi.",
@@ -60,16 +84,14 @@ export const authApi = {
   },
 
   updateProfile: async (updates) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
     return {
       success: true,
-      user: { ...MOCK_USER_PROFILE, ...updates },
+      user: updates,
       message: "Profil ma'lumotlari muvaffaqiyatli yangilandi.",
     };
   },
 
   logout: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
     return { success: true };
   },
 };

@@ -2,54 +2,130 @@ import React, { useState } from 'react';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
-import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
-import { SearchInput } from '@/components/common/SearchInput/SearchInput';
+import { Input } from '@/components/common/Input/Input';
+import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Modal } from '@/components/common/Modal/Modal';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
-import { Input } from '@/components/common/Input/Input';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { MOCK_PRODUCT_CATEGORIES } from '../constants/settings.mock';
+import { dataIntegrityService } from '@/services/dataIntegrity.service';
 import { notifySuccess } from '@/services/notification.service';
-import { ERP_ICONS } from '@/shared/icons';
+import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const CategoriesSettingsPage = () => {
   const [categories, setCategories] = useState(MOCK_PRODUCT_CATEGORIES);
-  const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [editingCat, setEditingCat] = useState(null);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
 
-  const filtered = categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
+  const [deletingCat, setDeletingCat] = useState(null);
+  const [blockedReason, setBlockedReason] = useState(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  const handleOpenModal = (cat = null) => {
+    setEditingCat(cat);
+    if (cat) {
+      setName(cat.name);
+      setDescription(cat.description || '');
+    } else {
+      setName('');
+      setDescription('');
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    if (editingCat) {
+      setCategories((prev) =>
+        prev.map((c) => (c.id === editingCat.id ? { ...c, name, description } : c))
+      );
+      notifySuccess("Kategoriya tahrirlandi.");
+    } else {
+      const newCat = {
+        id: `cat_${Date.now()}`,
+        name,
+        description,
+        status: 'ACTIVE',
+      };
+      setCategories((prev) => [...prev, newCat]);
+      notifySuccess("Yangi kategoriya qo'shildi.");
+    }
+
+    setIsModalOpen(false);
+  };
+
+  const handlePromptDelete = (cat) => {
+    setDeletingCat(cat);
+    const integrityCheck = dataIntegrityService.canDelete('CATEGORY', cat.id);
+    if (!integrityCheck.allowed) {
+      setBlockedReason(integrityCheck.reason);
+    } else {
+      setBlockedReason(null);
+    }
+    setIsConfirmOpen(true);
+  };
+
+  const handleHardDelete = () => {
+    if (deletingCat) {
+      setCategories((prev) => prev.filter((c) => c.id !== deletingCat.id));
+      notifySuccess("Kategoriya o'chirildi.");
+      setIsConfirmOpen(false);
+      setDeletingCat(null);
+    }
+  };
+
+  const handleSoftDelete = () => {
+    if (deletingCat) {
+      setCategories((prev) =>
+        prev.map((c) => (c.id === deletingCat.id ? { ...c, status: 'INACTIVE' } : c))
+      );
+      notifySuccess("Kategoriya 'NOFAOL' deb belgilandi.");
+      setIsConfirmOpen(false);
+      setDeletingCat(null);
+    }
+  };
 
   const columns = [
     {
-      header: 'Rang va Icon',
+      header: 'Kategoriya Nomi',
       cell: (row) => (
-        <div className="d-flex align-items-center gap-2">
-          <div
-            className="rounded p-2 text-white d-flex align-items-center justify-content-center"
-            style={{ backgroundColor: row.color, width: '32px', height: '32px' }}
-          >
-            <i className={`bi ${row.icon}`}></i>
-          </div>
+        <div>
+          <strong className="text-main fs-7">{row.name}</strong>
+          <small className="d-block text-muted-custom fs-8">{row.description}</small>
         </div>
       ),
     },
-    { header: 'Kategoriya Nomi', accessor: 'name' },
-    { header: 'Tavsifi', accessor: 'description' },
-    { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
+    {
+      header: 'Status',
+      cell: (row) => (
+        <span className={`badge ${row.status === 'INACTIVE' ? 'bg-secondary' : 'bg-success'} fs-8`}>
+          {row.status === 'INACTIVE' ? 'Nofaol' : 'Faol'}
+        </span>
+      ),
+    },
     {
       header: 'Amallar',
       cell: (row) => (
-        <button
-          className="btn btn-sm btn-outline-danger p-1 border-0"
-          onClick={() => {
-            setSelectedCategory(row);
-            setIsConfirmOpen(true);
-          }}
-        >
-          <i className={`bi ${ERP_ICONS.TRASH}`}></i>
-        </button>
+        <div className="d-flex align-items-center gap-1">
+          <button
+            className="btn btn-sm btn-outline-secondary p-1 border-0"
+            onClick={() => handleOpenModal(row)}
+            title="Tahrirlash"
+          >
+            <LuPencil />
+          </button>
+          <button
+            className="btn btn-sm btn-outline-danger p-1 border-0"
+            onClick={() => handlePromptDelete(row)}
+            title="O'chirish"
+          >
+            <LuTrash2 />
+          </button>
+        </div>
       ),
     },
   ];
@@ -58,63 +134,75 @@ export const CategoriesSettingsPage = () => {
     <div className="categories-settings-page animate-fade-in pb-5">
       <SettingsSubNav />
 
-      <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-2">
-        <div>
-          <h4 className="fw-bold text-main mb-1">Mahsulot Kategoriyalari</h4>
-          <p className="text-muted-custom fs-7 mb-0">Xomashyo va tayyor mahsulotlar toifalari boshqaruvi</p>
-        </div>
-        <div className="d-flex gap-2">
-          <SearchInput value={search} onChange={setSearch} placeholder="Kategoriyalar bo'yicha qidiruv..." />
-          <Button variant="primary" size="sm" icon={ERP_ICONS.PLUS} onClick={() => setIsModalOpen(true)}>
-            Kategoriya Yaratish
+      <PageHeader
+        title="Mahsulot va Xomashyo Kategoriyalari"
+        subtitle="Nomenklaturani guruhlash va hisobini yuritish kategoriyalari"
+        breadcrumbs={[
+          { label: 'Bosh sahifa', path: '/' },
+          { label: 'Sozlamalar', path: '/settings' },
+          { label: 'Kategoriyalar' },
+        ]}
+        actions={
+          <Button variant="primary" size="sm" onClick={() => handleOpenModal()}>
+            <LuPlus className="me-1" /> Yangi Kategoriya
           </Button>
-        </div>
-      </div>
+        }
+      />
 
-      <Card title="Kategoriyalar Reyestri">
-        <Table columns={columns} data={filtered} />
+      <Card title={`Kategoriyalar Ro'yxati (${categories.length} ta)`}>
+        <Table columns={columns} data={categories} />
       </Card>
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Yangi Kategoriya Yaratish"
+        title={editingCat ? "Kategoriyani Tahrirlash" : "Yangi Kategoriya Qo'shish"}
+        size="md"
         footer={
           <div className="d-flex justify-content-end gap-2 w-100">
             <Button variant="outline-secondary" size="sm" onClick={() => setIsModalOpen(false)}>
               Bekor qilish
             </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                notifySuccess("Yangi kategoriya qo'shildi.");
-                setIsModalOpen(false);
-              }}
-            >
+            <Button variant="primary" size="sm" onClick={handleSubmit}>
               Saqlash
             </Button>
           </div>
         }
       >
-        <Input label="Kategoriya Nomi" placeholder="Po'lat armaturalar" />
-        <Input label="Tavsifi" placeholder="B-sex uchun armaturalar" />
-        <Input label="Rang kodi (#0d6efd)" defaultValue="#0d6efd" />
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <Input
+              label="Kategoriya Nomi"
+              placeholder="Metallar va Po'latlar"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label fs-7 fw-medium text-main">Tavsifi</label>
+            <textarea
+              className="form-control fs-7"
+              rows="3"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Guruhga tegishli mahsulotlar izohi..."
+            ></textarea>
+          </div>
+        </form>
       </Modal>
 
       <ConfirmDialog
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
-        onConfirm={() => {
-          setCategories(categories.filter((c) => c.id !== selectedCategory?.id));
-          notifySuccess("Kategoriya o'chirib tashlandi.");
-          setIsConfirmOpen(false);
-        }}
+        onConfirm={handleHardDelete}
+        onSoftDelete={handleSoftDelete}
         title="Kategoriyani O'chirish"
-        message={`Haqiqatan ham '${selectedCategory?.name}' kategoriyasini o'chirib tashlamoqchimisiz?`}
+        message={`Haqiqatan ham '${deletingCat?.name}' kategoriyasi o'chirilsinmi?`}
+        blockedReason={blockedReason}
         isDanger={true}
         confirmText="O'chirish"
-        cancelText="Bekor qilish"
+        cancelText="Yopish"
       />
     </div>
   );

@@ -1,2 +1,10 @@
-// Finance Feature Module Re-exports
 export * from './pages/FinancePage';
+export * from './pages/ExpensesPage';
+export * from './pages/IncomesPage';
+export * from './pages/FinanceDetailPage';
+export * from './components/FinanceSubNav';
+export * from './components/FinanceFilterBar';
+export * from './components/ExpenseFormModal';
+export * from './components/FinanceCharts';
+export * from './api/financeApi';
+export * from './constants/finance.mock';

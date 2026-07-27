@@ -4,7 +4,6 @@ import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
-import { WarehouseSubNav } from '../components/WarehouseSubNav';
 import { RevaluationFormModal } from '../components/RevaluationFormModal';
 import { warehouseApi } from '../api/warehouseApi';
 import { notifySuccess } from '@/services/notification.service';
@@ -45,24 +44,23 @@ export const RevaluationPage = () => {
       cell: (row) => <strong className="text-primary">${row.newPrice.toFixed(2)}</strong>,
     },
     {
-      header: 'Farq (Diff)',
+      header: 'Farq',
       cell: (row) => (
         <span className={`fw-bold ${row.priceDifference >= 0 ? 'text-success' : 'text-danger'}`}>
           {row.priceDifference >= 0 ? `+$${row.priceDifference.toFixed(2)}` : `-$${Math.abs(row.priceDifference).toFixed(2)}`}
         </span>
       ),
     },
-    { header: 'Qayta Baholash Sababi (Dinamik)', accessor: 'reason' },
+    { header: 'Qayta Baholash Sababi', accessor: 'reason' },
     { header: 'Bajaruvchi Xodim', accessor: 'createdBy' },
     { header: 'Sana', accessor: 'createdDate' },
   ];
 
   return (
     <div className="revaluation-page animate-fade-in pb-5">
-      <WarehouseSubNav />
 
       <PageHeader
-        title="Qayta Baholash Jurnali (Stock Revaluation Log)"
+        title="Qayta Baholash Jurnali"
         subtitle="Xomashyo va mahsulotlar birlik tannarxini bozor narxlariga mos ravishda qayta baholash"
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },

@@ -4,7 +4,6 @@ import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
-import { WarehouseSubNav } from '../components/WarehouseSubNav';
 import { InventoryCountModal } from '../components/InventoryCountModal';
 import { warehouseApi } from '../api/warehouseApi';
 import { notifySuccess } from '@/services/notification.service';
@@ -45,14 +44,14 @@ export const InventoryCountPage = () => {
       cell: (row) => <strong className="text-main">{row.actualQuantity} {row.unitName}</strong>,
     },
     {
-      header: 'Farq (Difference)',
+      header: 'Farq',
       cell: (row) => (
         <span className={`fw-bold ${row.difference < 0 ? 'text-danger' : row.difference > 0 ? 'text-success' : 'text-main'}`}>
           {row.difference > 0 ? `+${row.difference}` : row.difference} {row.unitName}
         </span>
       ),
     },
-    { header: 'Sanoq Sababi (Dinamik)', accessor: 'reason' },
+    { header: 'Sanoq Sababi', accessor: 'reason' },
     {
       header: 'Status',
       cell: (row) => <span className="badge bg-success bg-opacity-10 text-success">Moslashtirildi</span>,
@@ -62,10 +61,9 @@ export const InventoryCountPage = () => {
 
   return (
     <div className="inventory-count-page animate-fade-in pb-5">
-      <WarehouseSubNav />
 
       <PageHeader
-        title="Inventarizatsiya va Sanoq Natijalari (Inventory Count Audit)"
+        title="Inventarizatsiya va Sanoq Natijalari"
         subtitle="Ombordagi fizik sanoq miqdorini tizimdagi balans bilan solishtirish va avtomatik moslashtirish"
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },

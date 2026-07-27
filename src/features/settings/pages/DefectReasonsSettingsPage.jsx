@@ -22,9 +22,9 @@ export const DefectReasonsSettingsPage = () => {
       header: 'Moliyaga Ta\'siri',
       cell: (row) =>
         row.affectsFinance ? (
-          <span className="badge bg-danger bg-opacity-10 text-danger fw-semibold">Ha (Chiqim qilinadi)</span>
+          <span className="badge bg-danger bg-opacity-10 text-danger fw-semibold">Ha — Chiqim qilinadi</span>
         ) : (
-          <span className="badge bg-secondary bg-opacity-10 text-secondary fw-semibold">Yo'q (Qayta ishlanadi)</span>
+          <span className="badge bg-secondary bg-opacity-10 text-secondary fw-semibold">Yo'q — Qayta ishlanadi</span>
         ),
     },
     { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
@@ -75,8 +75,8 @@ export const DefectReasonsSettingsPage = () => {
         <Select
           label="Moliyaviy Chiqimga Ta'siri"
           options={[
-            { value: 'true', label: "Ha (Poymol/Chiqim hisoblanadi)" },
-            { value: 'false', label: "Yo'q (Qayta eritiladi/qayta ishlanadi)" },
+            { value: 'true', label: "Ha — Chiqim hisoblanadi" },
+            { value: 'false', label: "Yo'q — Qayta ishlanadi" },
           ]}
         />
       </Modal>

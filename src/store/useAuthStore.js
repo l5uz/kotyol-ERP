@@ -1,24 +1,39 @@
 import { create } from 'zustand';
 import { tokenService } from '@/api/tokenService';
-import { MOCK_USER_PROFILE } from '@/features/auth/constants/auth.mock';
 import { authApi } from '@/features/auth/api/authApi';
 
+const getStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user_profile') || 'null');
+  } catch {
+    return null;
+  }
+};
+
+const initialUser = tokenService.getAccessToken() ? getStoredUser() : null;
+
 export const useAuthStore = create((set, get) => ({
-  user: tokenService.getAccessToken() ? MOCK_USER_PROFILE : null,
+  user: initialUser,
   accessToken: tokenService.getAccessToken(),
   refreshToken: tokenService.getRefreshToken(),
-  role: tokenService.getAccessToken() ? MOCK_USER_PROFILE.roleCode : null,
-  permissions: tokenService.getAccessToken() ? MOCK_USER_PROFILE.permissions : [],
+  role: initialUser ? initialUser.roleCode : null,
+  permissions: initialUser ? initialUser.permissions : [],
   isAuthenticated: !!tokenService.getAccessToken(),
   isLoading: false,
 
   setLoading: (isLoading) => set({ isLoading }),
+
+  setAuthTokens: (accessToken, refreshToken) => {
+    tokenService.setTokens(accessToken, refreshToken);
+    set({ accessToken, refreshToken, isAuthenticated: !!accessToken });
+  },
 
   login: async ({ username, password, rememberMe }) => {
     set({ isLoading: true });
     try {
       const response = await authApi.login({ username, password, rememberMe });
       tokenService.setTokens(response.accessToken, response.refreshToken);
+      localStorage.setItem('user_profile', JSON.stringify(response.user));
 
       set({
         isAuthenticated: true,
@@ -44,6 +59,7 @@ export const useAuthStore = create((set, get) => ({
       // Ignore logout API failures
     } finally {
       tokenService.clearTokens();
+      localStorage.removeItem('user_profile');
       set({
         isAuthenticated: false,
         user: null,
@@ -57,7 +73,11 @@ export const useAuthStore = create((set, get) => ({
   },
 
   updateUserProfile: (updates) =>
-    set((state) => ({
-      user: state.user ? { ...state.user, ...updates } : null,
-    })),
+    set((state) => {
+      const newUser = state.user ? { ...state.user, ...updates } : null;
+      if (newUser) {
+        localStorage.setItem('user_profile', JSON.stringify(newUser));
+      }
+      return { user: newUser };
+    }),
 }));

@@ -16,7 +16,7 @@ export const WarrantyTypesSettingsPage = () => {
 
   const columns = [
     { header: 'Kafolat Turi Nomi', accessor: 'name' },
-    { header: 'Muddati (Oy)', cell: (row) => <span className="fw-bold text-main">{row.duration} oy</span> },
+    { header: 'Muddati', cell: (row) => <span className="fw-bold text-main">{row.duration} oy</span> },
     { header: 'Kafolat Shartlari Tavsifi', accessor: 'description' },
     { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
   ];
@@ -62,7 +62,7 @@ export const WarrantyTypesSettingsPage = () => {
         }
       >
         <Input label="Kafolat Nomi" placeholder="6 Oylik Sinov Kafolati" />
-        <Input label="Muddati (Oylarda)" placeholder="6" type="number" />
+        <Input label="Muddati" placeholder="6" type="number" />
         <Input label="Tavsifi" placeholder="Ehtiyot qismlarga 6 oylik almashtirish kafolati" />
       </Modal>
     </div>

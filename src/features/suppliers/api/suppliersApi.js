@@ -1,9 +1,24 @@
-import { MOCK_SUPPLIERS, MOCK_SUPPLIER_ACTIVITIES } from '../constants/suppliers.mock';
+import { axiosInstance } from '@/api/axiosInstance';
+
+const mapSupplier = (item) => {
+  if (!item) return null;
+  return {
+    id: item.id,
+    companyName: item.name,
+    contactPerson: item.contact_name || '',
+    phone: item.phone || '',
+    email: item.email || '',
+    address: item.address || '',
+    tin: item.code || '',
+    status: item.status || 'ACTIVE',
+    notes: '',
+  };
+};
 
 export const suppliersApi = {
   getSuppliers: async (filters = {}) => {
-    await new Promise((res) => setTimeout(res, 300));
-    let result = [...MOCK_SUPPLIERS];
+    const response = await axiosInstance.get('/master-data/suppliers');
+    let result = (response.data || []).map(mapSupplier);
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -24,44 +39,59 @@ export const suppliersApi = {
   },
 
   getSupplierById: async (id) => {
-    await new Promise((res) => setTimeout(res, 250));
-    const supplier = MOCK_SUPPLIERS.find((s) => s.id === id) || MOCK_SUPPLIERS[0];
-    return { success: true, data: { ...supplier } };
+    const response = await axiosInstance.get('/master-data/suppliers');
+    const item = (response.data || []).find((s) => s.id === id);
+    return { success: true, data: mapSupplier(item) };
   },
 
   createSupplier: async (supplierData) => {
-    await new Promise((res) => setTimeout(res, 400));
-    const newSupplier = {
-      ...supplierData,
-      id: `sup_${Date.now()}`,
-      status: 'ACTIVE',
+    const payload = {
+      code: supplierData.tin || `SUP-${Date.now()}`,
+      name: supplierData.companyName,
+      contact_name: supplierData.contactPerson || '',
+      phone: supplierData.phone || '',
+      email: supplierData.email || '',
+      address: supplierData.address || '',
     };
-    MOCK_SUPPLIERS.unshift(newSupplier);
-    return { success: true, data: newSupplier, message: "Ta'minotchi muvaffaqiyatli saqlandi." };
+
+    const response = await axiosInstance.post('/master-data/suppliers', payload);
+    return { success: true, data: mapSupplier(response.data), message: "Ta'minotchi muvaffaqiyatli saqlandi." };
   },
 
   updateSupplier: async (id, supplierData) => {
-    await new Promise((res) => setTimeout(res, 400));
-    const index = MOCK_SUPPLIERS.findIndex((s) => s.id === id);
-    if (index !== -1) {
-      MOCK_SUPPLIERS[index] = { ...MOCK_SUPPLIERS[index], ...supplierData };
-    }
-    return { success: true, data: MOCK_SUPPLIERS[index], message: "Ta'minotchi ma'lumotlari yangilandi." };
+    const payload = {
+      code: supplierData.tin || undefined,
+      name: supplierData.companyName || undefined,
+      contact_name: supplierData.contactPerson !== undefined ? supplierData.contactPerson : undefined,
+      phone: supplierData.phone !== undefined ? supplierData.phone : undefined,
+      email: supplierData.email !== undefined ? supplierData.email : undefined,
+      address: supplierData.address !== undefined ? supplierData.address : undefined,
+      status: supplierData.status || undefined,
+    };
+
+    const response = await axiosInstance.put(`/master-data/suppliers/${id}`, payload);
+    return { success: true, data: mapSupplier(response.data), message: "Ta'minotchi ma'lumotlari yangilandi." };
   },
 
   deleteSupplier: async (id) => {
-    await new Promise((res) => setTimeout(res, 350));
-    const index = MOCK_SUPPLIERS.findIndex((s) => s.id === id);
-    if (index !== -1) MOCK_SUPPLIERS.splice(index, 1);
+    await axiosInstance.delete(`/master-data/suppliers/${id}`);
     return { success: true, message: "Ta'minotchi tizimdan o'chirildi." };
   },
 
   getSupplierActivities: async (supplierId = null) => {
-    await new Promise((res) => setTimeout(res, 250));
-    let result = [...MOCK_SUPPLIER_ACTIVITIES];
-    if (supplierId) {
-      result = result.filter((a) => a.supplierId === supplierId);
-    }
-    return { success: true, data: result };
+    return { success: true, data: [] };
+  },
+
+  getSupplierCategories: async () => {
+    return {
+      success: true,
+      data: [
+        { id: 'raw-materials', name: 'Xom ashyo' },
+        { id: 'components', name: 'Ehtiyot qismlar' },
+        { id: 'equipment', name: 'Uskunalar' },
+        { id: 'services', name: 'Xizmatlar' },
+        { id: 'logistics', name: 'Logistika' },
+      ],
+    };
   },
 };

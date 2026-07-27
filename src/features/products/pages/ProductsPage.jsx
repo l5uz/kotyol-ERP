@@ -94,7 +94,7 @@ export const ProductsPage = () => {
     { header: 'Ta\'minotchi', accessor: 'supplierName' },
     { header: 'Xarid Narxi', cell: (row) => <span className="fw-bold text-main">${row.purchasePrice.toFixed(2)}</span> },
     {
-      header: 'Zaxira (Stock)',
+      header: 'Zaxira',
       cell: (row) => (
         <div>
           <span className={`fw-bold fs-7 ${row.currentStock <= row.minStock ? 'text-danger' : 'text-success'}`}>

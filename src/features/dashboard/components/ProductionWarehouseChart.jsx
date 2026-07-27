@@ -30,8 +30,8 @@ export const ProductionWarehouseChart = () => {
               }}
             />
             <Legend />
-            <Bar name="Ishlab Chiqarilgan (Birlik)" dataKey="production" fill="var(--erp-primary)" radius={[4, 4, 0, 0]} />
-            <Bar name="Omborda Mavjud (Birlik)" dataKey="warehouse" fill="var(--erp-info)" radius={[4, 4, 0, 0]} />
+            <Bar name="Ishlab Chiqarilgan" dataKey="production" fill="var(--erp-primary)" radius={[4, 4, 0, 0]} />
+            <Bar name="Omborda Mavjud" dataKey="warehouse" fill="var(--erp-info)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

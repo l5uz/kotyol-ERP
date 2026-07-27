@@ -67,3 +67,17 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.7);
 }
+
+/* Sidebar & General Hover effects */
+.hover-bg-dark:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme='dark'] .hover-bg-dark:hover {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Force dark hover for elements that are always dark (like the main sidebar) */
+aside .hover-bg-dark:hover {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}

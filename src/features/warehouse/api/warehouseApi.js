@@ -1,20 +1,84 @@
+import { axiosInstance } from '@/api/axiosInstance';
 import {
   MOCK_WAREHOUSE_STATS,
-  MOCK_CURRENT_STOCK,
   MOCK_STOCK_MOVEMENTS,
   MOCK_REVALUATIONS,
   MOCK_INVENTORY_COUNTS,
 } from '../constants/warehouse.mock';
 
+const mapStock = (item) => {
+  if (!item) return null;
+  const qty = Number(item.quantity) || 0;
+  const cost = Number(item.avg_unit_cost) || 0;
+  return {
+    id: item.id,
+    productId: item.product_id,
+    productName: item.product_name,
+    internalCode: item.product_code,
+    warehouseId: item.warehouse_id,
+    warehouseName: item.warehouse_name || 'Asosiy Ombor',
+    quantity: qty,
+    reservedQuantity: Number(item.reserved_quantity) || 0,
+    availableQuantity: qty - (Number(item.reserved_quantity) || 0),
+    unitName: 'dona',
+    categoryId: 'cat_1',
+    categoryName: 'Isitish Kotyollari',
+    materialTypeName: 'Xomashyo',
+    minQuantity: 10,
+    purchasePrice: cost,
+    currentValue: qty * cost,
+    currency: 'USD',
+    status: 'ACTIVE',
+  };
+};
+
 export const warehouseApi = {
   getWarehouseStats: async () => {
-    await new Promise((res) => setTimeout(res, 250));
-    return { success: true, data: { ...MOCK_WAREHOUSE_STATS } };
+    const response = await axiosInstance.get('/warehouse/stock');
+    const items = response.data || [];
+    let totalProducts = items.length;
+    let totalValue = 0;
+    let lowStockCount = 0;
+    let outOfStockCount = 0;
+
+    items.forEach(item => {
+      const qty = Number(item.quantity) || 0;
+      const cost = Number(item.avg_unit_cost) || 0;
+      totalValue += qty * cost;
+      if (qty <= 0) {
+        outOfStockCount++;
+      } else if (qty <= 10) {
+        lowStockCount++;
+      }
+    });
+
+    if (totalProducts === 0) {
+      totalProducts = 0;
+      totalValue = 0.0;
+      lowStockCount = 0;
+      outOfStockCount = 0;
+    }
+
+    return {
+      success: true,
+      data: {
+        totalProducts,
+        totalStockValue: totalValue,
+        lowStockCount,
+        outOfStockCount,
+      }
+    };
   },
 
   getCurrentStock: async (filters = {}) => {
-    await new Promise((res) => setTimeout(res, 300));
-    let result = [...MOCK_CURRENT_STOCK];
+    const params = {
+      warehouse_id: filters.warehouseId || undefined,
+      page: 1,
+      limit: 100,
+    };
+
+    const response = await axiosInstance.get('/warehouse/stock', { params });
+    let result = (response.data || []).map(mapStock);
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -29,10 +93,6 @@ export const warehouseApi = {
       result = result.filter((s) => s.categoryId === filters.categoryId);
     }
 
-    if (filters.warehouseId) {
-      result = result.filter((s) => s.warehouseId === filters.warehouseId);
-    }
-
     if (filters.materialTypeId) {
       result = result.filter((s) => s.materialTypeId === filters.materialTypeId);
     }
@@ -45,14 +105,16 @@ export const warehouseApi = {
   },
 
   getStockById: async (id) => {
-    await new Promise((res) => setTimeout(res, 250));
-    const stock = MOCK_CURRENT_STOCK.find((s) => s.id === id || s.productId === id) || MOCK_CURRENT_STOCK[0];
-    return { success: true, data: { ...stock } };
+    const response = await axiosInstance.get('/warehouse/stock');
+    const item = (response.data || []).find((s) => s.id === id || s.product_id === id);
+    if (item) {
+      return { success: true, data: mapStock(item) };
+    }
+    return { success: true, data: null };
   },
 
-  // Stock Movements Endpoints
+  // Stock Movements Endpoints (Simulated)
   getMovements: async (filters = {}) => {
-    await new Promise((res) => setTimeout(res, 300));
     let result = [...MOCK_STOCK_MOVEMENTS];
 
     if (filters.search) {
@@ -72,51 +134,45 @@ export const warehouseApi = {
   },
 
   getMovementById: async (id) => {
-    await new Promise((res) => setTimeout(res, 250));
     const movement = MOCK_STOCK_MOVEMENTS.find((m) => m.id === id) || MOCK_STOCK_MOVEMENTS[0];
     return { success: true, data: { ...movement } };
   },
 
   createMovement: async (movementData) => {
-    await new Promise((res) => setTimeout(res, 400));
     const newMovement = {
       ...movementData,
       id: `mov_${Date.now()}`,
       movementNumber: `MOV-2026-${Math.floor(100 + Math.random() * 900)}`,
-      createdBy: 'Bobur Tursunov (Omborchi)',
+      createdBy: 'Bobur Tursunov',
       createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
     };
     MOCK_STOCK_MOVEMENTS.unshift(newMovement);
     return { success: true, data: newMovement, message: "Ombor harakati muvaffaqiyatli saqlandi." };
   },
 
-  // Revaluation Endpoints
+  // Revaluation Endpoints (Simulated)
   getRevaluations: async () => {
-    await new Promise((res) => setTimeout(res, 300));
     return { success: true, data: [...MOCK_REVALUATIONS] };
   },
 
   createRevaluation: async (revaluationData) => {
-    await new Promise((res) => setTimeout(res, 400));
     const newRev = {
       ...revaluationData,
       id: `rev_${Date.now()}`,
       priceDifference: revaluationData.newPrice - revaluationData.previousPrice,
-      createdBy: 'Nodira Qosimova (Bosh Hisobchi)',
+      createdBy: 'Nodira Qosimova',
       createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
     };
     MOCK_REVALUATIONS.unshift(newRev);
     return { success: true, data: newRev, message: "Qayta baholash muvaffaqiyatli saqlandi." };
   },
 
-  // Inventory Count Endpoints
+  // Inventory Count Endpoints (Simulated)
   getInventoryCounts: async () => {
-    await new Promise((res) => setTimeout(res, 300));
     return { success: true, data: [...MOCK_INVENTORY_COUNTS] };
   },
 
   createInventoryCount: async (countData) => {
-    await new Promise((res) => setTimeout(res, 400));
     const diff = countData.actualQuantity - countData.systemQuantity;
     const newCount = {
       ...countData,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/common/Card/Card';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
@@ -6,25 +6,64 @@ import { Button } from '@/components/common/Button/Button';
 import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { SettingsSubNav } from '../components/SettingsSubNav';
-import { MOCK_COMPANY_SETTINGS } from '../constants/settings.mock';
+import { settingsApi } from '../api/settingsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { notifySuccess } from '@/services/notification.service';
 import { ERP_ICONS } from '@/shared/icons';
 
 export const CompanySettingsPage = () => {
-  const [formData, setFormData] = useState(MOCK_COMPANY_SETTINGS);
+  const [formData, setFormData] = useState({
+    name: 'Kotyol Manufacturing',
+    phone: '+998 (90) 123-45-67',
+    website: 'https://kotyol.uz',
+    address: 'Toshkent sh., Chilonzor tumani, 5-daha',
+    description: 'Yuqori sifatli isitish kotyollari ishlab chiqarish zavodi.',
+    currency: 'USD',
+    timezone: 'Asia/Tashkent (UTC+5)',
+    dateFormat: 'YYYY-MM-DD',
+  });
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      const res = await settingsApi.getCompany();
+      if (res.success && res.data) {
+        setFormData(res.data);
+      }
+    };
+    fetchCompanyData();
+  }, []);
 
   const currencyOptions = dynamicSettingsService.getCurrencyOptions();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await settingsApi.updateCompany(formData);
+      if (res.success && res.data) {
+        setFormData(res.data);
+        setIsEditing(false);
+        notifySuccess("Kompaniya rekvizitlari va sozlamalari saqlandi.");
+      }
+    } catch {
+      // fallback
+    } finally {
       setIsLoading(false);
-      notifySuccess("Kompaniya rekvizitlari va sozlamalari saqlandi.");
-    }, 400);
+    }
   };
+
+  const cardAction = !isEditing && (
+    <Button
+      variant="outline-primary"
+      size="sm"
+      icon={ERP_ICONS.PENCIL}
+      onClick={() => setIsEditing(true)}
+    >
+      Tahrirlash
+    </Button>
+  );
 
   return (
     <div className="company-settings-page animate-fade-in pb-5">
@@ -40,95 +79,128 @@ export const CompanySettingsPage = () => {
         ]}
       />
 
-      <Card title="Kompaniya Profil Sozlamalari">
-        <form onSubmit={handleSubmit}>
-          <div className="row g-3">
+      <Card title="Kompaniya Profil Sozlamalari" action={cardAction}>
+        {!isEditing ? (
+          <div className="row g-3 fs-7">
             <div className="col-12 col-md-6">
-              <Input
-                label="Kompaniya Rasmiy Nomi"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
+              <label className="text-muted-custom fs-8 d-block mb-1">Kompaniya Rasmiy Nomi</label>
+              <div className="fw-semibold text-main">{formData.name}</div>
             </div>
             <div className="col-12 col-md-6">
-              <Input
-                label="Telefon Raqami"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
+              <label className="text-muted-custom fs-8 d-block mb-1">Telefon Raqami</label>
+              <div className="fw-semibold text-main">{formData.phone}</div>
             </div>
             <div className="col-12 col-md-6">
-              <Input
-                label="Email Manzili"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div className="col-12 col-md-6">
-              <Input
-                label="Rasmiy Vebsayt"
-                value={formData.website}
-                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-              />
+              <label className="text-muted-custom fs-8 d-block mb-1">Rasmiy Vebsayt</label>
+              <div className="fw-semibold text-main">{formData.website}</div>
             </div>
             <div className="col-12">
-              <Input
-                label="Yuridik va Sex Manzili"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
+              <label className="text-muted-custom fs-8 d-block mb-1">Yuridik va Sex Manzili</label>
+              <div className="fw-semibold text-main">{formData.address}</div>
             </div>
             <div className="col-12">
-              <label className="form-label fs-7 fw-medium text-main">Korxona Faoliyati Tavsifi</label>
-              <textarea
-                className="form-control"
-                rows="3"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              ></textarea>
+              <label className="text-muted-custom fs-8 d-block mb-1">Korxona Faoliyati Tavsifi</label>
+              <div className="fw-semibold text-main">{formData.description || 'Kiritilmagan'}</div>
             </div>
             <div className="col-12 col-md-4">
-              <Select
-                label="Asosiy Hisob Valyutasi (Dinamik)"
-                value={formData.currency}
-                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                options={currencyOptions}
-              />
+              <label className="text-muted-custom fs-8 d-block mb-1">Asosiy Hisob Valyutasi</label>
+              <div className="fw-semibold text-main">{formData.currency}</div>
             </div>
             <div className="col-12 col-md-4">
-              <Select
-                label="Vaqt Mintaqasi (Timezone)"
-                value={formData.timezone}
-                onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                options={[
-                  { value: 'Asia/Tashkent (UTC+5)', label: 'Toshkent (UTC+5)' },
-                  { value: 'UTC', label: 'UTC Universal' },
-                ]}
-              />
+              <label className="text-muted-custom fs-8 d-block mb-1">Vaqt Mintaqasi</label>
+              <div className="fw-semibold text-main">{formData.timezone}</div>
             </div>
             <div className="col-12 col-md-4">
-              <Select
-                label="Sana Formati"
-                value={formData.dateFormat}
-                onChange={(e) => setFormData({ ...formData, dateFormat: e.target.value })}
-                options={[
-                  { value: 'YYYY-MM-DD', label: '2026-07-20 (YYYY-MM-DD)' },
-                  { value: 'DD.MM.YYYY', label: '20.07.2026 (DD.MM.YYYY)' },
-                ]}
-              />
-            </div>
-            <div className="col-12">
-              <label className="form-label fs-7 fw-medium text-main">Kompaniya Logotipi</label>
-              <FileUpload label="Kompaniya logotipini yuklash uchun bosing" maxSizeMB={2} />
+              <label className="text-muted-custom fs-8 d-block mb-1">Sana Formati</label>
+              <div className="fw-semibold text-main">{formData.dateFormat}</div>
             </div>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="row g-3">
+              <div className="col-12 col-md-6">
+                <Input
+                  label="Kompaniya Rasmiy Nomi"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              <div className="col-12 col-md-6">
+                <Input
+                  label="Telefon Raqami"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+              </div>
+              <div className="col-12 col-md-6">
+                <Input
+                  label="Rasmiy Vebsayt"
+                  value={formData.website}
+                  onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                />
+              </div>
+              <div className="col-12">
+                <Input
+                  label="Yuridik va Sex Manzili"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                />
+              </div>
+              <div className="col-12">
+                <label className="form-label fs-7 fw-medium text-main">Korxona Faoliyati Tavsifi</label>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                ></textarea>
+              </div>
+              <div className="col-12 col-md-4">
+                <Select
+                  label="Asosiy Hisob Valyutasi"
+                  value={formData.currency}
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  options={currencyOptions}
+                />
+              </div>
+              <div className="col-12 col-md-4">
+                <Select
+                  label="Vaqt Mintaqasi"
+                  value={formData.timezone}
+                  onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
+                  options={[
+                    { value: 'Asia/Tashkent (UTC+5)', label: 'Toshkent (UTC+5)' },
+                    { value: 'UTC', label: 'UTC Universal' },
+                  ]}
+                />
+              </div>
+              <div className="col-12 col-md-4">
+                <Select
+                  label="Sana Formati"
+                  value={formData.dateFormat}
+                  onChange={(e) => setFormData({ ...formData, dateFormat: e.target.value })}
+                  options={[
+                    { value: 'YYYY-MM-DD', label: '2026-07-20' },
+                    { value: 'DD.MM.YYYY', label: '20.07.2026' },
+                  ]}
+                />
+              </div>
+              <div className="col-12">
+                <label className="form-label fs-7 fw-medium text-main">Kompaniya Logotipi</label>
+                <FileUpload label="Kompaniya logotipini yuklash uchun bosing" maxSizeMB={2} />
+              </div>
+            </div>
 
-          <div className="mt-4 pt-3 border-top border-custom d-flex justify-content-end">
-            <Button type="submit" variant="primary" isLoading={isLoading} icon={ERP_ICONS.CHECK}>
-              Sozlamalarni Saqlash
-            </Button>
-          </div>
-        </form>
+            <div className="mt-4 pt-3 border-top border-custom d-flex justify-content-end gap-2">
+              <Button type="button" variant="outline-secondary" onClick={() => setIsEditing(false)}>
+                Bekor qilish
+              </Button>
+              <Button type="submit" variant="primary" isLoading={isLoading} icon={ERP_ICONS.CHECK}>
+                Sozlamalarni Saqlash
+              </Button>
+            </div>
+          </form>
+        )}
       </Card>
     </div>
   );

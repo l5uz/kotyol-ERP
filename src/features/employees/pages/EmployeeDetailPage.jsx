@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card/Card';
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
-import { EmployeeSubNav } from '../components/EmployeeSubNav';
 import { EmployeeActivityTimeline } from '../components/EmployeeActivityTimeline';
 import { employeesApi } from '../api/employeesApi';
 import { ERP_ICONS } from '@/shared/icons';
@@ -33,7 +32,6 @@ export const EmployeeDetailPage = () => {
   if (isLoading || !employee) {
     return (
       <div className="employee-detail-page animate-fade-in pb-5">
-        <EmployeeSubNav />
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Yuklanmoqda...</span>
@@ -45,7 +43,6 @@ export const EmployeeDetailPage = () => {
 
   return (
     <div className="employee-detail-page animate-fade-in pb-5">
-      <EmployeeSubNav />
 
       <PageHeader
         title={`Xodim Profili: ${employee.fullName}`}
@@ -134,7 +131,7 @@ export const EmployeeDetailPage = () => {
             </Card>
 
             {/* Activity Log Card */}
-            <Card title="Xodimning Barcha Harakatlar Tarixi (Activity Log)">
+            <Card title="Xodimning Barcha Harakatlar Tarixi">
               <EmployeeActivityTimeline activities={activities} />
             </Card>
           </div>

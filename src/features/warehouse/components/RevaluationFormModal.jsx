@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
+import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { Button } from '@/components/common/Button/Button';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { ROUTES } from '@/constants/routes.constants';
 
 export const RevaluationFormModal = ({ isOpen, onClose, onSubmit, products = [] }) => {
-  const revaluationReasonOptions = dynamicSettingsService.getRevaluationReasonOptions();
+  const [revaluationReasonOptions, setRevaluationReasonOptions] = useState(dynamicSettingsService.getRevaluationReasonOptions());
   const productOptions = products.map((p) => ({ value: p.id || p.productId, label: p.productName || p.name }));
 
   const [selectedProductId, setSelectedProductId] = useState(productOptions[0]?.value || '');
@@ -34,6 +36,13 @@ export const RevaluationFormModal = ({ isOpen, onClose, onSubmit, products = [] 
     }
   }, [isOpen]);
 
+  const handleAddNewReason = (newRecord) => {
+    const newReas = { value: newRecord.name, label: newRecord.name };
+    setRevaluationReasonOptions((prev) => [...prev, newReas]);
+    setReason(newReas.value);
+    return newReas;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const prod = products.find((p) => (p.id || p.productId) === selectedProductId);
@@ -52,7 +61,7 @@ export const RevaluationFormModal = ({ isOpen, onClose, onSubmit, products = [] 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Mahsulot Tannarxini Qayta Baholash (Revaluation)"
+      title="Mahsulot Tannarxini Qayta Baholash"
       size="md"
       footer={
         <div className="d-flex justify-content-end gap-2 w-100">
@@ -92,14 +101,21 @@ export const RevaluationFormModal = ({ isOpen, onClose, onSubmit, products = [] 
               required
             />
           </div>
+
+          {/* Dynamic Revaluation Reason Select */}
           <div className="col-12">
-            <Select
-              label="Qayta Baholash Sababi (Sozlamalardan Dinamik)"
+            <DynamicSelect
+              label="Qayta Baholash Sababi"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               options={revaluationReasonOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS}
+              onAddNew={handleAddNewReason}
+              entityTitle="Qayta Baholash Sababi"
+              required
             />
           </div>
+
           <div className="col-12">
             <label className="form-label fs-7 fw-medium text-main">Asoslash va Izohlar</label>
             <textarea

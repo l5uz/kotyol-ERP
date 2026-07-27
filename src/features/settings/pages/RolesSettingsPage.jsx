@@ -30,7 +30,7 @@ export const RolesSettingsPage = () => {
 
       <div className="d-flex align-items-center justify-content-between mb-4">
         <div>
-          <h4 className="fw-bold text-main mb-1">Rollar Boshqaruvi (Roles)</h4>
+          <h4 className="fw-bold text-main mb-1">Rollar Boshqaruvi</h4>
           <p className="text-muted-custom fs-7 mb-0">Tizim lavozimlari va ruxsat darajalari</p>
         </div>
         <Button variant="primary" size="sm" icon={ERP_ICONS.PLUS} onClick={() => setIsModalOpen(true)}>

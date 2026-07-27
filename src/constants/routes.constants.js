@@ -9,6 +9,56 @@ export const ROUTES = {
     PROFILE: '/profile',
     CHANGE_PASSWORD: '/change-password',
 
+    // System Administration & Audit Sub-Routes
+    SYSTEM: '/system',
+    AUDIT: '/audit',
+    AUDIT_DETAIL: '/audit/:id',
+
+    // Global Activity Center Sub-Route
+    ACTIVITIES: '/activities',
+
+    // Reports Sub-Routes
+    REPORTS: '/reports',
+    REPORTS_SALES: '/reports/sales',
+    REPORTS_WAREHOUSE: '/reports/warehouse',
+    REPORTS_PRODUCTION: '/reports/production',
+    REPORTS_FINANCE: '/reports/finance',
+    REPORTS_SERVICES: '/reports/services',
+
+    // Finance Sub-Routes
+    FINANCE: '/finance',
+    FINANCE_EXPENSES: '/finance/expenses',
+    FINANCE_INCOMES: '/finance/incomes',
+    FINANCE_DETAIL: '/finance/:id',
+
+    // Services Sub-Routes
+    SERVICES: '/services',
+    SERVICES_DETAIL: '/services/:id',
+
+    // Production Sub-Routes
+    PRODUCTION: '/production',
+    PRODUCTION_DETAIL: '/production/:id',
+
+    // Sales Sub-Routes
+    SALES: '/sales',
+    SALES_DETAIL: '/sales/:id',
+
+    // Orders Sub-Routes
+    ORDERS: '/orders',
+    ORDERS_DETAIL: '/orders/:id',
+
+    // Boilers (Finished Products Catalog) Sub-Routes
+    BOILERS: '/boilers',
+    BOILERS_DETAIL: '/boilers/:id',
+
+    // Recipes & BOM Sub-Routes
+    RECIPES: '/recipes',
+    RECIPES_DETAIL: '/recipes/:id',
+
+    // Purchasing Sub-Routes
+    PURCHASING: '/purchasing',
+    PURCHASING_DETAIL: '/purchasing/:id',
+
     // Warehouse Sub-Routes
     WAREHOUSE: '/warehouse',
     WAREHOUSE_STOCK: '/warehouse/stock',
@@ -18,10 +68,9 @@ export const ROUTES = {
     WAREHOUSE_REVALUATION: '/warehouse/revaluation',
     WAREHOUSE_INVENTORY_COUNT: '/warehouse/inventory-count',
 
-    PRODUCTION: '/production',
-    SALES: '/sales',
-    FINANCE: '/finance',
+    // Customers Sub-Routes
     CUSTOMERS: '/customers',
+    CUSTOMERS_DETAIL: '/customers/:id',
 
     // Suppliers Sub-Routes
     SUPPLIERS: '/suppliers',
@@ -53,6 +102,9 @@ export const ROUTES = {
     SETTINGS_PRODUCTION_STAGES: '/settings/production-stages',
     SETTINGS_ROLES: '/settings/roles',
     SETTINGS_PERMISSIONS: '/settings/permissions',
+    MASTER_DATA: '/settings/master-data',
+    SETTINGS_BRANCHES: '/settings/branches',
+    SETTINGS_BRANCHES_STATS: '/settings/branches/stats',
   },
   ERRORS: {
     FORBIDDEN_403: '/403',

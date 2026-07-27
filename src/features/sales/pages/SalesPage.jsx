@@ -1,39 +1,252 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { LuShoppingCart, LuPlus, LuEye, LuPencil, LuTrash2 } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
-import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
-import { ERP_ICONS } from '@/shared/icons';
-
-const mockSales = [
-  { id: 'SO-4401', client: 'Global Heavy Machinery Corp', total: '$48,500.00', date: '2026-07-18', status: 'APPROVED' },
-  { id: 'SO-4402', client: 'Atlas Pipeline Solutions', total: '$12,300.00', date: '2026-07-19', status: 'PENDING' },
-  { id: 'SO-4403', client: 'Apex Power Grid LLC', total: '$94,000.00', date: '2026-07-20', status: 'PROCESSING' },
-];
-
-const columns = [
-  { header: 'Shartnoma #', accessor: 'id' },
-  { header: 'Buyurtmachi kompaniya', accessor: 'client' },
-  { header: 'Buyurtma qiymati', accessor: 'total' },
-  { header: 'Tuzilgan sana', accessor: 'date' },
-  { header: 'Hujjat holati', cell: (row) => <StatusBadge status={row.status} /> },
-];
+import { PageHeader } from '@/components/common/PageHeader/PageHeader';
+import { FilterBar } from '@/components/common/FilterBar';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
+import { SaleFormModal } from '../components/SaleFormModal';
+import { salesApi } from '../api/salesApi';
+import { formatCurrency } from '@/utils/currency.utils';
+import { usePermission } from '@/hooks/usePermission';
+import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
+import { ROUTES } from '@/constants/routes.constants';
 
 export const SalesPage = () => {
-  return (
-    <div className="sales-module animate-fade-in">
-      <div className="d-flex align-items-center justify-content-between mb-4">
-        <div>
-          <h4 className="fw-bold text-main mb-1">Sotuv va tijorat buyurtmalari</h4>
-          <p className="text-muted-custom fs-7 mb-0">Shartnomalar, tijorat takliflari va yetkazib berish nazorati</p>
-        </div>
-        <button className="btn btn-primary btn-sm">
-          <i className={`bi ${ERP_ICONS.PLUS} me-1`}></i> Tijorat taklifi yaratish
-        </button>
-      </div>
+  const navigate = useNavigate();
+  const { canCreate, canEdit, canDelete } = usePermission();
 
-      <Card title="So'nggi shartnomalar va sotuv shartnomalari">
-        <Table columns={columns} data={mockSales} emptyTitle="Ma'lumot topilmadi" emptyDescription="Shartnomalar mavjud emas." />
+  const [sales, setSales] = useState([]);
+  const [search, setSearch] = useState('');
+  const [customerFilter, setCustomerFilter] = useState('');
+  const [boilerFilter, setBoilerFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  const [customers, setCustomers] = useState([]);
+  const [boilers, setBoilers] = useState([]);
+  const [salesStatuses, setSalesStatuses] = useState([]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSale, setSelectedSale] = useState(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
+  useEffect(() => {
+    loadSalesData();
+  }, [search, customerFilter, boilerFilter, statusFilter, startDate, endDate]);
+
+  const loadSalesData = async () => {
+    const [saleRes, custRes, boilRes, stRes] = await Promise.all([
+      salesApi.getSales({
+        search,
+        customerId: customerFilter,
+        boilerId: boilerFilter,
+        status: statusFilter,
+        startDate,
+        endDate,
+      }),
+      salesApi.getCustomersList(),
+      salesApi.getBoilersList(),
+      salesApi.getSalesStatuses(),
+    ]);
+
+    if (saleRes.success) setSales(saleRes.data);
+    if (custRes.success) setCustomers(custRes.data);
+    if (boilRes.success) setBoilers(boilRes.data);
+    if (stRes.success) setSalesStatuses(stRes.data);
+  };
+
+  usePageAutoRefresh(loadSalesData, { intervalMs: 15000, isEditing: isModalOpen || isConfirmOpen });
+
+  const handleOpenAddModal = () => {
+    setSelectedSale(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (e, sale) => {
+    e.stopPropagation();
+    setSelectedSale(sale);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenDeleteConfirm = (e, id) => {
+    e.stopPropagation();
+    setDeleteId(id);
+    setIsConfirmOpen(true);
+  };
+
+  const handleDeleteSale = async () => {
+    if (!deleteId) return;
+    await salesApi.deleteSale(deleteId);
+    setIsConfirmOpen(false);
+    setDeleteId(null);
+    loadSalesData();
+  };
+
+  const customerOptions = [
+    { value: '', label: 'Barcha Mijozlar' },
+    ...customers.map((c) => ({ value: c.id, label: c.customerName })),
+  ];
+
+  const boilerOptions = [
+    { value: '', label: 'Barcha Kotyol Modellari' },
+    ...boilers.map((b) => ({ value: b.id, label: b.modelName })),
+  ];
+
+  const statusOptions = [
+    { value: '', label: 'Barcha Statuslar' },
+    ...salesStatuses.map((s) => ({ value: s.code, label: s.name })),
+  ];
+
+  const handleReset = () => {
+    setSearch('');
+    setCustomerFilter('');
+    setBoilerFilter('');
+    setStatusFilter('');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  const columns = [
+    {
+      header: 'Schyot-Faktura №',
+      cell: (row) => (
+        <div>
+          <strong className="text-main fs-7 d-block">{row.invoiceNumber}</strong>
+          <small className="text-muted-custom fs-8">Sana: {row.saleDate}</small>
+        </div>
+      ),
+    },
+    {
+      header: 'Mijoz Korxona',
+      cell: (row) => (
+        <div>
+          <span className="fw-semibold text-main fs-7 d-block">{row.customerName}</span>
+          <small className="text-secondary fs-8">Mas'ul: {row.createdBy}</small>
+        </div>
+      ),
+    },
+    {
+      header: 'Kotyol Modeli',
+      cell: (row) => (
+        <div>
+          <span className="fw-bold text-primary fs-7 d-block">{row.boilerModelName}</span>
+          <small className="text-muted-custom fs-8">Sotuv Miqdori: {row.quantity} dona</small>
+        </div>
+      ),
+    },
+    {
+      header: 'Jami Summa ($)',
+      cell: (row) => <strong className="text-primary fs-7">{formatCurrency(row.totalAmount, 'USD')}</strong>,
+    },
+    {
+      header: 'Status',
+      cell: (row) => (
+        <span
+          className={`badge ${
+            row.status === 'COMPLETED' ? 'bg-success' : row.status === 'CANCELLED' ? 'bg-danger' : 'bg-warning text-dark'
+          } fs-8`}
+        >
+          {row.statusName}
+        </span>
+      ),
+    },
+    {
+      header: 'Amallar',
+      cell: (row) => (
+        <div className="d-flex align-items-center gap-1">
+          <button
+            className="btn btn-sm btn-outline-primary p-1 border-0"
+            onClick={() => navigate(`${ROUTES.PROTECTED.SALES}/${row.id}`)}
+            title="Tafsilotini ko'rish"
+          >
+            <LuEye />
+          </button>
+          {canEdit && (
+            <button
+              className="btn btn-sm btn-outline-warning p-1 border-0"
+              onClick={(e) => handleOpenEditModal(e, row)}
+              title="Tahrirlash"
+            >
+              <LuPencil />
+            </button>
+          )}
+          {canDelete && (
+            <button
+              className="btn btn-sm btn-outline-danger p-1 border-0"
+              onClick={(e) => handleOpenDeleteConfirm(e, row.id)}
+              title="O'chirish"
+            >
+              <LuTrash2 />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="sales-page animate-fade-in pb-5">
+      <PageHeader
+        title="Sotuvlar va Tijorat Moduli"
+        subtitle="Tayyor kotyol va pechlarni mijozlarga sotish, faktura rasmiylashtirish va tijorat tahlili"
+        breadcrumbs={[
+          { label: 'Bosh sahifa', path: '/' },
+          { label: 'Sotuvlar' },
+        ]}
+        actions={
+          canCreate && (
+            <button className="btn btn-primary btn-sm d-flex align-items-center gap-1" onClick={handleOpenAddModal}>
+              <LuPlus />
+              <span>Yangi Sotuv</span>
+            </button>
+          )
+        }
+      />
+
+      <FilterBar
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: "Faktura №, mijoz yoki kotyol modeli bo'yicha qidiruv...",
+        }}
+        dateRange={{
+          startDate,
+          onStartDateChange: setStartDate,
+          endDate,
+          onEndDateChange: setEndDate,
+        }}
+        primarySelects={[
+          { id: 'customer', label: 'Mijoz Korxona', value: customerFilter, onChange: setCustomerFilter, options: customerOptions },
+        ]}
+        advancedSelects={[
+          { id: 'boiler', label: 'Kotyol Modeli', value: boilerFilter, onChange: setBoilerFilter, options: boilerOptions },
+          { id: 'status', label: 'Sotuv Statusi', value: statusFilter, onChange: setStatusFilter, options: statusOptions },
+        ]}
+        onReset={handleReset}
+      />
+
+      <Card title={`Sotuv Hujjatlari Ro'yxati (${sales.length} ta)`}>
+        <Table columns={columns} data={sales} tableKey="sales_list" />
       </Card>
+
+      <SaleFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        sale={selectedSale}
+        onSave={loadSalesData}
+      />
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleDeleteSale}
+        title="Sotuv Hujjatini O'chirish"
+        message="Haqiqatan ham ushbu sotuv hujjatini tizimdan o'chirmoqchimisiz?"
+      />
     </div>
   );
 };

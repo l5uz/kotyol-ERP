@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
+import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { Button } from '@/components/common/Button/Button';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { ROUTES } from '@/constants/routes.constants';
 
 export const InventoryCountModal = ({ isOpen, onClose, onSubmit, products = [] }) => {
-  const inventoryReasonOptions = dynamicSettingsService.getInventoryReasonOptions();
+  const [inventoryReasonOptions, setInventoryReasonOptions] = useState(dynamicSettingsService.getInventoryReasonOptions());
   const productOptions = products.map((p) => ({ value: p.id || p.productId, label: p.productName || p.name }));
 
   const [selectedProductId, setSelectedProductId] = useState(productOptions[0]?.value || '');
@@ -33,6 +35,13 @@ export const InventoryCountModal = ({ isOpen, onClose, onSubmit, products = [] }
       setNotes('');
     }
   }, [isOpen]);
+
+  const handleAddNewReason = (newRecord) => {
+    const newReas = { value: newRecord.name, label: newRecord.name };
+    setInventoryReasonOptions((prev) => [...prev, newReas]);
+    setReason(newReas.value);
+    return newReas;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -107,14 +116,21 @@ export const InventoryCountModal = ({ isOpen, onClose, onSubmit, products = [] }
               </div>
             </div>
           </div>
+
+          {/* Dynamic Inventory Reason Select */}
           <div className="col-12">
-            <Select
-              label="Inventarizatsiya Sababi (Sozlamalardan Dinamik)"
+            <DynamicSelect
+              label="Inventarizatsiya Sababi"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               options={inventoryReasonOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS}
+              onAddNew={handleAddNewReason}
+              entityTitle="Inventarizatsiya Sababi"
+              required
             />
           </div>
+
           <div className="col-12">
             <label className="form-label fs-7 fw-medium text-main">Tekshiruv Izohi</label>
             <textarea

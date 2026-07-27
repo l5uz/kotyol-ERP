@@ -1,3 +1,4 @@
+import { axiosInstance } from '@/api/axiosInstance';
 import {
   MOCK_COMPANY_SETTINGS,
   MOCK_CURRENCIES,
@@ -16,56 +17,90 @@ import {
 
 export const settingsApi = {
   getCompany: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: { ...MOCK_COMPANY_SETTINGS } };
+    const response = await axiosInstance.get('/master-data/company/profile');
+    const backendData = response.data?.data || {};
+    return {
+      success: true,
+      data: {
+        name: backendData.name,
+        phone: backendData.phone,
+        website: backendData.website,
+        address: backendData.address,
+        description: backendData.description,
+        currency: backendData.currency,
+        timezone: backendData.timezone,
+        dateFormat: backendData.date_format,
+      }
+    };
   },
   updateCompany: async (companyData) => {
-    await new Promise((res) => setTimeout(res, 400));
-    return { success: true, data: companyData, message: "Kompaniya sozlamalari saqlandi." };
+    const payload = {
+      name: companyData.name,
+      phone: companyData.phone,
+      website: companyData.website,
+      address: companyData.address,
+      description: companyData.description,
+      currency: companyData.currency,
+      timezone: companyData.timezone,
+      date_format: companyData.dateFormat,
+    };
+    const response = await axiosInstance.put('/master-data/company/profile', payload);
+    const backendData = response.data?.data || {};
+    return {
+      success: true,
+      data: {
+        name: backendData.name,
+        phone: backendData.phone,
+        website: backendData.website,
+        address: backendData.address,
+        description: backendData.description,
+        currency: backendData.currency,
+        timezone: backendData.timezone,
+        dateFormat: backendData.date_format,
+      },
+      message: "Kompaniya sozlamalari saqlandi."
+    };
   },
 
   getCurrencies: async () => {
-    await new Promise((res) => setTimeout(res, 300));
     return { success: true, data: [...MOCK_CURRENCIES] };
   },
 
   getWarehouses: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: [...MOCK_WAREHOUSES] };
+    const response = await axiosInstance.get('/master-data/warehouses');
+    return { success: true, data: response.data || [] };
   },
 
   getCategories: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: [...MOCK_PRODUCT_CATEGORIES] };
+    const response = await axiosInstance.get('/master-data/product-categories');
+    return { success: true, data: response.data || [] };
   },
 
   getUnits: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: [...MOCK_UNITS] };
+    const response = await axiosInstance.get('/master-data/units');
+    return { success: true, data: response.data || [] };
   },
 
   getExpenseTypes: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: [...MOCK_EXPENSE_TYPES] };
+    const response = await axiosInstance.get('/master-data/expense-types');
+    return { success: true, data: response.data || [] };
   },
 
   getDefectReasons: async () => {
-    await new Promise((res) => setTimeout(res, 300));
     return { success: true, data: [...MOCK_DEFECT_REASONS] };
   },
 
   getServiceTypes: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: [...MOCK_SERVICE_TYPES] };
+    const response = await axiosInstance.get('/master-data/service-types');
+    return { success: true, data: response.data || [] };
   },
 
   getWarrantyTypes: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: [...MOCK_WARRANTY_TYPES] };
+    const response = await axiosInstance.get('/master-data/warranty-types');
+    return { success: true, data: response.data || [] };
   },
 
   getInsuranceTypes: async () => {
-    await new Promise((res) => setTimeout(res, 300));
     return { success: true, data: [...MOCK_INSURANCE_TYPES] };
   },
 

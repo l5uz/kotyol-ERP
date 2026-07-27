@@ -6,7 +6,6 @@ import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
-import { WarehouseSubNav } from '../components/WarehouseSubNav';
 import { StockFilterBar } from '../components/StockFilterBar';
 import { MovementFormModal } from '../components/MovementFormModal';
 import { RevaluationFormModal } from '../components/RevaluationFormModal';
@@ -91,7 +90,7 @@ export const WarehousePage = () => {
     { header: 'Material Turi', cell: (row) => <span className="badge bg-info bg-opacity-10 text-info">{row.materialTypeName}</span> },
     { header: 'Ombor', accessor: 'warehouseName' },
     {
-      header: 'Miqdor (Qty)',
+      header: 'Miqdor',
       cell: (row) => (
         <div>
           <strong className={row.quantity <= row.minQuantity ? 'text-danger' : 'text-success'}>
@@ -118,10 +117,9 @@ export const WarehousePage = () => {
 
   return (
     <div className="warehouse-page animate-fade-in pb-5">
-      <WarehouseSubNav />
 
       <PageHeader
-        title="Omborxona va Zaxiralar Boshqaruvi (Warehouse)"
+        title="Omborxona va Zaxiralar Boshqaruvi"
         subtitle="Xomashyolar, komplektatsiya qismlari va tayyor mahsulotlar zaxirasi balansi"
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },

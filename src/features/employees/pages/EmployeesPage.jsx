@@ -6,7 +6,6 @@ import { Button } from '@/components/common/Button/Button';
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
-import { EmployeeSubNav } from '../components/EmployeeSubNav';
 import { EmployeeFilterBar } from '../components/EmployeeFilterBar';
 import { EmployeeFormModal } from '../components/EmployeeFormModal';
 import { employeesApi } from '../api/employeesApi';
@@ -19,109 +18,105 @@ export const EmployeesPage = () => {
   const [positions, setPositions] = useState([]);
   const [salaryTypes, setSalaryTypes] = useState([]);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
   const [positionFilter, setPositionFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [deletingEmployee, setDeletingEmployee] = useState(null);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
-    loadData();
-  }, [search, statusFilter, positionFilter]);
+    loadEmployeesData();
+  }, [search, positionFilter, statusFilter]);
 
-  const loadData = async () => {
+  const loadEmployeesData = async () => {
     const [empRes, posRes, salRes] = await Promise.all([
-      employeesApi.getEmployees({ search, status: statusFilter, positionId: positionFilter }),
+      employeesApi.getEmployees({
+        search,
+        positionId: positionFilter,
+        status: statusFilter,
+      }),
       employeesApi.getPositions(),
       employeesApi.getSalaryTypes(),
     ]);
+
     if (empRes.success) setEmployees(empRes.data);
     if (posRes.success) setPositions(posRes.data);
     if (salRes.success) setSalaryTypes(salRes.data);
   };
 
-  const handleSaveEmployee = async (formData) => {
+  const handleCreateOrUpdateEmployee = async (formData) => {
+    let res;
     if (editingEmployee) {
-      const res = await employeesApi.updateEmployee(editingEmployee.id, formData);
-      notifySuccess(res.message);
+      res = await employeesApi.updateEmployee(editingEmployee.id, formData);
     } else {
-      const res = await employeesApi.createEmployee(formData);
-      notifySuccess(res.message);
+      res = await employeesApi.createEmployee(formData);
     }
+    notifySuccess(res.message);
     setIsModalOpen(false);
     setEditingEmployee(null);
-    loadData();
+    loadEmployeesData();
   };
 
-  const handleDelete = async () => {
-    if (deletingEmployee) {
-      const res = await employeesApi.deleteEmployee(deletingEmployee.id);
-      notifySuccess(res.message);
-      setIsConfirmOpen(false);
-      setDeletingEmployee(null);
-      loadData();
-    }
+  const handleEditClick = (employee) => {
+    setEditingEmployee(employee);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    const res = await employeesApi.deleteEmployee(deletingId);
+    notifySuccess(res.message);
+    setDeletingId(null);
+    loadEmployeesData();
   };
 
   const columns = [
     {
-      header: 'F.I.SH / Xodim',
+      header: 'F.I.Sh.',
       cell: (row) => (
-        <div className="d-flex align-items-center gap-2">
-          <div
-            className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-8"
-            style={{ width: '34px', height: '34px' }}
-          >
-            {row.firstName.charAt(0)}{row.lastName.charAt(0)}
-          </div>
-          <div>
-            <Link to={`${ROUTES.PROTECTED.EMPLOYEES}/${row.id}`} className="fw-semibold text-primary text-decoration-none">
-              {row.fullName}
-            </Link>
-            <small className="d-block text-muted-custom fs-8">{row.passportNumber}</small>
-          </div>
+        <div>
+          <Link to={`${ROUTES.PROTECTED.EMPLOYEES}/${row.id}`} className="fw-bold text-primary text-decoration-none fs-7">
+            {row.fullName}
+          </Link>
+          <small className="d-block text-muted-custom fs-8">Kod: {row.code}</small>
         </div>
       ),
     },
-    { header: 'Telefon va Email', cell: (row) => (
+    { header: 'Lavozim', accessor: 'positionName' },
+    { header: 'Telefon', accessor: 'phone' },
+    {
+      header: 'Oylik Turi',
+      cell: (row) => (
         <div>
-          <span className="d-block text-main fs-8 fw-medium">{row.phone}</span>
-          <small className="text-muted-custom fs-8">{row.email || '—'}</small>
+          <span>{row.salaryTypeName}</span>
+          <small className="d-block font-mono text-muted-custom fs-8">
+            Stavka: ${(Number(row.salaryAmount) || 0).toLocaleString()}
+          </small>
         </div>
-      )
+      ),
     },
-    { header: 'Lavozimi', cell: (row) => <span className="badge bg-secondary bg-opacity-10 text-secondary fw-semibold">{row.positionName}</span> },
-    { header: 'Maosh Turi', accessor: 'salaryTypeName' },
-    { header: 'Maosh Stavkasi', cell: (row) => <span className="fw-bold text-main">${row.salaryAmount.toFixed(2)}</span> },
     { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
     {
-      header: 'Amallar',
+      header: 'Amal',
       cell: (row) => (
         <div className="d-flex align-items-center gap-1">
           <Link
             to={`${ROUTES.PROTECTED.EMPLOYEES}/${row.id}`}
             className="btn btn-sm btn-outline-primary p-1 border-0"
-            title="Profilni ko'rish"
+            title="Tafsilot"
           >
             <i className={`bi ${ERP_ICONS.EYE}`}></i>
           </Link>
           <button
-            className="btn btn-sm btn-outline-secondary p-1 border-0"
-            onClick={() => {
-              setEditingEmployee(row);
-              setIsModalOpen(true);
-            }}
+            className="btn btn-sm btn-outline-warning p-1 border-0"
+            onClick={() => handleEditClick(row)}
             title="Tahrirlash"
           >
             <i className={`bi ${ERP_ICONS.EDIT}`}></i>
           </button>
           <button
             className="btn btn-sm btn-outline-danger p-1 border-0"
-            onClick={() => {
-              setDeletingEmployee(row);
-              setIsConfirmOpen(true);
-            }}
+            onClick={() => setDeletingId(row.id)}
             title="O'chirish"
           >
             <i className={`bi ${ERP_ICONS.TRASH}`}></i>
@@ -133,8 +128,6 @@ export const EmployeesPage = () => {
 
   return (
     <div className="employees-page animate-fade-in pb-5">
-      <EmployeeSubNav />
-
       <PageHeader
         title="Xodimlar Ro'yxati va Kadrlar Hisobi"
         subtitle="Korxona barcha xodimlari, lavozimlar va ish stavkalari katalogi"
@@ -174,18 +167,18 @@ export const EmployeesPage = () => {
       <EmployeeFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSaveEmployee}
+        onSubmit={handleCreateOrUpdateEmployee}
         employee={editingEmployee}
         positions={positions}
         salaryTypes={salaryTypes}
       />
 
       <ConfirmDialog
-        isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleDelete}
+        isOpen={!!deletingId}
+        onClose={() => setDeletingId(null)}
+        onConfirm={handleDeleteConfirm}
         title="Xodimlarni O'chirish"
-        message={`Haqiqatan ham '${deletingEmployee?.fullName}' xodimini tizimdan o'chirib tashlamoqchimisiz?`}
+        message="Haqiqatan ham ushbu xodimni tizimdan o'chirib tashlamoqchimisiz?"
         isDanger={true}
         confirmText="O'chirish"
         cancelText="Bekor qilish"

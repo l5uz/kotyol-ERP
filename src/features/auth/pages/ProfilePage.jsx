@@ -11,13 +11,12 @@ import { ERP_ICONS } from '@/shared/icons';
 export const ProfilePage = () => {
   const { user, updateUserProfile } = useAuthStore();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [phone, setPhone] = useState(user?.phone || '+998 (90) 123-45-67');
-  const [email, setEmail] = useState(user?.email || 'alex.vance@kotyol.com');
-  const [department, setDepartment] = useState(user?.department || "Boshqaruv apparati");
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [department, setDepartment] = useState(user?.department || '');
 
   const handleSave = (e) => {
     e.preventDefault();
-    updateUserProfile({ phone, email, department });
+    updateUserProfile({ phone, department });
     notifySuccess("Profil ma'lumotlari muvaffaqiyatli saqlandi.");
     setIsEditModalOpen(false);
   };
@@ -42,13 +41,13 @@ export const ProfilePage = () => {
               className="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold display-5 mb-3 mx-auto shadow-sm"
               style={{ width: '96px', height: '96px' }}
             >
-              {user?.name ? user.name.charAt(0) : 'A'}
+              {user?.name ? user.name.charAt(0) : 'U'}
             </div>
-            <h5 className="fw-bold text-main mb-1">{user?.name || 'Alex Vance'}</h5>
-            <p className="text-muted-custom fs-7 mb-2">@{user?.username || 'alex_vance'}</p>
+            <h5 className="fw-bold text-main mb-1">{user?.name || 'Foydalanuvchi'}</h5>
+            <p className="text-muted-custom fs-7 mb-2">@{user?.username || ''}</p>
             <div className="mb-3">
               <span className="badge bg-primary bg-opacity-10 text-primary fw-semibold px-3 py-2">
-                {user?.role || 'Bosh administrator'}
+                {user?.role || 'Xodim'}
               </span>
             </div>
             <div className="d-flex align-items-center justify-content-center gap-2">
@@ -67,16 +66,20 @@ export const ProfilePage = () => {
                 <div className="fw-semibold text-main">{user?.username}</div>
               </div>
               <div className="col-12 col-sm-6">
-                <label className="text-muted-custom fs-8 d-block mb-1">Email manzili</label>
-                <div className="fw-semibold text-main">{user?.email}</div>
-              </div>
-              <div className="col-12 col-sm-6">
                 <label className="text-muted-custom fs-8 d-block mb-1">Telefon raqami</label>
                 <div className="fw-semibold text-main">{user?.phone}</div>
               </div>
               <div className="col-12 col-sm-6">
                 <label className="text-muted-custom fs-8 d-block mb-1">Bo'lim va Lavozim</label>
-                <div className="fw-semibold text-main">{user?.department}</div>
+                <div className="fw-semibold text-main">{user?.department || 'Xodim'}</div>
+              </div>
+              <div className="col-12 col-sm-6">
+                <label className="text-muted-custom fs-8 d-block mb-1">Tashkilot</label>
+                <div className="fw-semibold text-main">{user?.organizationName || 'Mavjud emas'}</div>
+              </div>
+              <div className="col-12 col-sm-6">
+                <label className="text-muted-custom fs-8 d-block mb-1">Filial</label>
+                <div className="fw-semibold text-main">{user?.branchName || 'Mavjud emas'}</div>
               </div>
               <div className="col-12 col-sm-6">
                 <label className="text-muted-custom fs-8 d-block mb-1">Tizim tili</label>
@@ -87,11 +90,7 @@ export const ProfilePage = () => {
                 <div className="fw-semibold text-main">{user?.currency || 'USD ($)'}</div>
               </div>
               <div className="col-12 col-sm-6">
-                <label className="text-muted-custom fs-8 d-block mb-1">Oxirgi kirish vaqti</label>
-                <div className="fw-semibold text-main">{user?.lastLogin || '2026-07-20 17:45:12'}</div>
-              </div>
-              <div className="col-12 col-sm-6">
-                <label className="text-muted-custom fs-8 d-block mb-1">Tizim Huquqlari (Permissions)</label>
+                <label className="text-muted-custom fs-8 d-block mb-1">Tizim Huquqlari</label>
                 <div className="d-flex flex-wrap gap-1 mt-1">
                   {(user?.permissions || ['MANAGE_USERS', 'VIEW_FINANCE']).map((perm) => (
                     <span key={perm} className="badge bg-secondary bg-opacity-10 text-secondary fs-8">
@@ -122,7 +121,6 @@ export const ProfilePage = () => {
         }
       >
         <form onSubmit={handleSave}>
-          <Input label="Email manzili" value={email} onChange={(e) => setEmail(e.target.value)} />
           <Input label="Telefon raqami" value={phone} onChange={(e) => setPhone(e.target.value)} />
           <Input label="Bo'lim va strukturasi" value={department} onChange={(e) => setDepartment(e.target.value)} />
         </form>

@@ -11,6 +11,7 @@ export const Input = forwardRef(
       type = 'text',
       className = '',
       id,
+      containerClass = 'mb-3 text-start',
       ...props
     },
     ref
@@ -18,7 +19,7 @@ export const Input = forwardRef(
     const inputId = id || `input_${Math.random().toString(36).substring(2, 7)}`;
 
     return (
-      <div className="mb-3 text-start">
+      <div className={containerClass}>
         {label && (
           <label htmlFor={inputId} className="form-label fw-medium fs-7 mb-1 text-main">
             {label}

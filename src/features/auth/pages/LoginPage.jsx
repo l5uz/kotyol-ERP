@@ -25,7 +25,16 @@ export const LoginPage = () => {
       notifySuccess('Xush kelibsiz! Tizimga muvaffaqiyatli kirildi.');
       navigate(ROUTES.PROTECTED.DASHBOARD);
     } catch (err) {
-      setErrorMessage(err.message || "Tizimga kirishda xatolik yuz berdi. Malumotlarni tekshiring.");
+      const status = err.response?.status;
+      const detail = err.response?.data?.detail;
+      
+      if (status === 404 && detail === 'USER_NOT_FOUND') {
+        setErrorMessage("Bu raqam bilan akkount topilmadi. Iltimos, avval ro'yxatdan o'ting.");
+        setTimeout(() => navigate(`/register?phone=${encodeURIComponent(data.username)}`), 1500);
+        return;
+      }
+      
+      setErrorMessage(detail || err.message || "Tizimga kirishda xatolik yuz berdi.");
     }
   };
 
@@ -44,21 +53,20 @@ export const LoginPage = () => {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Username or Email field */}
+        {/* Telefon raqam maydoni */}
         <div className="mb-3">
           <label className="form-label fs-7 fw-medium text-main">
-            Foydalanuvchi nomi yoki Email
+            Telefon raqami
           </label>
           <div className="input-group">
             <span className="input-group-text bg-body-custom border-custom text-muted-custom">
-              <i className="bi bi-person-fill"></i>
+              <i className="bi bi-telephone-fill"></i>
             </span>
             <input
               type="text"
               className={`form-control ${errors.username ? 'is-invalid' : ''}`}
-              placeholder="alex_vance"
-              defaultValue="alex_vance"
-              {...register('username', { required: "Foydalanuvchi nomi kiritilishi shart" })}
+              placeholder="+998901234567"
+              {...register('username', { required: "Telefon raqami kiritilishi shart" })}
             />
             {errors.username && <div className="invalid-feedback">{errors.username.message}</div>}
           </div>
@@ -80,7 +88,6 @@ export const LoginPage = () => {
               type={showPassword ? 'text' : 'password'}
               className={`form-control ${errors.password ? 'is-invalid' : ''}`}
               placeholder="••••••••"
-              defaultValue="Password123!"
               {...register('password', { required: "Parol kiritilishi shart" })}
             />
             <button
@@ -128,6 +135,12 @@ export const LoginPage = () => {
           )}
         </button>
       </form>
+      <div className="text-center mt-3">
+        <span className="text-muted-custom fs-8">Tashkilotingiz yo'qmi? </span>
+        <Link to="/register" className="text-primary fs-8 fw-medium text-decoration-none">
+          Ro'yxatdan o'tish
+        </Link>
+      </div>
     </div>
   );
 };

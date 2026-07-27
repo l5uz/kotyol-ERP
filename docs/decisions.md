@@ -1,51 +1,54 @@
 # Architecture Decision Records (ADR) - Kotyol ERP
 
 ## ADR 001: Selection of Vanilla CSS over Utility Frameworks (Tailwind)
-- **Status**: Accepted
-- **Decision**: Use Bootstrap 5 as base layout/grid system and layer custom CSS files without Tailwind CSS.
-
 ## ADR 002: State Separation between Zustand and TanStack Query
-- **Status**: Accepted
-- **Decision**: Use **Zustand** exclusively for client UI session state (Auth, Sidebar, Theme, Notifications, User, Currency), and **TanStack Query** for all server data.
-
 ## ADR 003: Pure Business Services Layer Decoupled from React
-- **Status**: Accepted
-- **Decision**: Place all core business domain logic in `src/services/` as pure, side-effect-free JavaScript functions.
-
 ## ADR 004: Strict Path Alias Usage
-- **Status**: Accepted
-- **Decision**: Enforce path aliases (`@/components`, `@/features`, `@/services`, `@/shared`, etc.) configured in `vite.config.js`.
-
 ## ADR 005: Backend-Ready Abstracted JWT Auth Layer & Centralized Mock Data
-- **Status**: Accepted
-- **Decision**: Abstract all auth API calls into `src/features/auth/api/authApi.js` and move all mock datasets to `auth.mock.js` and `dashboard.mock.js`.
-
 ## ADR 006: 100% Uzbek UI Language Standard with English Code Identifiers
-- **Status**: Accepted
-- **Decision**: Keep variable names, React components, and file paths in English while translating all user-facing labels, buttons, messages, charts, and alerts into Uzbek.
-
 ## ADR 007: Centralized Enterprise Settings Architecture & `@dnd-kit` Drag & Drop Production Stages
-- **Status**: Accepted
-- **Decision**: Implement a dedicated `features/settings` module with 14 sub-pages, using `@dnd-kit` for interactive drag-and-drop production stage reordering and an extensible Permission Matrix for RBAC access controls.
-
 ## ADR 008: Dynamic Positions & HR Foundation Model
-- **Status**: Accepted
-- **Decision**: Store positions as dynamic entities managed via `/employees/positions` rather than static hardcoded enums.
-
 ## ADR 009: Dynamic Configuration Registry Pattern for Zero Hardcoded Business Values
-- **Status**: Accepted
-- **Decision**: Introduce `dynamicSettingsService` as a system-wide configuration provider for all business select options.
-
 ## ADR 010: Suppliers and Products Foundation Architecture with Dynamic Material Types
-- **Status**: Accepted
-- **Decision**: Store Products, Raw Materials, and Suppliers in decoupled domain features (`features/products` and `features/suppliers`), linking them dynamically via `dynamicSettingsService`.
-
 ## ADR 011: React Icons Library Standard (`react-icons/lu` & `react-icons/fa`)
-- **Status**: Accepted
-- **Context**: Modern vector icon support and consistent visual iconography.
-- **Decision**: Deprecate Bootstrap icon font classes and adopt **React Icons** (`react-icons/lu` Lucide & `react-icons/fa` Font Awesome) across all ERP components.
-
 ## ADR 012: Dynamic Warehouse Movement & Audit Engine
+## ADR 013: Administrator First Philosophy
+## ADR 014: Uninterrupted Workflow with DynamicSelect Component
+## ADR 015: Automated Stock Receiving and Purchasing Calculation Engine
+## ADR 016: Data Integrity, Single Source of Truth, and Soft Delete Engine
+## ADR 017: Recipe Versioning and Automated Production Cost Engine
+## ADR 018: Master Data vs Transaction Data Architecture & Single Source of Truth
+## ADR 019: Smart Forms, Smart Tables Column Customization, and Local Preference Persistence
+## ADR 020: Finished Products Boiler Catalog & Recipe-to-Production Flow Mapping
+## ADR 021: Read-Only Related Information Preview UX
+## ADR 022: Customer Management & Sales/Services Integration Architecture
+## ADR 023: Form Draft Auto-Save & Unsaved Changes Protection UX
+## ADR 024: Reusable Page-Based Background Auto-Refresh Engine
+## ADR 025: Customer Orders & Material Reservation Engine Architecture
+## ADR 026: Real-Time Production Rules, Audit Trail & Optimistic Locking Architecture
+## ADR 027: Production Foundation & Multi-Module Workflow Integration Architecture
+## ADR 028: Smart Actions & 1-Click Direct Cross-Module Navigation Architecture
+## ADR 029: Drag & Drop Engine, Optimistic UI & Production Kanban Architecture
+## ADR 030: Complete Production Kanban & Quick Inspection Drawer Architecture
+## ADR 031: Permission-Based UI & Dynamic Read-Only Mode Architecture
+## ADR 032: Business Rules Isolation & Calculation Transparency Architecture
+## ADR 033: Complete Sales & Commercial Module Architecture
+## ADR 034: Centralized Document Numbering System Architecture
+## ADR 035: Simplicity First, One Screen One Purpose & Progressive UI Architecture
+## ADR 036: Complete Service & Warranty Module Architecture
+## ADR 037: Complete Finance & Treasury Module Architecture
+## ADR 038: Manager-Centric Managerial Finance Architecture
+## ADR 039: Complete Reports & Read-Only Analytics Architecture
+## ADR 040: Unified Reusable Filter System Architecture
+## ADR 041: Notification Center & Global Activity Center Architecture
+## ADR 042: Continuous Architecture Review & System Consistency Standard
+## ADR 043: Complete Audit Log & System Management Architecture
+## ADR 044: Comprehensive Quality Gate & Technical Debt Exclusion Standard
+## ADR 045: Final Production Release & Enterprise ERP Architecture Baseline
+## ADR 046: Implementation Quality over Superficial Features Standard
+
+## ADR 047: UI Language Parentheses Cleanup Standard
 - **Status**: Accepted
-- **Context**: Warehouse stock receipts, production issues, sales dispatches, revaluations, and physical inventory counts require strict audit logging without hardcoded operation types or reasons.
-- **Decision**: All movement types, movement reasons, revaluation reasons, and inventory count reasons are sourced dynamically from `dynamicSettingsService`.
+- **Context**: Ensuring the UI feels natively designed in Uzbek rather than translated from English.
+- **Decision**: Removed all parenthesized English translations (e.g. `(Customers)`, `(Orders)`, `(Warehouse)`) from user-facing text, page titles, tables, forms, modals, drawers, and buttons across all modules.
+- **Benefits**: Native, clean, professional 100% Uzbek enterprise user experience.
