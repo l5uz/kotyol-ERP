@@ -13,6 +13,19 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
+/* Navbar Solid Background Rule */
+.navbar,
+.bg-navbar-custom {
+  background-color: var(--erp-navbar-bg) !important;
+  opacity: 1 !important;
+}
+
+[data-theme='dark'] .navbar,
+[data-theme='dark'] .bg-navbar-custom {
+  background-color: #151c2c !important;
+  opacity: 1 !important;
+}
+
 /* Custom Buttons */
 .btn-primary {
   background-color: var(--erp-primary);
