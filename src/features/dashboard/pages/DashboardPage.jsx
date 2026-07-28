@@ -1,7 +1,6 @@
 import React from 'react';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { StatCardsGrid } from '../components/StatCardsGrid';
-import { QuickActionsWidget } from '../components/QuickActionsWidget';
 import { SalesExpensesChart } from '../components/SalesExpensesChart';
 import { ProductionWarehouseChart } from '../components/ProductionWarehouseChart';
 import { LatestOrdersWidget } from '../components/LatestOrdersWidget';
@@ -21,22 +20,14 @@ export const DashboardPage = () => {
           { label: 'Boshqaruv paneli' },
         ]}
         actions={
-          <>
-            <button className="btn btn-outline-secondary btn-sm">
-              <i className={`bi ${ERP_ICONS.CALENDAR} me-1`}></i> Joriy Oy
-            </button>
-            <button className="btn btn-primary btn-sm">
-              <i className={`bi ${ERP_ICONS.PLUS} me-1`}></i> Yangi Buyurtma
-            </button>
-          </>
+          <button className="btn btn-outline-secondary btn-sm">
+            <i className={`bi ${ERP_ICONS.CALENDAR} me-1`}></i> Joriy Oy
+          </button>
         }
       />
 
       {/* 8 Statistics Cards Grid */}
       <StatCardsGrid />
-
-      {/* Quick Action Buttons */}
-      <QuickActionsWidget />
 
       {/* Charts Grid */}
       <div className="row g-3 mb-4">

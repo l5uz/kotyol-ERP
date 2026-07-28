@@ -358,3 +358,59 @@ h1, h2, h3, h4, h5, h6 {
 [data-theme='dark'] .btn-close {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
+
+/* ==========================================
+   UNIFORM 40px HEIGHT SYSTEM (Inputs & Buttons)
+   ========================================== */
+.form-control:not(textarea),
+.form-select,
+.input-group > .form-control,
+.input-group > .input-group-text,
+.input-group > .form-select,
+.btn,
+.btn-sm,
+.btn-md,
+.btn-lg {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  line-height: 1.2 !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure Buttons and Flex containers align elements nicely */
+.btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Navbar specific control buttons 40px height */
+.navbar .btn,
+.navbar .form-control,
+.navbar .input-group,
+.navbar .input-group > .form-control {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+}
+
+/* Exceptions: Textareas keep natural height */
+textarea.form-control {
+  height: auto !important;
+  min-height: 70px !important;
+  max-height: none !important;
+}
+
+/* Exception: Table action mini buttons (like edit/delete icons in tables) */
+.table .btn,
+.table .btn-sm,
+.btn-icon-only,
+.btn-table-action {
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding: 0 0.5rem !important;
+}
