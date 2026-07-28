@@ -4,6 +4,7 @@ import { router } from './router/routes';
 import { QueryProvider } from './providers/QueryProvider';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { useNotificationStore } from '@/store/useNotificationStore';
+import { NetworkStatusOverlay } from '@/components/common/NetworkStatusOverlay/NetworkStatusOverlay';
 import { ERP_ICONS } from '@/shared/icons';
 
 export const App = () => {
@@ -12,6 +13,9 @@ export const App = () => {
   return (
     <QueryProvider>
       <ThemeProvider>
+        {/* Global Offline Network Banner */}
+        <NetworkStatusOverlay />
+
         <RouterProvider router={router} />
 
         {/* Global Toast Overlay */}
