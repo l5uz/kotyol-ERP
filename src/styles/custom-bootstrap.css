@@ -129,8 +129,8 @@ h1, h2, h3, h4, h5, h6 {
   display: flex !important;
   align-items: flex-start !important;
   justify-content: center !important;
-  padding-top: 5rem !important;
-  padding-bottom: 5rem !important;
+  padding-top: 3.5rem !important;
+  padding-bottom: 3.5rem !important;
   padding-left: 1rem !important;
   padding-right: 1rem !important;
   overflow-x: hidden !important;
@@ -141,12 +141,12 @@ h1, h2, h3, h4, h5, h6 {
 .modal.show .modal-dialog {
   display: flex !important;
   flex-direction: column !important;
-  margin: 0 auto 5rem auto !important;
+  margin: 0 auto !important;
   width: 100% !important;
   pointer-events: auto !important;
   position: relative !important;
+  transform: none !important;
 }
-
 
 .modal.show .modal-sm {
   max-width: 420px !important;
@@ -167,12 +167,14 @@ h1, h2, h3, h4, h5, h6 {
 .modal-content {
   background-color: var(--erp-bg-card);
   border: 1px solid var(--erp-border-color);
-  border-radius: var(--erp-radius-lg);
+  border-radius: 12px !important;
   box-shadow: var(--erp-shadow-lg);
   position: relative !important;
   display: flex !important;
   flex-direction: column !important;
   width: 100% !important;
+  overflow: hidden !important;
+  margin: 0 !important;
 }
 
 .modal-header {
@@ -187,7 +189,127 @@ h1, h2, h3, h4, h5, h6 {
   padding: 1.25rem;
 }
 
+/* ==========================================================================
+   COMPREHENSIVE DARK MODE CONTRAST OVERRIDES
+   ========================================================================== */
 
+[data-theme='dark'] {
+  color: #f1f5f9 !important;
+  background-color: #0b0f17 !important;
+}
 
+/* 1. Typography & Text Classes */
+[data-theme='dark'] .text-dark,
+[data-theme='dark'] .text-main,
+[data-theme='dark'] .card-title,
+[data-theme='dark'] .form-label,
+[data-theme='dark'] label,
+[data-theme='dark'] h1, [data-theme='dark'] h2, [data-theme='dark'] h3,
+[data-theme='dark'] h4, [data-theme='dark'] h5, [data-theme='dark'] h6 {
+  color: #f1f5f9 !important;
+}
 
+[data-theme='dark'] .text-muted,
+[data-theme='dark'] .text-secondary,
+[data-theme='dark'] .text-muted-custom,
+[data-theme='dark'] small:not(.text-danger):not(.text-success):not(.text-warning) {
+  color: #94a3b8 !important;
+}
 
+/* 2. Inputs, Selects & Placeholders */
+[data-theme='dark'] .form-control,
+[data-theme='dark'] .form-select,
+[data-theme='dark'] textarea {
+  background-color: #151c2c !important;
+  color: #f1f5f9 !important;
+  border-color: #26334d !important;
+}
+
+[data-theme='dark'] .form-control::placeholder,
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 0.85 !important;
+}
+
+[data-theme='dark'] .input-group-text {
+  background-color: #1e293b !important;
+  color: #94a3b8 !important;
+  border-color: #26334d !important;
+}
+
+/* 3. Cards & Containers */
+[data-theme='dark'] .card {
+  background-color: #151c2c !important;
+  border-color: #26334d !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme='dark'] .bg-light,
+[data-theme='dark'] .bg-light-subtle,
+[data-theme='dark'] .bg-body-tertiary,
+[data-theme='dark'] .bg-white {
+  background-color: #151c2c !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme='dark'] .bg-secondary.bg-opacity-10,
+[data-theme='dark'] .table-secondary {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+/* 4. Tables */
+[data-theme='dark'] .table {
+  color: #f1f5f9 !important;
+  border-color: #26334d !important;
+}
+
+[data-theme='dark'] .table th {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: #26334d !important;
+}
+
+[data-theme='dark'] .table td {
+  background-color: transparent !important;
+  color: #f1f5f9 !important;
+  border-color: #26334d !important;
+}
+
+[data-theme='dark'] .table-hover tbody tr:hover td {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+/* 5. Dropdowns & Modals */
+[data-theme='dark'] .dropdown-menu {
+  background-color: #151c2c !important;
+  border-color: #26334d !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme='dark'] .dropdown-item {
+  color: #f1f5f9 !important;
+}
+
+[data-theme='dark'] .dropdown-item:hover,
+[data-theme='dark'] .dropdown-item:focus {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .modal-content {
+  background-color: #151c2c !important;
+  border-color: #26334d !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme='dark'] .modal-header,
+[data-theme='dark'] .modal-footer {
+  border-color: #26334d !important;
+}
+
+[data-theme='dark'] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}

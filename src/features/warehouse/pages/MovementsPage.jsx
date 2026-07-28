@@ -103,7 +103,7 @@ export const MovementsPage = () => {
             size="sm"
             onClick={() => setIsModalOpen(true)}
           >
-            <LuPlus className="me-1" /> Yangi Harakat Kiritish
+            <LuPlus className="me-1" /> Omborga Mahsulot Kirim Qilish
           </Button>
         }
       />

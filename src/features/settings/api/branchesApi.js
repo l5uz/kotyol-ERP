@@ -7,7 +7,7 @@ export const branchesApi = {
   },
 
   createBranch: async (branchData) => {
-    const response = await axiosInstance.post('/auth/branches', branchData);
+    const response = await axiosInstance.post('/auth/branches/create', branchData);
     return response;
   },
 
@@ -17,7 +17,7 @@ export const branchesApi = {
   },
 
   deleteBranch: async (id) => {
-    const response = await axiosInstance.delete(`/auth/branches/${id}`);
+    const response = await axiosInstance.delete(`/auth/branches/${id}/delete`);
     return response;
   },
 

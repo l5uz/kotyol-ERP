@@ -11,22 +11,8 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { employeesApi } from '../api/employeesApi';
 import { dataIntegrityService } from '@/services/dataIntegrity.service';
 import { notifySuccess, notifyError } from '@/services/notification.service';
+import { PermissionMatrixTable } from '@/features/settings/components/PermissionMatrixTable';
 
-const PERMISSION_MODULES = [
-  { key: 'SALES', label: 'Savdo bo\'limi' },
-  { key: 'PRODUCTION', label: 'Ishlab chiqarish' },
-  { key: 'WAREHOUSE', label: 'Ombor tizimi' },
-  { key: 'FINANCE', label: 'Moliya bo\'limi' },
-  { key: 'EMPLOYEES', label: 'Kadrlar bo\'limi (Xodimlar)' },
-  { key: 'SERVICES', label: 'Servis xizmati' }
-];
-
-const PERMISSION_ACTIONS = [
-  { key: 'VIEW', label: 'Ko\'rish' },
-  { key: 'CREATE', label: 'Yaratish' },
-  { key: 'EDIT', label: 'Tahrirlash' },
-  { key: 'DELETE', label: 'O\'chirish' }
-];
 
 export const PositionsPage = () => {
   const [positions, setPositions] = useState([]);
@@ -219,7 +205,7 @@ export const PositionsPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingPos ? "Lavozimni Tahrirlash" : "Yangi Lavozim Qo'shish"}
-        size="lg"
+        size="xl"
         footer={
           <div className="d-flex justify-content-end gap-2 w-100">
             <Button variant="outline-secondary" size="sm" onClick={() => setIsModalOpen(false)}>
@@ -232,82 +218,51 @@ export const PositionsPage = () => {
         }
       >
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <Input
-              label="Lavozim Nomi"
-              placeholder="Bosh Injener"
-              value={posName}
-              onChange={(e) => setPosName(e.target.value)}
-              required
-            />
+          <div className="row g-3 mb-3">
+            <div className={editingPos ? "col-md-8" : "col-12"}>
+              <Input
+                label="Lavozim Nomi *"
+                placeholder="Bosh Injener"
+                value={posName}
+                onChange={(e) => setPosName(e.target.value)}
+                required
+              />
+            </div>
+            {editingPos && (
+              <div className="col-md-4">
+                <label className="form-label fs-7 fw-medium text-main">Status</label>
+                <select
+                  className="form-select fs-7"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="ACTIVE">Faol</option>
+                  <option value="INACTIVE">Nofaol</option>
+                </select>
+              </div>
+            )}
           </div>
+
           <div className="mb-3">
             <label className="form-label fs-7 fw-medium text-main">Lavozim Izohi va Vazifalari</label>
             <textarea
               className="form-control fs-7"
-              rows="3"
+              rows="2"
               value={posDesc}
               onChange={(e) => setPosDesc(e.target.value)}
               placeholder="Asosiy majburiyatlari va huquqlari..."
             ></textarea>
           </div>
-          
-          <div className="mb-3">
-            <label className="form-label fs-7 fw-bold text-main d-block border-bottom pb-1 mb-2">Tizim Huquqlari Matritsasi (Ruxsatnomalar)</label>
-            <div className="table-responsive">
-              <table className="table table-sm table-bordered fs-7 align-middle mb-0">
-                <thead>
-                  <tr className="bg-light">
-                    <th>Modul / Bo'lim</th>
-                    {PERMISSION_ACTIONS.map(act => (
-                      <th key={act.key} className="text-center" style={{ width: '80px' }}>{act.label}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PERMISSION_MODULES.map(mod => (
-                    <tr key={mod.key}>
-                      <td className="fw-semibold text-main">{mod.label}</td>
-                      {PERMISSION_ACTIONS.map(act => {
-                        const permKey = `${mod.key}_${act.key}`;
-                        const isChecked = selectedPermissions.includes(permKey);
-                        return (
-                          <td key={act.key} className="text-center">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              checked={isChecked}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedPermissions([...selectedPermissions, permKey]);
-                                } else {
-                                  setSelectedPermissions(selectedPermissions.filter(p => p !== permKey));
-                                }
-                              }}
-                            />
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
 
-          {editingPos && (
-            <div className="mb-2">
-              <label className="form-label fs-7 fw-medium text-main">Status</label>
-              <select
-                className="form-select fs-7"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="ACTIVE">Faol</option>
-                <option value="INACTIVE">Nofaol</option>
-              </select>
-            </div>
-          )}
+          <div className="mb-3">
+            <label className="form-label fs-7 fw-bold text-main d-block border-bottom pb-1 mb-2">
+              Tizim Huquqlari va Sahifalar Matritsasi (Ruxsatnomalar)
+            </label>
+            <PermissionMatrixTable
+              permissions={selectedPermissions}
+              onChange={setSelectedPermissions}
+            />
+          </div>
         </form>
       </Modal>
 

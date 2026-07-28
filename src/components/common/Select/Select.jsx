@@ -9,7 +9,7 @@ export const Select = forwardRef(
       helperText,
       className = '',
       id,
-      placeholder = 'Select an option',
+      placeholder = 'Tanlang...',
       containerClass = 'mb-3 text-start',
       ...props
     },

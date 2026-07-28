@@ -146,7 +146,7 @@ export const WarehousePage = () => {
               size="sm"
               onClick={() => setIsMovementModalOpen(true)}
             >
-              <LuPlus className="me-1" /> Yangi Ombor Harakati
+              <LuPlus className="me-1" /> Omborga Mahsulot Qo'shish
             </Button>
           </div>
         }

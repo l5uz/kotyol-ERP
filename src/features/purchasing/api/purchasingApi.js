@@ -38,7 +38,7 @@ export const purchasingApi = {
       limit: 100,
     };
 
-    const response = await axiosInstance.get('/purchasing/list', { params });
+    const response = await axiosInstance.get('/purchasing', { params });
     let result = (response.data || []).map(mapPurchase);
 
     if (filters.search) {
@@ -63,7 +63,7 @@ export const purchasingApi = {
   },
 
   getPurchaseById: async (id) => {
-    const response = await axiosInstance.get('/purchasing/list');
+    const response = await axiosInstance.get('/purchasing');
     const item = (response.data || []).find((p) => p.id === id);
     return { success: true, data: mapPurchase(item) };
   },
@@ -84,7 +84,7 @@ export const purchasingApi = {
       })),
     };
 
-    const response = await axiosInstance.post('/purchasing/create', payload);
+    const response = await axiosInstance.post('/purchasing', payload);
     return { success: true, data: mapPurchase(response.data), message: "Xarid buyurtmasi muvaffaqiyatli saqlandi." };
   },
 
@@ -123,7 +123,7 @@ export const purchasingApi = {
 
   getProductsList: async () => {
     try {
-      const response = await axiosInstance.get('/products/list');
+      const response = await axiosInstance.get('/products');
       const items = response.data || response || [];
       return { success: true, data: Array.isArray(items) ? items.map(p => ({ id: p.id, name: p.name, unit: p.unit_symbol || 'dona' })) : [] };
     } catch {

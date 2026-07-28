@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { LuChevronLeft, LuSettings2, LuPlay, LuPause, LuCircleCheck, LuPrinter, LuBoxes, LuUsers, LuFileText } from 'react-icons/lu';
+import {
+  LuChevronLeft,
+  LuSettings2,
+  LuPlay,
+  LuPrinter,
+  LuUsers,
+  LuCircleCheck,
+  LuDollarSign,
+  LuClock,
+} from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -16,6 +25,38 @@ export const ProductionDetailPage = () => {
   const { id } = useParams();
   const [production, setProduction] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Operations breakdown for Kotyol Assembly
+  const [operations, setOperations] = useState([
+    {
+      id: 'op_1',
+      name: "1. Ichki o'rxona va issiqlik almashtirgich qismini yig'ish",
+      workerName: 'Jasur Nazarov',
+      rate: 150000,
+      status: 'COMPLETED',
+    },
+    {
+      id: 'op_2',
+      name: '2. Tashqi himoya korpusi va qoplamasini tayyorlash',
+      workerName: 'Alisher Karimov',
+      rate: 120000,
+      status: 'IN_PROGRESS',
+    },
+    {
+      id: 'op_3',
+      name: "3. O't yonish mexanizmi va gorelkasini o'rnatish",
+      workerName: 'Sardor Saidov',
+      rate: 180000,
+      status: 'PENDING',
+    },
+    {
+      id: 'op_4',
+      name: "4. Payvandlash va germetik bosim sinovidan o'tkazish",
+      workerName: 'Jasur Nazarov',
+      rate: 100000,
+      status: 'PENDING',
+    },
+  ]);
 
   useEffect(() => {
     loadProductionDetails();
@@ -39,6 +80,20 @@ export const ProductionDetailPage = () => {
     notifySuccess("Ishlab chiqarish marshrut xaritasini va sex naryadi chop etishga yuborildi.");
   };
 
+  const handleCompleteOperation = (opId) => {
+    setOperations((prev) =>
+      prev.map((op) => {
+        if (op.id === opId) {
+          notifySuccess(
+            `'${op.name}' operatsiyasi bajarildi! Usta (${op.workerName}) hisobiga ${op.rate.toLocaleString()} UZS ish haqi avtomatik o'tdi!`
+          );
+          return { ...op, status: 'COMPLETED' };
+        }
+        return op;
+      })
+    );
+  };
+
   if (isLoading || !production) {
     return (
       <div className="production-detail-page animate-fade-in pb-5">
@@ -51,6 +106,60 @@ export const ProductionDetailPage = () => {
       </div>
     );
   }
+
+  const operationColumns = [
+    { header: 'Operatsiya / Qism Nomi', accessor: 'name' },
+    {
+      header: "Mas'ul Usta Xodim",
+      cell: (row) => <strong className="text-primary fs-7">{row.workerName}</strong>,
+    },
+    {
+      header: 'Operatsiya Stavka Qiymati',
+      cell: (row) => (
+        <span className="text-success font-mono font-bold fs-7">
+          {row.rate.toLocaleString()} UZS
+        </span>
+      ),
+    },
+    {
+      header: 'Status',
+      cell: (row) => (
+        <span
+          className={`badge fs-8 px-2 py-1 ${
+            row.status === 'COMPLETED'
+              ? 'bg-success text-white'
+              : row.status === 'IN_PROGRESS'
+              ? 'bg-warning text-dark'
+              : 'bg-secondary bg-opacity-25 text-main'
+          }`}
+        >
+          {row.status === 'COMPLETED'
+            ? 'Bajarildi (+Maosh)'
+            : row.status === 'IN_PROGRESS'
+            ? 'Jarayonda'
+            : 'Kutilmoqda'}
+        </span>
+      ),
+    },
+    {
+      header: 'Amal (Maoshga)',
+      cell: (row) =>
+        row.status !== 'COMPLETED' ? (
+          <Button
+            variant="outline-success"
+            size="sm"
+            className="py-1 px-2 fs-8 d-flex align-items-center gap-1"
+            onClick={() => handleCompleteOperation(row.id)}
+          >
+            <LuCheckCircle2 /> Qabul qilish (+Maosh)
+          </Button>
+        ) : (
+          <span className="text-success fs-8 d-flex align-items-center gap-1 fw-medium">
+            <LuCheckCircle2 /> Maosh O'tdi
+          </span>
+        ),
+    },
+  ];
 
   const ingredientColumns = [
     { header: 'Xomashyo Nomi', accessor: 'materialName' },
@@ -167,15 +276,6 @@ export const ProductionDetailPage = () => {
                 </div>
               )}
 
-              {production.recipeId && (
-                <div>
-                  <small className="text-muted-custom d-block">Retseptura Versiyasi:</small>
-                  <Link to={`${ROUTES.PROTECTED.RECIPES}/${production.recipeId}`} className="badge bg-secondary bg-opacity-10 text-secondary text-decoration-none fs-8">
-                    {production.recipeVersion} ({production.recipeName || 'Reseptura'})
-                  </Link>
-                </div>
-              )}
-
               <div>
                 <small className="text-muted-custom d-block">Ishlab Chiqarish Miqdori:</small>
                 <strong className="text-main fs-6">{production.quantity} dona</strong>
@@ -206,11 +306,21 @@ export const ProductionDetailPage = () => {
           </Card>
         </div>
 
-        {/* Right Column: Assigned Employees, Material Consumption & Timeline */}
+        {/* Right Column: Operations Breakdown, Assigned Employees, Material Consumption & Timeline */}
         <div className="col-12 col-lg-8">
           <div className="d-flex flex-column gap-3">
+            {/* Interactive Assembly Operations & Salary Trigger Table */}
+            <Card title="Kotyol Yig'ish Operatsiyalari va Maosh Hisoblash Jurnali">
+              <div className="mb-2">
+                <small className="text-muted-custom fs-8 d-block mb-2">
+                  Har bir bosqich operatsiyasi bajarilib 'Qabul qilish' bosilganda, tegishli ustaga belgilangan stafka bo'yicha maosh avtomatik o'tadi.
+                </small>
+                <Table columns={operationColumns} data={operations} />
+              </div>
+            </Card>
+
             {/* Assigned Employees */}
-            <Card title="Biriktirilgan Usta va Ishchi Xodilar">
+            <Card title="Biriktirilgan Usta va Ishchi Xodimlar">
               <div className="d-flex align-items-center gap-2 p-3 bg-body-custom rounded-3 border-custom">
                 <LuUsers className="fs-3 text-primary" />
                 <div>
@@ -240,11 +350,6 @@ export const ProductionDetailPage = () => {
             {/* Notes */}
             <Card title="Texnologik Yo'riqnoma va Izoh">
               <p className="fs-7 text-main mb-0">{production.notes || 'Izoh kiritilmagan.'}</p>
-            </Card>
-
-            {/* Attachments */}
-            <Card title="Texnik Chizmalar va Ilovalar (Attachments)">
-              <Table columns={attachmentColumns} data={production.attachments || []} />
             </Card>
 
             {/* Audit Timeline */}

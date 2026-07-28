@@ -33,7 +33,7 @@ export const productsApi = {
       status: filters.status || 'ACTIVE',
     };
 
-    const response = await axiosInstance.get('/products/list', { params });
+    const response = await axiosInstance.get('/products', { params });
     const items = response.data || [];
     return { success: true, data: items.map(mapProduct) };
   },
@@ -57,7 +57,7 @@ export const productsApi = {
       currency: productData.currency || 'USD',
     };
 
-    const response = await axiosInstance.post('/products/create', payload);
+    const response = await axiosInstance.post('/products', payload);
     return { success: true, data: mapProduct(response.data), message: "Yangi xomashyo/mahsulot muvaffaqiyatli saqlandi." };
   },
 

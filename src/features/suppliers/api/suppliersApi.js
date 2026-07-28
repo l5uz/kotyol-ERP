@@ -54,7 +54,7 @@ export const suppliersApi = {
       address: supplierData.address || '',
     };
 
-    const response = await axiosInstance.post('/master-data/suppliers', payload);
+    const response = await axiosInstance.post('/master-data/suppliers/create', payload);
     return { success: true, data: mapSupplier(response.data), message: "Ta'minotchi muvaffaqiyatli saqlandi." };
   },
 

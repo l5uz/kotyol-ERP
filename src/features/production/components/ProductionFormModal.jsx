@@ -7,10 +7,9 @@ import { Button } from '@/components/common/Button/Button';
 import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { documentNumberingService } from '@/services/documentNumbering.service';
-import { productionApi } from '../api/productionApi';
 import { useFormDraftStore } from '@/store/useFormDraftStore';
 import { ROUTES } from '@/constants/routes.constants';
-import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuBoxes, LuFileCheck } from 'react-icons/lu';
+import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck } from 'react-icons/lu';
 
 export const ProductionFormModal = ({
   isOpen,
@@ -23,13 +22,19 @@ export const ProductionFormModal = ({
   const FORM_KEY = productionOrder ? `draft_production_${productionOrder.id}` : 'draft_production_new';
   const { saveDraft, getDraft, clearDraft } = useFormDraftStore();
 
-  const [orderOptions, setOrderOptions] = useState(orders.map((o) => ({ value: o.id, label: `${o.orderNumber} — ${o.customerName} (${o.boilerModelName})` })));
-  const [employeeOptions, setEmployeeOptions] = useState(employees.map((e) => ({ value: `${e.firstName} ${e.lastName}`, label: `${e.firstName} ${e.lastName} (${e.positionName || 'Xodim'})` })));
+  const [orderOptions, setOrderOptions] = useState(
+    orders.map((o) => ({ value: o.id, label: `${o.orderNumber} — ${o.customerName} (${o.boilerModelName})` }))
+  );
+  const [employeeOptions, setEmployeeOptions] = useState(
+    employees.map((e) => ({
+      value: `${e.firstName} ${e.lastName}`,
+      label: `${e.firstName} ${e.lastName} (${e.positionName || 'Xodim'})`,
+    }))
+  );
   const [priorityOptions, setPriorityOptions] = useState(dynamicSettingsService.getOrderPriorityOptions());
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isDraftRestored, setIsDraftRestored] = useState(false);
-  const [materialVerification, setMaterialVerification] = useState(null);
 
   const [formData, setFormData] = useState({
     productionNumber: '',
@@ -46,19 +51,25 @@ export const ProductionFormModal = ({
 
   useEffect(() => {
     if (orders.length > 0) {
-      setOrderOptions(orders.map((o) => ({ value: o.id, label: `${o.orderNumber} — ${o.customerName} (${o.boilerModelName})` })));
+      setOrderOptions(
+        orders.map((o) => ({ value: o.id, label: `${o.orderNumber} — ${o.customerName} (${o.boilerModelName})` }))
+      );
     }
     if (employees.length > 0) {
-      setEmployeeOptions(employees.map((e) => ({ value: `${e.firstName} ${e.lastName}`, label: `${e.firstName} ${e.lastName} (${e.positionName || 'Xodim'})` })));
+      setEmployeeOptions(
+        employees.map((e) => ({
+          value: `${e.firstName} ${e.lastName}`,
+          label: `${e.firstName} ${e.lastName} (${e.positionName || 'Xodim'})`,
+        }))
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders.length, employees.length]);
 
   useEffect(() => {
     if (productionOrder) {
       setFormData({
         productionNumber: productionOrder.productionNumber || '',
-        orderId: productionOrder.orderId || (orderOptions[0]?.value || ''),
+        orderId: productionOrder.orderId || orderOptions[0]?.value || '',
         title: productionOrder.title || '',
         line: productionOrder.line || 'Liniya A-1 (Payvandlash sex)',
         quantity: productionOrder.quantity || 1,
@@ -70,40 +81,26 @@ export const ProductionFormModal = ({
       });
       setIsDraftRestored(false);
     } else if (isOpen) {
-      const savedDraft = getDraft(FORM_KEY);
-      if (savedDraft) {
-        setFormData(savedDraft);
-        setIsDraftRestored(true);
-      } else {
-        const firstOrder = orderOptions[0]?.value || '';
-        setFormData({
-          productionNumber: documentNumberingService.generateNumber('PRODUCTION'),
-          orderId: firstOrder,
-          title: "KV-200 Kotyol korpusini kavsharlash va yig'ish",
-          line: 'Liniya A-1 (Payvandlash sex)',
-          quantity: 1,
-          priority: 'NORMAL',
-          assignedEmployee: employeeOptions[0]?.value || '',
-          startDate: new Date().toISOString().split('T')[0],
-          expectedFinishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
-          notes: '',
-        });
-        setIsDraftRestored(false);
-      }
+      // Clear old cached mock draft
+      clearDraft(FORM_KEY);
+      const firstOrder = orderOptions[0]?.value || '';
+      setFormData({
+        productionNumber: documentNumberingService.generateNumber('PRODUCTION'),
+        orderId: firstOrder,
+        title: '',
+        line: 'Liniya A-1 (Payvandlash sex)',
+        quantity: 1,
+        priority: 'NORMAL',
+        assignedEmployee: employeeOptions[0]?.value || '',
+        startDate: new Date().toISOString().split('T')[0],
+        expectedFinishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+        notes: '',
+      });
+      setIsDraftRestored(false);
       setShowAdvanced(false);
     }
   }, [productionOrder, isOpen]);
 
-  // Perform Material Verification on Selection Change
-  useEffect(() => {
-    if (isOpen) {
-      productionApi.verifyProductionMaterials(formData.orderId, null, formData.quantity).then((res) => {
-        setMaterialVerification(res);
-      });
-    }
-  }, [formData.orderId, formData.quantity, isOpen]);
-
-  // Real-time draft auto-save
   const handleFieldChange = (field, value) => {
     const updated = { ...formData, [field]: value };
     setFormData(updated);
@@ -146,7 +143,11 @@ export const ProductionFormModal = ({
       onClose={onClose}
       title={
         <div className="d-flex align-items-center gap-2">
-          <span>{productionOrder ? "Ishlab Chiqarish Topshirig'ini Tahrirlash" : "Yangi Ishlab Chiqarish Topshirig'i Apparatini Yaratish"}</span>
+          <span>
+            {productionOrder
+              ? "Ishlab Chiqarish Topshirig'ini Tahrirlash"
+              : "Yangi Ishlab Chiqarish Topshirig'i Yaratish"}
+          </span>
           {isDraftRestored && (
             <span className="badge bg-success bg-opacity-10 text-success fs-8 d-flex align-items-center gap-1">
               <LuFileCheck /> 📝 Qoralama saqlangan ma'lumotdan tiklandi
@@ -186,7 +187,7 @@ export const ProductionFormModal = ({
           <div className="col-12 col-md-4">
             <Input
               label="Texnologik Operatsiya va Mahsulot Nomi"
-              placeholder="KV-200 Kotyol korpusini kavsharlash"
+              placeholder="Masalan: Kotyol yig'ish va payvandlash"
               value={formData.title}
               onChange={(e) => handleFieldChange('title', e.target.value)}
               required
@@ -204,35 +205,6 @@ export const ProductionFormModal = ({
             />
           </div>
         </div>
-
-        {/* Read-Only Material Verification Card */}
-        {materialVerification && (
-          <div className="p-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 mb-3 fs-7">
-            <div className="d-flex align-items-center justify-content-between mb-2">
-              <span className="fw-bold text-primary d-flex align-items-center gap-1 font-heading">
-                <LuBoxes /> Ombor Xomashyo va Materiallar Yetarliligi Tekshiruvi
-              </span>
-              <span className={`badge ${materialVerification.materialStatus === 'ENOUGH' ? 'bg-success' : 'bg-warning text-dark'} fs-8`}>
-                {materialVerification.materialStatusText}
-              </span>
-            </div>
-
-            <div className="row g-2 text-main">
-              <div className="col-6 col-md-4">
-                <small className="text-muted-custom d-block">Reseptura:</small>
-                <strong>{materialVerification.recipeName}</strong>
-              </div>
-              <div className="col-6 col-md-4">
-                <small className="text-muted-custom d-block">Taxminiy Davomiyligi:</small>
-                <strong>{materialVerification.estimatedDays} ish kuni</strong>
-              </div>
-              <div className="col-6 col-md-4 text-end">
-                <small className="text-muted-custom d-block">Taxminiy Tannarx:</small>
-                <strong className="text-primary fs-6">${materialVerification.estimatedCost.toFixed(2)}</strong>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Collapsible Section for Progressive Disclosure */}
         <div className="border-custom rounded-3 p-2 mb-3 bg-body-custom">

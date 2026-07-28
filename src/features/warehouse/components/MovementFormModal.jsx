@@ -6,32 +6,50 @@ import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { Button } from '@/components/common/Button/Button';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { ROUTES } from '@/constants/routes.constants';
+import { LuPlus, LuListFilter } from 'react-icons/lu';
 
 export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) => {
+  const [isNewProductMode, setIsNewProductMode] = useState(true);
+
   const [movementTypeOptions, setMovementTypeOptions] = useState(dynamicSettingsService.getMovementTypeOptions());
-  const [movementReasonOptions, setMovementReasonOptions] = useState(dynamicSettingsService.getMovementReasonOptions());
   const [warehouseOptions, setWarehouseOptions] = useState(dynamicSettingsService.getWarehouseOptions());
-  const productOptions = products.map((p) => ({ value: p.id || p.productId, label: p.productName || p.name }));
+  const [unitOptions] = useState([
+    { value: 'dona', label: 'dona' },
+    { value: 'kg', label: 'kg' },
+    { value: 'metr', label: 'metr' },
+    { value: 'litr', label: 'litr' },
+    { value: 'komplekt', label: 'komplekt' },
+  ]);
+
+  const productOptions = products.map((p) => ({
+    value: p.id || p.productId,
+    label: `${p.productName || p.name} (Hozirgi qoldiq: ${p.quantity || 0} ${p.unitName || 'dona'})`,
+  }));
 
   const [formData, setFormData] = useState({
+    customProductName: '',
     productId: productOptions[0]?.value || '',
     warehouseId: warehouseOptions[0]?.value || '',
-    movementTypeCode: movementTypeOptions[0]?.value || 'PURCHASE',
-    reason: movementReasonOptions[0]?.value || '',
-    quantity: '100',
+    movementTypeCode: 'PURCHASE',
+    quantity: '',
+    unitName: 'dona',
+    unitPrice: '',
     notes: '',
   });
 
   useEffect(() => {
     if (isOpen) {
       setFormData({
+        customProductName: '',
         productId: productOptions[0]?.value || '',
         warehouseId: warehouseOptions[0]?.value || '',
-        movementTypeCode: movementTypeOptions[0]?.value || 'PURCHASE',
-        reason: movementReasonOptions[0]?.value || '',
-        quantity: '100',
+        movementTypeCode: 'PURCHASE',
+        quantity: '',
+        unitName: 'dona',
+        unitPrice: '',
         notes: '',
       });
+      setIsNewProductMode(true);
     }
   }, [isOpen]);
 
@@ -42,26 +60,32 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
     return newWH;
   };
 
-  const handleAddNewReason = (newRecord) => {
-    const newReas = { value: newRecord.name, label: newRecord.name };
-    setMovementReasonOptions((prev) => [...prev, newReas]);
-    setFormData((prev) => ({ ...prev, reason: newReas.value }));
-    return newReas;
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    const selectedProd = products.find((p) => (p.id || p.productId) === formData.productId);
+
+    let finalProductName = '';
+    let finalUnitName = formData.unitName;
+
+    if (isNewProductMode) {
+      if (!formData.customProductName.trim()) return;
+      finalProductName = formData.customProductName.trim();
+    } else {
+      const selectedProd = products.find((p) => (p.id || p.productId) === formData.productId);
+      finalProductName = selectedProd ? (selectedProd.productName || selectedProd.name) : 'Noma\'lum mahsulot';
+      if (selectedProd?.unitName) finalUnitName = selectedProd.unitName;
+    }
+
     const selectedMType = movementTypeOptions.find((m) => m.value === formData.movementTypeCode);
     const selectedWH = warehouseOptions.find((w) => w.value === formData.warehouseId);
 
     onSubmit({
       ...formData,
-      productName: selectedProd ? (selectedProd.productName || selectedProd.name) : '',
-      unitName: selectedProd ? selectedProd.unitName : 'dona',
-      movementTypeName: selectedMType ? selectedMType.label : '',
-      warehouseName: selectedWH ? selectedWH.label : '',
+      productName: finalProductName,
+      unitName: finalUnitName,
+      movementTypeName: selectedMType ? selectedMType.label : 'Kirim',
+      warehouseName: selectedWH ? selectedWH.label : 'Asosiy Ombor',
       quantity: parseFloat(formData.quantity) || 0,
+      unitPrice: parseFloat(formData.unitPrice) || 0,
     });
   };
 
@@ -69,7 +93,7 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Yangi Ombor Harakatini Kiritish"
+      title="Omborga Mahsulot Kirim Qilish"
       size="lg"
       footer={
         <div className="d-flex justify-content-end gap-2 w-100">
@@ -77,26 +101,61 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
             Bekor qilish
           </Button>
           <Button variant="primary" size="sm" onClick={handleSubmit}>
-            Harakatni Saqlash
+            Mahsulotni Omborga Saqlash
           </Button>
         </div>
       }
     >
       <form onSubmit={handleSubmit}>
-        <div className="row g-3">
-          <div className="col-12 col-md-6">
-            <Select
-              label="Mahsulot / Xomashyo"
-              value={formData.productId}
-              onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
-              options={productOptions}
-            />
+        {/* Toggle Mode Segment */}
+        <div className="d-flex align-items-center justify-content-between p-2 bg-body-custom rounded-3 border-custom mb-3">
+          <span className="fs-8 fw-semibold text-muted-custom">Kirim Usulini Tanlang:</span>
+          <div className="btn-group btn-group-sm" role="group">
+            <button
+              type="button"
+              className={`btn ${isNewProductMode ? 'btn-primary' : 'btn-outline-secondary'} fs-8`}
+              onClick={() => setIsNewProductMode(true)}
+            >
+              <LuPlus className="me-1" /> Yangi Mahsulot Nomi Bilan
+            </button>
+            <button
+              type="button"
+              className={`btn ${!isNewProductMode ? 'btn-primary' : 'btn-outline-secondary'} fs-8`}
+              onClick={() => setIsNewProductMode(false)}
+            >
+              <LuListFilter className="me-1" /> Mavjud Mahsulot Ro'yxatidan
+            </button>
           </div>
+        </div>
+
+        <div className="row g-3">
+          {/* Mode 1: Custom Product Name Input */}
+          {isNewProductMode ? (
+            <div className="col-12 col-md-8">
+              <Input
+                label="Mahsulot / Xomashyo Nomi"
+                placeholder="Masalan: Kotyol Nasosi 25kW, Truba 50mm, Gaskat..."
+                value={formData.customProductName}
+                onChange={(e) => setFormData({ ...formData, customProductName: e.target.value })}
+                required
+              />
+            </div>
+          ) : (
+            /* Mode 2: Existing Product Select */
+            <div className="col-12 col-md-8">
+              <Select
+                label="Mavjud Mahsulot Ro'yxati"
+                value={formData.productId}
+                onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
+                options={productOptions}
+              />
+            </div>
+          )}
 
           {/* Dynamic Warehouse Select */}
-          <div className="col-12 col-md-6">
+          <div className="col-12 col-md-4">
             <DynamicSelect
-              label="Omborxona"
+              label="Qaysi Omborga"
               value={formData.warehouseId}
               onChange={(e) => setFormData({ ...formData, warehouseId: e.target.value })}
               options={warehouseOptions}
@@ -107,47 +166,47 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
             />
           </div>
 
-          <div className="col-12 col-md-6">
-            <Select
-              label="Harakat Turi"
-              value={formData.movementTypeCode}
-              onChange={(e) => setFormData({ ...formData, movementTypeCode: e.target.value })}
-              options={movementTypeOptions}
-            />
-          </div>
-
-          {/* Dynamic Movement Reason Select */}
-          <div className="col-12 col-md-6">
-            <DynamicSelect
-              label="Harakat Sababi"
-              value={formData.reason}
-              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-              options={movementReasonOptions}
-              managePath={ROUTES.PROTECTED.SETTINGS}
-              onAddNew={handleAddNewReason}
-              entityTitle="Harakat Sababi"
-              required
-            />
-          </div>
-
-          <div className="col-12 col-md-6">
+          <div className="col-12 col-md-4">
             <Input
-              label="Miqdori"
-              placeholder="100"
+              label="Kirim Miqdori"
+              placeholder="Masalan: 100"
               type="number"
+              min="0.01"
+              step="any"
               value={formData.quantity}
               onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
               required
             />
           </div>
+
+          <div className="col-12 col-md-4">
+            <Select
+              label="O'lchov Birligi"
+              value={formData.unitName}
+              onChange={(e) => setFormData({ ...formData, unitName: e.target.value })}
+              options={unitOptions}
+            />
+          </div>
+
+          <div className="col-12 col-md-4">
+            <Input
+              label="Birlik Narxi ($) (Ixtiyoriy)"
+              placeholder="0.00"
+              type="number"
+              step="any"
+              value={formData.unitPrice}
+              onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
+            />
+          </div>
+
           <div className="col-12">
-            <label className="form-label fs-7 fw-medium text-main">Operatsiya Bo'yicha Izoh</label>
+            <label className="form-label fs-7 fw-medium text-main">Izoh / Hujjat Ma'lumoti (Ixtiyoriy)</label>
             <textarea
               className="form-control fs-7"
-              rows="3"
+              rows="2"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Shartnoma raqami yoki ish topshirig'i ma'lumoti..."
+              placeholder="Masalan: 1-partiya kirim shartnoma №402..."
             ></textarea>
           </div>
         </div>

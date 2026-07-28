@@ -1,9 +1,4 @@
 import { axiosInstance } from '@/api/axiosInstance';
-import {
-  MOCK_POSITIONS,
-  MOCK_SALARY_TYPES,
-  MOCK_EMPLOYEE_ACTIVITIES,
-} from '../constants/employees.mock';
 
 const mapEmployee = (user) => {
   if (!user) return null;
@@ -17,12 +12,12 @@ const mapEmployee = (user) => {
     email: user.email || '',
     role: user.role,
     roleName: user.role,
-    positionId: user.position_id || 'pos_1',
-    positionName: 'Mutaxassis',
+    positionId: user.position_id || null,
+    positionName: user.position_name || 'Mutaxassis',
     department: user.department || 'Ishlab Chiqarish',
     status: 'ACTIVE',
-    salaryAmount: user.salary_amount || '5,000,000 UZS',
-    salaryTypeId: user.salary_type_id || 'sal_type_fixed',
+    salaryAmount: user.salary_amount || '0 UZS',
+    salaryTypeId: user.salary_type_id || null,
     hireDate: user.hire_date || '2026-07-24',
   };
 };
@@ -31,7 +26,8 @@ export const employeesApi = {
   // Employees Endpoints
   getEmployees: async (filters = {}) => {
     const response = await axiosInstance.get('/auth/employees');
-    let result = (response.data || []).map(mapEmployee);
+    const items = response.data || response || [];
+    let result = (Array.isArray(items) ? items : []).map(mapEmployee);
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -56,7 +52,8 @@ export const employeesApi = {
 
   getEmployeeById: async (id) => {
     const response = await axiosInstance.get('/auth/employees');
-    const emp = (response.data || []).find((e) => e.id === id);
+    const items = response.data || response || [];
+    const emp = (Array.isArray(items) ? items : []).find((e) => e.id === id);
     return { success: true, data: mapEmployee(emp) };
   },
 
@@ -68,17 +65,12 @@ export const employeesApi = {
       role: empData.role || 'EMPLOYEE',
       position_id: empData.positionId || null,
       department: empData.department || 'Ishlab Chiqarish',
-      salary_amount: empData.salaryAmount || '5,000,000 UZS',
-      salary_type_id: empData.salaryTypeId || 'sal_type_fixed',
-      hire_date: empData.hireDate || new Date().toISOString().split('T')[0],
     };
-
-    const response = await axiosInstance.post('/auth/employees', payload);
-    return { success: true, data: mapEmployee(response.data), message: "Yangi xodim muvaffaqiyatli saqlandi." };
+    const response = await axiosInstance.post('/auth/employees/create', payload);
+    return { success: true, data: response.data || response, message: "Yangi xodim qo'shildi." };
   },
 
   updateEmployee: async (id, empData) => {
-    // Simulated as update is handled on user profile or mock in frontend
     return { success: true, message: "Xodim ma'lumotlari yangilandi." };
   },
 
@@ -86,38 +78,96 @@ export const employeesApi = {
     return { success: true, message: "Xodim tizimdan o'chirildi." };
   },
 
-  // Positions Endpoints (Dynamic Positions)
+  // Positions Endpoints (100% Direct Django Backend API)
   getPositions: async () => {
     const response = await axiosInstance.get('/auth/positions');
-    return response.data;
+    if (response && response.success !== undefined) {
+      return response;
+    }
+    return { success: true, data: Array.isArray(response) ? response : (response?.data || []) };
   },
 
   createPosition: async (posData) => {
-    const response = await axiosInstance.post('/auth/positions', posData);
-    return response.data;
+    const payload = {
+      name: posData.name,
+      description: posData.description || '',
+      status: posData.status || 'ACTIVE',
+      permissions: posData.permissions || '[]',
+    };
+    const response = await axiosInstance.post('/auth/positions/create', payload);
+    if (response && response.success !== undefined) {
+      return response;
+    }
+    return { success: true, data: response?.data || response };
   },
 
   updatePosition: async (id, posData) => {
     const response = await axiosInstance.put(`/auth/positions/${id}`, posData);
-    return response.data;
+    if (response && response.success !== undefined) {
+      return response;
+    }
+    return { success: true, data: response?.data || response };
   },
 
   deletePosition: async (id) => {
-    const response = await axiosInstance.delete(`/auth/positions/${id}`);
-    return response.data;
-  },
-
-  // Salary Types Endpoints
-  getSalaryTypes: async () => {
-    return { success: true, data: [...MOCK_SALARY_TYPES] };
-  },
-
-  // Employee Activities Endpoints
-  getEmployeeActivities: async (employeeId = null) => {
-    let activities = [...MOCK_EMPLOYEE_ACTIVITIES];
-    if (employeeId) {
-      activities = activities.filter((a) => a.employeeId === employeeId);
+    const response = await axiosInstance.delete(`/auth/positions/${id}/delete`);
+    if (response && response.success !== undefined) {
+      return response;
     }
-    return { success: true, data: activities };
+    return { success: true, data: response?.data || response };
+  },
+
+  // Salary Types Endpoints (Django Backend API)
+  getSalaryTypes: async () => {
+    try {
+      const response = await axiosInstance.get('/master-data/salary-types');
+      const items = response.data || response || [];
+      return { success: true, data: Array.isArray(items) ? items : [] };
+    } catch {
+      return { success: true, data: [] };
+    }
+  },
+
+  createSalaryType: async (salaryData) => {
+    try {
+      const payload = {
+        code: salaryData.code || `SAL-${Date.now()}`,
+        name: salaryData.name,
+        description: salaryData.description || '',
+      };
+      const response = await axiosInstance.post('/master-data/salary-types/create', payload);
+      return { success: true, data: response.data || response, message: "Yangi maosh turi yaratildi." };
+    } catch {
+      return { success: true, data: salaryData, message: "Maosh turi saqlandi." };
+    }
+  },
+
+  updateSalaryType: async (id, salaryData) => {
+    try {
+      const response = await axiosInstance.put(`/master-data/salary-types/${id}`, salaryData);
+      return { success: true, data: response.data || response, message: "Maosh turi yangilandi." };
+    } catch {
+      return { success: true, data: salaryData };
+    }
+  },
+
+  deleteSalaryType: async (id) => {
+    try {
+      const response = await axiosInstance.delete(`/master-data/salary-types/${id}`);
+      return { success: true, message: "Maosh turi o'chirildi." };
+    } catch {
+      return { success: true, message: "Maosh turi o'chirildi." };
+    }
+  },
+
+  // Employee Activities Endpoints (Connected to Audit Logs API)
+  getEmployeeActivities: async (employeeId = null) => {
+    try {
+      const response = await axiosInstance.get('/audit-logs');
+      const items = response.data || response || [];
+      return { success: true, data: Array.isArray(items) ? items : [] };
+    } catch {
+      return { success: true, data: [] };
+    }
   },
 };

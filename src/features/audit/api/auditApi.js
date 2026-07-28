@@ -37,7 +37,7 @@ export const auditApi = {
       entity_name: params.module || undefined,
     };
 
-    const response = await axiosInstance.get('/audit-logs/logs', { params: queryParams });
+    const response = await axiosInstance.get('/audit-logs', { params: queryParams });
     const items = response.data || [];
     let result = items.map(mapAuditLog);
 
@@ -55,7 +55,7 @@ export const auditApi = {
   },
 
   async getAuditLogById(id) {
-    const response = await axiosInstance.get('/audit-logs/logs');
+    const response = await axiosInstance.get('/audit-logs');
     const log = (response.data || []).find((a) => a.id === id);
     if (!log) return { success: false, message: 'Audit yozuvi topilmadi' };
     return { success: true, data: mapAuditLog(log) };

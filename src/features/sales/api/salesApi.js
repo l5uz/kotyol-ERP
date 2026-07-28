@@ -33,7 +33,7 @@ const mapSale = (item) => {
 
 export const salesApi = {
   async getSales(params = {}) {
-    const response = await axiosInstance.get('/sales/list');
+    const response = await axiosInstance.get('/sales');
     let result = (response.data || []).map(mapSale);
 
     if (params.search) {
@@ -61,7 +61,7 @@ export const salesApi = {
   },
 
   async getSaleById(id) {
-    const response = await axiosInstance.get('/sales/list');
+    const response = await axiosInstance.get('/sales');
     const sale = (response.data || []).find((s) => s.id === id);
     if (!sale) return { success: false, message: 'Sotuv hujjati topilmadi' };
     return { success: true, data: mapSale(sale) };
@@ -80,7 +80,7 @@ export const salesApi = {
       exchange_rate_at_creation: 1.0,
     };
 
-    const response = await axiosInstance.post('/sales/create', payload);
+    const response = await axiosInstance.post('/sales', payload);
     return { success: true, data: mapSale(response.data), message: 'Sotuv hujjati muvaffaqiyatli rasmiylashtirildi va ombordan mahsulot chiqarildi!' };
   },
 
@@ -104,7 +104,7 @@ export const salesApi = {
 
   async getBoilersList() {
     try {
-      const response = await axiosInstance.get('/products/list');
+      const response = await axiosInstance.get('/products');
       const items = response.data || response || [];
       return { success: true, data: Array.isArray(items) ? items.map(b => ({ id: b.id, name: b.name, basePrice: b.base_price || b.price || 0 })) : [] };
     } catch {

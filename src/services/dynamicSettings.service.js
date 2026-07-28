@@ -182,10 +182,17 @@ class DynamicSettingsService {
 
   // Warehouses
   getWarehouses() {
-    return MOCK_WAREHOUSES;
+    const list = this.getList('warehouses');
+    if (list && list.length > 0) return list;
+    return [
+      { id: 'wh_main', code: 'WH-01', name: 'Asosiy Xomashyo Ombori' },
+      { id: 'wh_finished', code: 'WH-02', name: 'Tayyor Mahsulotlar Ombori' },
+      { id: 'wh_shop', code: 'WH-03', name: 'Sex Liniyasi Oraliq Ombori' },
+      { id: 'wh_parts', code: 'WH-04', name: 'Ehtiyot Qismlar Ombori' },
+    ];
   }
   getWarehouseOptions() {
-    return MOCK_WAREHOUSES.map((w) => ({ value: w.id, label: `${w.code} — ${w.name}` }));
+    return this.getWarehouses().map((w) => ({ value: w.id, label: `${w.code || 'WH'} — ${w.name}` }));
   }
 
   // Suppliers

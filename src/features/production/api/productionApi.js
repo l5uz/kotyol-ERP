@@ -54,12 +54,13 @@ export const productionApi = {
   },
 
   verifyProductionMaterials: async (orderId, boilerId, quantity = 1) => {
+    const qty = Number(quantity) || 1;
     return {
       materialStatus: 'ENOUGH',
       materialStatusText: 'Barcha xomashyolar omborda mavjud',
-      recipeName: 'Sanoat Resepturasi',
-      estimatedCost: 250.0 * quantity,
-      estimatedDays: Math.max(3, 3 + Math.ceil(quantity * 1.5)),
+      recipeName: 'Standard Retseptura',
+      estimatedCost: 180.0 * qty,
+      estimatedDays: Math.max(2, Math.ceil(qty * 1.2)),
     };
   },
 

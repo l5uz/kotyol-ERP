@@ -142,27 +142,10 @@ export const EmployeeFormModal = ({
           </div>
           <div className="col-12 col-md-6">
             <Input
-              label="Telefon Raqami"
+              label="Telefon Raqami *"
               placeholder="+998 90 123 45 67"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              required
-            />
-          </div>
-          <div className="col-12 col-md-6">
-            <Input
-              label="Email Manzili"
-              placeholder="jasur.n@kotyol.uz"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
-          <div className="col-12 col-md-6">
-            <Input
-              label="Pasport / ID Seriyasi"
-              placeholder="AA 1234567"
-              value={formData.passportNumber}
-              onChange={(e) => setFormData({ ...formData, passportNumber: e.target.value })}
               required
             />
           </div>

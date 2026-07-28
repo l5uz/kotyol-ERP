@@ -84,7 +84,7 @@ export const customersApi = {
       address: addressStr,
     };
 
-    const response = await axiosInstance.post('/master-data/customers', payload);
+    const response = await axiosInstance.post('/master-data/customers/create', payload);
     return { success: true, data: mapCustomer(response.data), message: "Mijoz muvaffaqiyatli saqlandi." };
   },
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LuLayoutDashboard,
   LuBoxes,
@@ -22,8 +22,6 @@ import {
   LuCpu,
   LuClipboardList,
   LuChevronRight,
-  LuChevronDown,
-  LuChevronUp,
   LuX,
   LuArrowUpRight,
   LuArrowDownLeft,
@@ -65,25 +63,6 @@ const REPORTS_SUB_PAGES = [
   { label: 'Ishlab Chiqarish Hisoboti', path: ROUTES.PROTECTED.REPORTS_PRODUCTION, icon: LuSettings2 },
   { label: 'Moliya Hisoboti', path: ROUTES.PROTECTED.REPORTS_FINANCE, icon: LuBadgeDollarSign },
   { label: 'Servis Hisoboti', path: ROUTES.PROTECTED.REPORTS_SERVICES, icon: LuWrench },
-];
-
-const FINANCE_SUB_PAGES = [
-  { label: 'Moliya Boshqaruvi', path: ROUTES.PROTECTED.FINANCE, icon: LuLayoutDashboard },
-  { label: 'Xarajatlar Reyestri', path: '/finance/expenses', icon: LuArrowUpRight },
-  { label: 'Daromadlar Reyestri', path: '/finance/incomes', icon: LuArrowDownLeft },
-];
-
-const EMPLOYEES_SUB_PAGES = [
-  { label: 'Xodimlar Ro\'yxati', path: ROUTES.PROTECTED.EMPLOYEES, icon: LuUsers },
-  { label: 'Lavozimlar Boshqaruvi', path: ROUTES.PROTECTED.EMPLOYEES_POSITIONS, icon: LuBriefcase },
-  { label: 'Oylik Turlari', path: ROUTES.PROTECTED.EMPLOYEES_SALARY_TYPES, icon: LuBadgeDollarSign },
-  { label: 'Ish Faolligi', path: ROUTES.PROTECTED.EMPLOYEES_ACTIVITY, icon: LuActivity },
-];
-
-const SERVICES_SUB_PAGES = [
-  { label: 'Servislar Reyestri', path: ROUTES.PROTECTED.SERVICES, icon: LuWrench },
-  { label: 'Mijozlar Katalogi', path: ROUTES.PROTECTED.CUSTOMERS, icon: LuUserCheck },
-  { label: 'Kotyol Modellari', path: ROUTES.PROTECTED.BOILERS, icon: LuFlame },
 ];
 
 const MASTER_DATA_SUB_PAGES = [
@@ -134,8 +113,8 @@ const MENU_CATEGORIES = [
     icon: LuWarehouse,
     items: [
       { label: 'Omborxona', path: ROUTES.PROTECTED.WAREHOUSE_STOCK, icon: LuWarehouse, isParent: true },
-      { label: 'Ta\'minotchilar', path: ROUTES.PROTECTED.SUPPLIERS, icon: LuTruck },
       { label: 'Xaridlar', path: ROUTES.PROTECTED.PURCHASING, icon: LuShoppingBag },
+      { label: 'Ta\'minotchilar', path: ROUTES.PROTECTED.SUPPLIERS, icon: LuTruck },
     ],
   },
   {
@@ -143,9 +122,28 @@ const MENU_CATEGORIES = [
     label: 'Moliya',
     icon: LuBadgeDollarSign,
     items: [
-      { label: 'Moliya Boshqaruvi', path: ROUTES.PROTECTED.FINANCE, icon: LuBadgeDollarSign, isParent: true },
-      { label: 'Xodimlar', path: ROUTES.PROTECTED.EMPLOYEES, icon: LuUsers, isParent: true },
-      { label: 'Servis', path: ROUTES.PROTECTED.SERVICES, icon: LuWrench, isParent: true },
+      { label: 'Moliya Boshqaruvi', path: ROUTES.PROTECTED.FINANCE, icon: LuBadgeDollarSign },
+      { label: 'Xarajatlar Reyestri', path: '/finance/expenses', icon: LuArrowUpRight },
+      { label: 'Daromadlar Reyestri', path: '/finance/incomes', icon: LuArrowDownLeft },
+    ],
+  },
+  {
+    id: 'employees',
+    label: 'Kadrlar',
+    icon: LuUsers,
+    items: [
+      { label: 'Xodimlar Ro\'yxati', path: ROUTES.PROTECTED.EMPLOYEES, icon: LuUsers },
+      { label: 'Lavozimlar Boshqaruvi', path: ROUTES.PROTECTED.EMPLOYEES_POSITIONS, icon: LuBriefcase },
+      { label: 'Oylik Turlari', path: ROUTES.PROTECTED.EMPLOYEES_SALARY_TYPES, icon: LuBadgeDollarSign },
+      { label: 'Ish Faolligi', path: ROUTES.PROTECTED.EMPLOYEES_ACTIVITY, icon: LuActivity },
+    ],
+  },
+  {
+    id: 'services',
+    label: 'Servis',
+    icon: LuWrench,
+    items: [
+      { label: 'Servislar Reyestri', path: ROUTES.PROTECTED.SERVICES, icon: LuWrench },
     ],
   },
   {
@@ -161,28 +159,41 @@ const MENU_CATEGORIES = [
   },
 ];
 
+const isCategoryActive = (cat, currentPath) => {
+  const matchPath = (p) => {
+    if (!p) return false;
+    const cleanP = p.split('?')[0];
+    if (cleanP === '/') return currentPath === '/';
+    return currentPath.startsWith(cleanP);
+  };
+
+  const itemMatches = cat.items.some((item) => matchPath(item.path));
+  if (itemMatches) return true;
+
+  if (cat.id === 'warehouse') return WAREHOUSE_SUB_PAGES.some((sp) => matchPath(sp.path));
+  if (cat.id === 'dashboard') return REPORTS_SUB_PAGES.some((sp) => matchPath(sp.path));
+  if (cat.id === 'settings') {
+    return (
+      SETTINGS_SUB_PAGES.some((sp) => matchPath(sp.path)) ||
+      MASTER_DATA_SUB_PAGES.some((sp) => matchPath(sp.path))
+    );
+  }
+  return false;
+};
+
 export const Sidebar = () => {
   const { isMobileOpen, closeMobileSidebar } = useSidebarStore();
   const location = useLocation();
-  const navigate = useNavigate();
   const sidebarRef = useRef(null);
 
   // Find active category based on current URL path
-  const activeCategoryByRoute = MENU_CATEGORIES.find((cat) =>
-    cat.items.some((item) => {
-      if (item.path === '/') return location.pathname === '/';
-      return location.pathname.startsWith(item.path);
-    })
-  ) || MENU_CATEGORIES[0];
+  const activeCategoryByRoute = MENU_CATEGORIES.find((cat) => isCategoryActive(cat, location.pathname)) || MENU_CATEGORIES[0];
 
   const getInitialNestedType = () => {
     if (location.pathname.startsWith('/settings/master-data')) return 'master-data';
     if (location.pathname.startsWith('/settings')) return 'settings';
     if (location.pathname.startsWith('/warehouse')) return 'warehouse';
     if (location.pathname.startsWith('/reports')) return 'reports';
-    if (location.pathname.startsWith('/finance')) return 'finance';
-    if (location.pathname.startsWith('/employees')) return 'employees';
-    if (location.pathname.startsWith('/services')) return 'services';
     return null;
   };
 
@@ -212,16 +223,6 @@ export const Sidebar = () => {
       setNestedType(location.pathname.startsWith('/warehouse') ? 'warehouse' : null);
     } else if (selectedCatId === 'dashboard') {
       setNestedType(location.pathname.startsWith('/reports') ? 'reports' : null);
-    } else if (selectedCatId === 'finance') {
-      if (location.pathname.startsWith('/finance')) {
-        setNestedType('finance');
-      } else if (location.pathname.startsWith('/employees')) {
-        setNestedType('employees');
-      } else if (location.pathname.startsWith('/services')) {
-        setNestedType('services');
-      } else {
-        setNestedType(null);
-      }
     } else {
       setNestedType(null);
     }
@@ -265,11 +266,6 @@ export const Sidebar = () => {
       }
       else if (selectedCatId === 'warehouse') targetType = 'warehouse';
       else if (selectedCatId === 'dashboard') targetType = 'reports';
-      else if (selectedCatId === 'finance') {
-        if (item.path.startsWith('/finance')) targetType = 'finance';
-        if (item.path.startsWith('/employees')) targetType = 'employees';
-        if (item.path.startsWith('/services')) targetType = 'services';
-      }
 
       setNestedType((prev) => (prev === targetType ? null : targetType));
       return;
@@ -288,10 +284,7 @@ export const Sidebar = () => {
       (selectedCatId === 'settings' && item.path.startsWith('/settings/master-data') && location.pathname.startsWith('/settings/master-data')) ||
       (selectedCatId === 'settings' && !item.path.startsWith('/settings/master-data') && location.pathname.startsWith('/settings') && !location.pathname.startsWith('/settings/master-data')) ||
       (selectedCatId === 'warehouse' && location.pathname.startsWith('/warehouse')) ||
-      (selectedCatId === 'dashboard' && location.pathname.startsWith('/reports')) ||
-      (selectedCatId === 'finance' && item.path.startsWith('/finance') && location.pathname.startsWith('/finance')) ||
-      (selectedCatId === 'finance' && item.path.startsWith('/employees') && location.pathname.startsWith('/employees')) ||
-      (selectedCatId === 'finance' && item.path.startsWith('/services') && location.pathname.startsWith('/services'))
+      (selectedCatId === 'dashboard' && location.pathname.startsWith('/reports'))
     );
 
     return (
@@ -308,13 +301,13 @@ export const Sidebar = () => {
           }`
         }
       >
-        <div className="d-flex align-items-center gap-2 text-truncate me-3">
+        <div className="d-flex align-items-center gap-2 text-truncate me-2">
           {ItemIcon && <ItemIcon className="fs-5 flex-shrink-0" />}
           <span className="text-truncate" style={{ fontSize: '0.82rem' }}>
             {item.label}
           </span>
         </div>
-        <LuChevronRight className="fs-6 opacity-75 flex-shrink-0" />
+        {item.isParent && <LuChevronRight className="fs-6 opacity-75 flex-shrink-0 ms-1" />}
       </NavLink>
     );
   };
@@ -360,7 +353,7 @@ export const Sidebar = () => {
             <ul className="nav nav-pills flex-column gap-2 mb-auto">
               {MENU_CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
-                const isCurrentCategoryRoute = cat.items.some((item) => item.path === location.pathname);
+                const isCurrentCategoryRoute = isCategoryActive(cat, location.pathname);
                 const isSelected = selectedCatId === cat.id && isFlyoutOpen;
 
                 return (
@@ -401,7 +394,7 @@ export const Sidebar = () => {
             style={{
               left: '84px',
               top: `${Math.min(Math.max(10, popoverTop - 10), Math.max(10, window.innerHeight - 240))}px`,
-              width: '230px',
+              width: '250px',
               backgroundColor: 'var(--erp-sidebar-bg)',
               border: '1px solid var(--erp-sidebar-border)',
               boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
@@ -437,7 +430,7 @@ export const Sidebar = () => {
           <div
             className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
             style={{
-              left: '318px', // 84px + 230px + 4px gap = 318px
+              left: '338px', // 84px + 250px + 4px gap = 338px
               top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 420))}px`,
               width: '500px',
               maxHeight: 'calc(100vh - 40px)',
@@ -470,7 +463,7 @@ export const Sidebar = () => {
           <div
             className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
             style={{
-              left: '318px', // 84px + 230px + 4px gap = 318px
+              left: '338px', // 84px + 250px + 4px gap = 338px
               top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 250))}px`,
               width: '250px',
               maxHeight: 'calc(100vh - 40px)',
@@ -503,7 +496,7 @@ export const Sidebar = () => {
           <div
             className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
             style={{
-              left: '318px', // 84px + 230px + 4px gap = 318px
+              left: '338px', // 84px + 250px + 4px gap = 338px
               top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 320))}px`,
               width: '250px',
               maxHeight: 'calc(100vh - 40px)',
@@ -531,111 +524,12 @@ export const Sidebar = () => {
           </div>
         )}
 
-        {/* Second-Level Nested Popover for Finance */}
-        {isFlyoutOpen && selectedCatId === 'finance' && nestedType === 'finance' && (
-          <div
-            className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
-            style={{
-              left: '318px', // 84px + 230px + 4px gap = 318px
-              top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 250))}px`,
-              width: '250px',
-              maxHeight: 'calc(100vh - 40px)',
-              overflowY: 'auto',
-              backgroundColor: 'var(--erp-sidebar-bg)',
-              border: '1px solid var(--erp-sidebar-border)',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
-              zIndex: 1060,
-            }}
-          >
-            {/* Header Label */}
-            <div className="d-flex align-items-center justify-content-between mb-2 px-1 pb-1 border-bottom border-secondary border-opacity-25">
-              <span
-                className="text-uppercase text-white-50 fw-bold"
-                style={{ fontSize: '0.65rem', letterSpacing: '0.06em' }}
-              >
-                MOLIYA RO'YXATI
-              </span>
-            </div>
-
-            {/* List of Sub-Finance Pages */}
-            <div className="d-flex flex-column gap-1">
-              {FINANCE_SUB_PAGES.map(renderItem)}
-            </div>
-          </div>
-        )}
-
-        {/* Second-Level Nested Popover for Employees */}
-        {isFlyoutOpen && selectedCatId === 'finance' && nestedType === 'employees' && (
-          <div
-            className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
-            style={{
-              left: '318px', // 84px + 230px + 4px gap = 318px
-              top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 250))}px`,
-              width: '250px',
-              maxHeight: 'calc(100vh - 40px)',
-              overflowY: 'auto',
-              backgroundColor: 'var(--erp-sidebar-bg)',
-              border: '1px solid var(--erp-sidebar-border)',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
-              zIndex: 1060,
-            }}
-          >
-            {/* Header Label */}
-            <div className="d-flex align-items-center justify-content-between mb-2 px-1 pb-1 border-bottom border-secondary border-opacity-25">
-              <span
-                className="text-uppercase text-white-50 fw-bold"
-                style={{ fontSize: '0.65rem', letterSpacing: '0.06em' }}
-              >
-                XODIMLAR RO'YXATI
-              </span>
-            </div>
-
-            {/* List of Sub-Employees Pages */}
-            <div className="d-flex flex-column gap-1">
-              {EMPLOYEES_SUB_PAGES.map(renderItem)}
-            </div>
-          </div>
-        )}
-
-        {/* Second-Level Nested Popover for Services */}
-        {isFlyoutOpen && selectedCatId === 'finance' && nestedType === 'services' && (
-          <div
-            className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
-            style={{
-              left: '318px', // 84px + 230px + 4px gap = 318px
-              top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 250))}px`,
-              width: '250px',
-              maxHeight: 'calc(100vh - 40px)',
-              overflowY: 'auto',
-              backgroundColor: 'var(--erp-sidebar-bg)',
-              border: '1px solid var(--erp-sidebar-border)',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)',
-              zIndex: 1060,
-            }}
-          >
-            {/* Header Label */}
-            <div className="d-flex align-items-center justify-content-between mb-2 px-1 pb-1 border-bottom border-secondary border-opacity-25">
-              <span
-                className="text-uppercase text-white-50 fw-bold"
-                style={{ fontSize: '0.65rem', letterSpacing: '0.06em' }}
-              >
-                SERVIS RO'YXATI
-              </span>
-            </div>
-
-            {/* List of Sub-Services Pages */}
-            <div className="d-flex flex-column gap-1">
-              {SERVICES_SUB_PAGES.map(renderItem)}
-            </div>
-          </div>
-        )}
-
         {/* Second-Level Nested Popover for Master Data */}
         {isFlyoutOpen && selectedCatId === 'settings' && nestedType === 'master-data' && (
           <div
             className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
             style={{
-              left: '318px', // 84px + 230px + 4px gap = 318px
+              left: '338px', // 84px + 250px + 4px gap = 338px
               top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 350))}px`,
               width: '250px',
               maxHeight: 'calc(100vh - 40px)',

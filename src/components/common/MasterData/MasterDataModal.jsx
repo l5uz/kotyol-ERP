@@ -77,7 +77,7 @@ export const MasterDataModal = ({
                   value={formData[field.name] || ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                 >
-                  <option value="">Select...</option>
+                  <option value="">Tanlang...</option>
                   {(field.options || []).map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}

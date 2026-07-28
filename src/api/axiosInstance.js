@@ -4,7 +4,7 @@ import { handleApiError } from './errorHandler';
 import { ENDPOINTS } from './endpoints';
 import { useAuthStore } from '@/store/useAuthStore';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const baseURL = import.meta.env.VITE_API_URL || 'https://katyol9090.pythonanywhere.com/api/v1';
 
 export const axiosInstance = axios.create({
   baseURL,
