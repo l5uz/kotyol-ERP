@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LuPencil, LuTrash2, LuPlus } from 'react-icons/lu';
+import { LuPencil, LuTrash2 } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -18,9 +18,10 @@ export const SalaryTypesPage = () => {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  
+
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
+  const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
 
   const [deletingItem, setDeletingItem] = useState(null);
@@ -41,10 +42,12 @@ export const SalaryTypesPage = () => {
     if (item) {
       setName(item.name || '');
       setCode(item.code || '');
+      setAmount(item.amount ?? '');
       setDescription(item.description || '');
     } else {
       setName('');
       setCode('');
+      setAmount('');
       setDescription('');
     }
     setIsModalOpen(true);
@@ -53,22 +56,28 @@ export const SalaryTypesPage = () => {
   const handleSave = async (e) => {
     if (e) e.preventDefault();
     if (!name.trim()) {
-      notifyError("Maosh turi nomini kiriting");
+      notifyError('Maosh turi nomini kiriting');
       return;
     }
 
-    const payload = { name, code, description };
+    const payload = {
+      name,
+      code,
+      amount: Number(amount) || 0,
+      description,
+    };
+
     if (editingItem) {
       const res = await employeesApi.updateSalaryType(editingItem.id, payload);
       if (res.success) {
-        notifySuccess("Maosh turi tahrirlandi.");
+        notifySuccess('Maosh turi va stavkasi tahrirlandi.');
         setIsModalOpen(false);
         loadSalaryTypes();
       }
     } else {
       const res = await employeesApi.createSalaryType(payload);
       if (res.success) {
-        notifySuccess("Yangi maosh turi yaratildi.");
+        notifySuccess('Yangi maosh turi va narxi yaratildi.');
         setIsModalOpen(false);
         loadSalaryTypes();
       }
@@ -98,6 +107,14 @@ export const SalaryTypesPage = () => {
   const columns = [
     { header: 'Maosh Turi Kodi', accessor: 'code' },
     { header: 'Oylik Maosh Turi Nomi', accessor: 'name' },
+    {
+      header: 'Standart Narx / Stavkasi ($)',
+      cell: (row) => (
+        <strong className="text-primary fs-7">
+          ${(Number(row.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </strong>
+      ),
+    },
     { header: 'Tavsifi va Hisoblash Usuli', accessor: 'description' },
     { header: 'Status', cell: (row) => <StatusBadge status={row.status || 'ACTIVE'} /> },
     {
@@ -129,14 +146,19 @@ export const SalaryTypesPage = () => {
     <div className="salary-types-page animate-fade-in pb-5">
       <PageHeader
         title="Oylik Maosh Turlari va Modellari"
-        subtitle="Xodimlarga maosh hisoblash shakllari: Oylik, kunlik, soatbay, bosqichbay va hajmbay"
+        subtitle="Xodimlarga maosh hisoblash shakllari va narxlari stavkasi"
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },
           { label: 'Xodimlar', path: '/employees' },
           { label: 'Oylik Turlari' },
         ]}
         actions={
-          <Button variant="primary" size="sm" icon={ERP_ICONS.PLUS} onClick={() => handleOpenModal(null)}>
+          <Button
+            variant="primary"
+            size="sm"
+            icon={ERP_ICONS.PLUS}
+            onClick={() => handleOpenModal(null)}
+          >
             Yangi Maosh Turi Qo'shish
           </Button>
         }
@@ -151,14 +173,14 @@ export const SalaryTypesPage = () => {
         />
       </div>
 
-      <Card title={`Oylik Maosh Modellari Reyestri (${filtered.length} ta)`}>
+      <Card title={`Oylik Maosh Modellari va Narxlari (${filtered.length} ta)`}>
         <Table columns={columns} data={filtered} />
       </Card>
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingItem ? "Maosh Turini Tahrirlash" : "Yangi Maosh Turi Yaratish"}
+        title={editingItem ? 'Maosh Turini Tahrirlash' : 'Yangi Maosh Turi Yaratish'}
         footer={
           <div className="d-flex justify-content-end gap-2 w-100">
             <Button variant="outline-secondary" size="sm" onClick={() => setIsModalOpen(false)}>
@@ -173,20 +195,29 @@ export const SalaryTypesPage = () => {
         <form onSubmit={handleSave} className="d-flex flex-column gap-3">
           <Input
             label="Maosh Turi Nomi *"
-            placeholder="Premiya / Bonus stavkasi"
+            placeholder="Masalan: Qozon Yig'ish Operatsiyasi / Oylik Oklad"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
           <Input
+            label="Maosh Stavkasi Narxi ($ yoki so'mda) *"
+            placeholder="150000 yoki 50"
+            type="number"
+            step="any"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+          />
+          <Input
             label="Maosh Kodi"
-            placeholder="BONUS_RATE"
+            placeholder="SALARY_RATE_01"
             value={code}
             onChange={(e) => setCode(e.target.value)}
           />
           <Input
-            label="Tavsifi"
-            placeholder="Bajarilgan reja uchun qo'shimcha premiya"
+            label="Tavsifi va Hisoblash Izohi"
+            placeholder="Bajarilgan ish uchun to'lanadigan narx tavsifi"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />

@@ -120,7 +120,7 @@ export const EmployeeDetailPage = () => {
                 </div>
                 <div className="col-12 col-sm-6">
                   <small className="text-muted-custom d-block">Maosh Stavkasi Summasi:</small>
-                  <strong className="text-primary fs-5">${employee.salaryAmount.toFixed(2)}</strong>
+                  <strong className="text-primary fs-5">${(Number(employee.salaryAmount) || 0).toFixed(2)}</strong>
                 </div>
               </div>
             </Card>

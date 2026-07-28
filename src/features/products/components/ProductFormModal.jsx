@@ -244,7 +244,7 @@ export const ProductFormModal = ({
 
           <div className="col-12 col-md-4">
             <Input
-              label="Eng Kam Zaxira Chegarasi (Min Stock)"
+              label="Eng Kam Zaxira Chegarasi"
               placeholder="100"
               type="number"
               value={formData.minStock}
@@ -254,7 +254,7 @@ export const ProductFormModal = ({
           </div>
           <div className="col-12 col-md-6">
             <Input
-              label="Shtrix-kod (Barcode)"
+              label="Shtrix-kod"
               placeholder="4780001234567"
               value={formData.barcode}
               onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}

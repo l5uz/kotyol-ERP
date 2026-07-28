@@ -137,19 +137,19 @@ export const BoilerDetailPage = () => {
             <div className="text-start fs-7 d-flex flex-column gap-1 bg-body-custom p-3 rounded-3 border-custom">
               <div className="d-flex justify-content-between">
                 <span className="text-muted-custom">Materiallar Xarajati:</span>
-                <span>${boiler.costBreakdown?.materialCost.toFixed(2)}</span>
+                <span>${(Number(boiler.costBreakdown?.materialCost) || 0).toFixed(2)}</span>
               </div>
               <div className="d-flex justify-content-between">
                 <span className="text-muted-custom">Bosqichlar Xarajati:</span>
-                <span>${boiler.costBreakdown?.stageCost.toFixed(2)}</span>
+                <span>${(Number(boiler.costBreakdown?.stageCost) || 0).toFixed(2)}</span>
               </div>
               <div className="d-flex justify-content-between">
                 <span className="text-muted-custom">Mehnat Sarfi:</span>
-                <span>${boiler.costBreakdown?.laborCost.toFixed(2)}</span>
+                <span>${(Number(boiler.costBreakdown?.laborCost) || 0).toFixed(2)}</span>
               </div>
               <div className="d-flex justify-content-between fw-bold pt-2 border-top border-custom text-primary fs-6">
                 <span>1 Birlik Tannarxi:</span>
-                <span>${boiler.costBreakdown?.totalCost.toFixed(2)}</span>
+                <span>${(Number(boiler.costBreakdown?.totalCost) || 0).toFixed(2)}</span>
               </div>
             </div>
           </Card>
