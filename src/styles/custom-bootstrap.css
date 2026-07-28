@@ -253,6 +253,38 @@ h1, h2, h3, h4, h5, h6 {
   color: #f1f5f9 !important;
 }
 
+/* 5. Buttons & Dropdowns in Dark Mode */
+[data-theme='dark'] .btn-light {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #26334d !important;
+}
+
+[data-theme='dark'] .btn-light:hover,
+[data-theme='dark'] .btn-light:focus,
+[data-theme='dark'] .btn-light:active {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+[data-theme='dark'] .dropdown-menu {
+  background-color: #151c2c !important;
+  border-color: #26334d !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme='dark'] .dropdown-item {
+  color: #cbd5e1 !important;
+}
+
+[data-theme='dark'] .dropdown-item:hover,
+[data-theme='dark'] .dropdown-item:focus {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
 [data-theme='dark'] .bg-secondary.bg-opacity-10,
 [data-theme='dark'] .table-secondary {
   background-color: #1e293b !important;

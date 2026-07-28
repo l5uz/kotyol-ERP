@@ -4,12 +4,21 @@ import { useSidebarStore } from '@/store/useSidebarStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useNotificationStore } from '@/store/useNotificationStore';
-import { ERP_ICONS } from '@/shared/icons';
 import { ROUTES } from '@/constants/routes.constants';
 import { SearchInput } from '@/components/common/SearchInput/SearchInput';
 import { NotificationDrawer } from '@/features/notifications/components/NotificationDrawer';
 import { branchesApi } from '@/features/settings/api/branchesApi';
-import { LuBell, LuMoon, LuSun, LuList, LuUserCheck, LuKey, LuLogOut, LuArrowLeft, LuGitBranch } from 'react-icons/lu';
+import {
+  LuBell,
+  LuMoon,
+  LuSun,
+  LuList,
+  LuUserCheck,
+  LuKey,
+  LuLogOut,
+  LuArrowLeft,
+  LuGitBranch,
+} from 'react-icons/lu';
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -20,7 +29,9 @@ export const Navbar = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [branches, setBranches] = useState([]);
-  const [activeBranchId, setActiveBranchId] = useState(localStorage.getItem('active_branch_id') || '');
+  const [activeBranchId, setActiveBranchId] = useState(
+    localStorage.getItem('active_branch_id') || ''
+  );
 
   useEffect(() => {
     if (user) {
@@ -39,7 +50,7 @@ export const Navbar = () => {
         }
       }
     } catch (err) {
-      console.error("Failed to load branches in Navbar", err);
+      console.error('Failed to load branches in Navbar', err);
     }
   };
 
@@ -57,21 +68,21 @@ export const Navbar = () => {
   return (
     <>
       <header
-        className="navbar navbar-expand bg-navbar-custom border-bottom border-custom sticky-top px-3"
-        style={{ height: '60px', backgroundColor: 'var(--erp-navbar-bg)' }}
+        className="navbar navbar-expand bg-surface border-bottom border-custom sticky-top px-3"
+        style={{ height: '60px' }}
       >
         <div className="container-fluid px-0 d-flex align-items-center justify-content-between">
           {/* Left Controls */}
           <div className="d-flex align-items-center gap-2">
             <button
-              className="btn btn-sm btn-light border-custom d-flex d-md-none align-items-center justify-content-center p-2"
+              className="btn btn-sm btn-outline-secondary border-custom bg-body-custom text-main d-flex d-md-none align-items-center justify-content-center p-2"
               onClick={toggleMobileSidebar}
             >
               <LuList className="fs-5" />
             </button>
 
             <button
-              className="btn btn-sm btn-light border-custom d-flex align-items-center justify-content-center gap-1 p-2"
+              className="btn btn-sm btn-outline-secondary border-custom bg-body-custom text-main d-flex align-items-center justify-content-center gap-1 p-2"
               onClick={() => navigate(-1)}
               title="Orqaga"
             >
@@ -91,12 +102,11 @@ export const Navbar = () => {
 
           {/* Right Controls */}
           <div className="d-flex align-items-center gap-2">
-
             {/* Branch Switcher Dropdown */}
             {branches.length > 0 && (
               <div className="dropdown">
                 <button
-                  className="btn btn-sm btn-light border-custom d-flex align-items-center gap-1 p-2"
+                  className="btn btn-sm btn-outline-secondary border-custom bg-body-custom text-main d-flex align-items-center gap-1 p-2"
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
@@ -104,7 +114,7 @@ export const Navbar = () => {
                 >
                   <LuGitBranch className="text-primary fs-6" />
                   <span className="d-none d-md-inline fs-8 fw-semibold">
-                    {branches.find(b => b.id === activeBranchId)?.name || 'Filial tanlash'}
+                    {branches.find((b) => b.id === activeBranchId)?.name || 'Filial tanlash'}
                   </span>
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end border-custom shadow-sm p-1 fs-7">
@@ -129,16 +139,20 @@ export const Navbar = () => {
 
             {/* Theme Toggle */}
             <button
-              className="btn btn-sm btn-light border-custom p-2 d-flex align-items-center justify-content-center"
+              className="btn btn-sm btn-outline-secondary border-custom bg-body-custom text-main p-2 d-flex align-items-center justify-content-center"
               onClick={toggleTheme}
               title={`${theme === 'light' ? 'Tungi' : 'Kunduzgi'} rejimga o'tish`}
             >
-              {theme === 'light' ? <LuMoon className="text-warning fs-6" /> : <LuSun className="text-warning fs-6" />}
+              {theme === 'light' ? (
+                <LuMoon className="text-warning fs-6" />
+              ) : (
+                <LuSun className="text-warning fs-6" />
+              )}
             </button>
 
             {/* Notification Trigger with Unread Counter Badge */}
             <button
-              className="btn btn-sm btn-light border-custom p-2 position-relative d-flex align-items-center justify-content-center"
+              className="btn btn-sm btn-outline-secondary border-custom bg-body-custom text-main p-2 position-relative d-flex align-items-center justify-content-center"
               onClick={openDrawer}
               title="Bildirishnomalar Markazi"
             >
@@ -153,7 +167,7 @@ export const Navbar = () => {
             {/* User Profile Dropdown */}
             <div className="dropdown ms-2">
               <button
-                className="btn btn-sm btn-light border-custom d-flex align-items-center gap-2 p-1 pe-2"
+                className="btn btn-sm btn-outline-secondary border-custom bg-body-custom text-main d-flex align-items-center gap-2 p-1 pe-2"
                 type="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
@@ -165,7 +179,9 @@ export const Navbar = () => {
                   {user?.name ? user.name.charAt(0) : 'U'}
                 </div>
                 <div className="d-none d-lg-block text-start" style={{ lineHeight: '1.2' }}>
-                  <span className="fw-semibold text-main fs-8 d-block">{user?.name || 'Foydalanuvchi'}</span>
+                  <span className="fw-semibold text-main fs-8 d-block">
+                    {user?.name || 'Foydalanuvchi'}
+                  </span>
                   <small className="text-muted-custom fs-8">{user?.role || 'Xodim'}</small>
                 </div>
               </button>
@@ -184,7 +200,9 @@ export const Navbar = () => {
                     <LuKey className="me-2 text-warning" /> Parolni O'zgartirish
                   </Link>
                 </li>
-                <li><hr className="dropdown-divider my-1" /></li>
+                <li>
+                  <hr className="dropdown-divider my-1 border-custom" />
+                </li>
                 <li>
                   <button className="dropdown-item py-2 text-danger" onClick={handleLogout}>
                     <LuLogOut className="me-2" /> Chiqish
