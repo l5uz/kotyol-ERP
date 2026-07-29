@@ -1,52 +1,63 @@
-/* Bootstrap 5 Custom Component Overrides */
+/* Global Custom Styles for Kotyol ERP */
+@import './variables.css';
 
+/* Core Typography and Smooth Transitions */
 body {
+  font-family: var(--erp-font-sans, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
   background-color: var(--erp-bg-body);
   color: var(--erp-text-main);
-  font-family: var(--erp-font-body);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--erp-font-heading);
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--erp-font-heading, 'Outfit', 'Inter', sans-serif);
   color: var(--erp-text-main);
-  font-weight: 600;
 }
 
-/* Navbar Solid Background Rule */
-.navbar,
-.bg-navbar-custom {
-  background-color: var(--erp-navbar-bg) !important;
-  opacity: 1 !important;
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--erp-bg-body);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--erp-border-color);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--erp-text-muted);
 }
 
-[data-theme='dark'] .navbar,
-[data-theme='dark'] .bg-navbar-custom {
-  background-color: #151c2c !important;
-  opacity: 1 !important;
+/* Glassmorphism Classes */
+.glass-panel {
+  background: var(--erp-glass-bg, rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--erp-border-color);
 }
 
-/* Custom Buttons */
+/* Universal Button Enhancements */
 .btn-primary {
   background-color: var(--erp-primary);
   border-color: var(--erp-primary);
   color: #ffffff;
-  font-weight: 500;
-  border-radius: var(--erp-radius-sm);
-  padding: 0.5rem 1.25rem;
-  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(15, 82, 186, 0.2);
 }
 
 .btn-primary:hover, .btn-primary:focus {
   background-color: var(--erp-primary-hover);
   border-color: var(--erp-primary-hover);
-  box-shadow: 0 4px 12px rgba(15, 82, 186, 0.3);
+  box-shadow: 0 4px 8px rgba(15, 82, 186, 0.3);
 }
 
 .btn-outline-primary {
   color: var(--erp-primary);
   border-color: var(--erp-primary);
-  border-radius: var(--erp-radius-sm);
 }
 
 .btn-outline-primary:hover {
@@ -73,6 +84,11 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom: 1px solid var(--erp-border-color);
   padding: 1rem 1.25rem;
   font-weight: 600;
+  color: var(--erp-text-main);
+}
+
+.card-title {
+  color: var(--erp-text-main);
 }
 
 .card-footer {
@@ -87,8 +103,12 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--erp-text-main);
   border: 1px solid var(--erp-border-color);
   border-radius: var(--erp-radius-sm);
-  padding: 0.55rem 0.85rem;
+  padding: 0.4rem 0.85rem;
   font-size: 0.925rem;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  box-sizing: border-box !important;
 }
 
 .form-control:focus, .form-select:focus {
@@ -118,206 +138,83 @@ h1, h2, h3, h4, h5, h6 {
 
 .table td {
   padding: 0.85rem 1rem;
-  font-size: 0.9rem;
   border-bottom: 1px solid var(--erp-border-color);
-}
-
-/* Badges */
-.badge {
-  padding: 0.35em 0.65em;
-  font-weight: 500;
-  border-radius: var(--erp-radius-sm);
-  font-size: 0.78rem;
-}
-
-/* Universal Clean Modal Viewport & Portal Architecture */
-.modal.show {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  display: flex !important;
-  align-items: flex-start !important;
-  justify-content: center !important;
-  padding-top: 3.5rem !important;
-  padding-bottom: 3.5rem !important;
-  padding-left: 1rem !important;
-  padding-right: 1rem !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  z-index: 1055 !important;
-}
-
-.modal.show .modal-dialog {
-  display: flex !important;
-  flex-direction: column !important;
-  margin: 0 auto !important;
-  width: 100% !important;
-  pointer-events: auto !important;
-  position: relative !important;
-  transform: none !important;
-}
-
-.modal.show .modal-sm {
-  max-width: 420px !important;
-}
-
-.modal.show .modal-md {
-  max-width: 580px !important;
-}
-
-.modal.show .modal-lg {
-  max-width: 860px !important;
-}
-
-.modal.show .modal-xl {
-  max-width: 1140px !important;
-}
-
-.modal-content {
   background-color: var(--erp-bg-card);
-  border: 1px solid var(--erp-border-color);
-  border-radius: 12px !important;
-  box-shadow: var(--erp-shadow-lg);
-  position: relative !important;
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
-  overflow: hidden !important;
-  margin: 0 !important;
+  color: var(--erp-text-main);
 }
 
-.modal-header {
-  border-bottom: 1px solid var(--erp-border-color);
-}
-
-.modal-footer {
-  border-top: 1px solid var(--erp-border-color);
-}
-
-.modal-body {
-  padding: 1.25rem;
-}
-
-/* ==========================================================================
-   COMPREHENSIVE DARK MODE CONTRAST OVERRIDES
-   ========================================================================== */
-
+/* DARK MODE FULL COMPREHENSIVE OVERRIDES */
 [data-theme='dark'] {
-  color: #f1f5f9 !important;
-  background-color: #0b0f17 !important;
+  color-scheme: dark;
 }
 
-/* 1. Typography & Text Classes */
-[data-theme='dark'] .text-dark,
-[data-theme='dark'] .text-main,
+[data-theme='dark'] body {
+  background-color: #0b0f17 !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme='dark'] h1, 
+[data-theme='dark'] h2, 
+[data-theme='dark'] h3, 
+[data-theme='dark'] h4, 
+[data-theme='dark'] h5, 
+[data-theme='dark'] h6,
+[data-theme='dark'] .h1, 
+[data-theme='dark'] .h2, 
+[data-theme='dark'] .h3, 
+[data-theme='dark'] .h4, 
+[data-theme='dark'] .h5, 
+[data-theme='dark'] .h6,
 [data-theme='dark'] .card-title,
-[data-theme='dark'] .form-label,
-[data-theme='dark'] label,
-[data-theme='dark'] h1, [data-theme='dark'] h2, [data-theme='dark'] h3,
-[data-theme='dark'] h4, [data-theme='dark'] h5, [data-theme='dark'] h6 {
+[data-theme='dark'] .modal-title {
   color: #f1f5f9 !important;
 }
 
 [data-theme='dark'] .text-muted,
-[data-theme='dark'] .text-secondary,
-[data-theme='dark'] .text-muted-custom,
-[data-theme='dark'] small:not(.text-danger):not(.text-success):not(.text-warning) {
+[data-theme='dark'] .text-muted-custom {
   color: #94a3b8 !important;
 }
 
-/* 2. Inputs, Selects & Placeholders */
-[data-theme='dark'] .form-control,
-[data-theme='dark'] .form-select,
-[data-theme='dark'] textarea {
-  background-color: #151c2c !important;
-  color: #f1f5f9 !important;
-  border-color: #26334d !important;
-}
-
-[data-theme='dark'] .form-control::placeholder,
-[data-theme='dark'] input::placeholder,
-[data-theme='dark'] textarea::placeholder {
+[data-theme='dark'] .breadcrumb-item,
+[data-theme='dark'] .breadcrumb-item a {
   color: #94a3b8 !important;
-  opacity: 0.85 !important;
 }
 
-[data-theme='dark'] .input-group-text {
-  background-color: #1e293b !important;
-  color: #94a3b8 !important;
-  border-color: #26334d !important;
+[data-theme='dark'] .breadcrumb-item.active {
+  color: #38bdf8 !important;
 }
 
-/* 3. Cards & Containers */
 [data-theme='dark'] .card {
   background-color: #151c2c !important;
   border-color: #26334d !important;
   color: #f1f5f9 !important;
 }
 
-[data-theme='dark'] .bg-light,
-[data-theme='dark'] .bg-light-subtle,
-[data-theme='dark'] .bg-body-tertiary,
-[data-theme='dark'] .bg-white {
-  background-color: #151c2c !important;
-  color: #f1f5f9 !important;
-}
-
-/* 5. Buttons & Dropdowns in Dark Mode */
-[data-theme='dark'] .btn-light {
-  background-color: #1e293b !important;
-  color: #f1f5f9 !important;
+[data-theme='dark'] .card-header,
+[data-theme='dark'] .card-footer {
   border-color: #26334d !important;
-}
-
-[data-theme='dark'] .btn-light:hover,
-[data-theme='dark'] .btn-light:focus,
-[data-theme='dark'] .btn-light:active {
-  background-color: #334155 !important;
-  color: #ffffff !important;
-  border-color: #475569 !important;
-}
-
-[data-theme='dark'] .dropdown-menu {
-  background-color: #151c2c !important;
-  border-color: #26334d !important;
-  color: #f1f5f9 !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
-}
-
-[data-theme='dark'] .dropdown-item {
-  color: #cbd5e1 !important;
-}
-
-[data-theme='dark'] .dropdown-item:hover,
-[data-theme='dark'] .dropdown-item:focus {
-  background-color: #1e293b !important;
-  color: #ffffff !important;
-}
-
-[data-theme='dark'] .bg-secondary.bg-opacity-10,
-[data-theme='dark'] .table-secondary {
-  background-color: #1e293b !important;
+  background-color: transparent !important;
   color: #f1f5f9 !important;
 }
 
-/* 4. Tables */
+/* Table Dark Mode Override */
 [data-theme='dark'] .table {
+  --bs-table-bg: transparent !important;
+  --bs-table-color: #f1f5f9 !important;
+  --bs-table-border-color: #26334d !important;
   color: #f1f5f9 !important;
   border-color: #26334d !important;
 }
 
 [data-theme='dark'] .table th {
-  background-color: #1e293b !important;
-  color: #cbd5e1 !important;
+  background-color: #0b0f17 !important;
+  color: #94a3b8 !important;
   border-color: #26334d !important;
 }
 
-[data-theme='dark'] .table td {
-  background-color: transparent !important;
+[data-theme='dark'] .table td,
+[data-theme='dark'] .table tbody tr {
+  background-color: #151c2c !important;
   color: #f1f5f9 !important;
   border-color: #26334d !important;
 }
@@ -327,23 +224,35 @@ h1, h2, h3, h4, h5, h6 {
   color: #ffffff !important;
 }
 
-/* 5. Dropdowns & Modals */
-[data-theme='dark'] .dropdown-menu {
-  background-color: #151c2c !important;
-  border-color: #26334d !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
-}
-
-[data-theme='dark'] .dropdown-item {
+/* Form Controls & Inputs Dark Mode */
+[data-theme='dark'] .form-control,
+[data-theme='dark'] .form-select,
+[data-theme='dark'] .input-group-text {
+  background-color: #0b0f17 !important;
   color: #f1f5f9 !important;
+  border-color: #26334d !important;
 }
 
-[data-theme='dark'] .dropdown-item:hover,
-[data-theme='dark'] .dropdown-item:focus {
-  background-color: #1e293b !important;
+[data-theme='dark'] .form-control:focus,
+[data-theme='dark'] .form-select:focus {
+  background-color: #0b0f17 !important;
   color: #ffffff !important;
+  border-color: #0f52ba !important;
 }
 
+[data-theme='dark'] .form-control::placeholder,
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+[data-theme='dark'] .form-label,
+[data-theme='dark'] label {
+  color: #cbd5e1 !important;
+}
+
+/* Modals Dark Mode */
 [data-theme='dark'] .modal-content {
   background-color: #151c2c !important;
   border-color: #26334d !important;
@@ -356,26 +265,117 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-theme='dark'] .btn-close {
-  filter: invert(1) grayscale(100%) brightness(200%);
+  filter: invert(1) grayscale(100%) brightness(200%) !important;
 }
 
-/* ==========================================
-   UNIFORM 40px HEIGHT SYSTEM (Inputs & Buttons)
-   ========================================== */
-.form-control:not(textarea),
+/* Navbar & Dropdowns Dark Mode */
+[data-theme='dark'] .navbar,
+[data-theme='dark'] .bg-navbar-custom {
+  background-color: #151c2c !important;
+  border-color: #26334d !important;
+  opacity: 1 !important;
+}
+
+[data-theme='dark'] .dropdown-menu {
+  background-color: #151c2c !important;
+  border-color: #26334d !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme='dark'] .dropdown-item {
+  color: #f1f5f9 !important;
+}
+
+[data-theme='dark'] .dropdown-item:hover,
+[data-theme='dark'] .dropdown-item:focus {
+  background-color: #26334d !important;
+  color: #ffffff !important;
+}
+
+/* Utility Theme Classes */
+.bg-body-custom {
+  background-color: var(--erp-bg-body);
+}
+
+.text-main {
+  color: var(--erp-text-main);
+}
+
+.text-muted-custom {
+  color: var(--erp-text-muted);
+}
+
+.border-custom {
+  border-color: var(--erp-border-color);
+}
+
+.font-heading {
+  font-family: var(--erp-font-heading);
+}
+
+.font-sans {
+  font-family: var(--erp-font-sans);
+}
+
+/* Keyframe Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-animation {
+  animation: spin 0.8s linear infinite;
+}
+
+/* UNIFORM 40px HEIGHT SYSTEM ACROSS ENTIRE ERP */
+select.form-select,
 .form-select,
+.form-control:not(textarea),
 .input-group > .form-control,
-.input-group > .input-group-text,
 .input-group > .form-select,
-.btn,
-.btn-sm,
-.btn-md,
-.btn-lg {
+.input-group > .input-group-text,
+.input-group > .btn,
+.dynamic-dropdown-wrapper > button,
+.dynamic-dropdown-wrapper button.form-control,
+.btn:not(.btn-sm):not(.btn-lg):not(.btn-icon-only):not(.btn-table-action) {
   height: 40px !important;
   min-height: 40px !important;
   max-height: 40px !important;
-  line-height: 1.2 !important;
   box-sizing: border-box !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.btn-sm {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  padding: 0 0.85rem !important;
+  font-size: 0.875rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.btn-md, .btn-lg {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
 }
 
 /* Ensure Buttons and Flex containers align elements nicely */
@@ -402,9 +402,11 @@ textarea.form-control {
   height: auto !important;
   min-height: 70px !important;
   max-height: none !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
 }
 
-/* Exception: Table action mini buttons (like edit/delete icons in tables) */
+/* Exception: Table action mini buttons */
 .table .btn,
 .table .btn-sm,
 .btn-icon-only,
@@ -413,4 +415,26 @@ textarea.form-control {
   min-height: 32px !important;
   max-height: 32px !important;
   padding: 0 0.5rem !important;
+}
+
+/* UNIFORM MODAL FORM GRID ALIGNMENT */
+.modal-body .form-label,
+.modal-body label {
+  min-height: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 4px !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+}
+
+.modal-body .dynamic-dropdown-label-row {
+  min-height: 24px !important;
+  height: 24px !important;
+}
+
+.modal-body .mb-3,
+.modal-body .form-group {
+  margin-bottom: 0.85rem !important;
 }

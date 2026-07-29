@@ -1,5 +1,14 @@
 import React, { forwardRef } from 'react';
 
+export const formatNumberWithSpaces = (val) => {
+  if (val === undefined || val === null || val === '') return '';
+  const str = String(val).replace(/\s/g, '').replace(/,/g, '.');
+  if (isNaN(str) && str !== '-' && str !== '.') return String(val);
+  const parts = str.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return parts.join('.');
+};
+
 export const Input = forwardRef(
   (
     {
@@ -12,11 +21,40 @@ export const Input = forwardRef(
       className = '',
       id,
       containerClass = 'mb-3 text-start',
+      value,
+      onChange,
       ...props
     },
     ref
   ) => {
     const inputId = id || `input_${Math.random().toString(36).substring(2, 7)}`;
+    const isNumberType = type === 'number';
+
+    const handleNumberChange = (e) => {
+      if (!onChange) return;
+      const rawInput = e.target.value;
+      // Strip spaces and normalize commas to dots
+      const cleanValue = rawInput.replace(/\s/g, '').replace(/,/g, '.');
+
+      // Allow empty string, negative sign, or valid decimal pattern
+      if (cleanValue === '' || cleanValue === '-' || cleanValue === '.' || !isNaN(cleanValue)) {
+        const syntheticEvent = {
+          ...e,
+          target: {
+            ...e.target,
+            name: props.name,
+            value: cleanValue,
+          },
+        };
+        onChange(syntheticEvent);
+      }
+    };
+
+    const displayValue = isNumberType
+      ? formatNumberWithSpaces(value)
+      : value !== undefined && value !== null
+        ? value
+        : '';
 
     return (
       <div className={containerClass}>
@@ -34,7 +72,10 @@ export const Input = forwardRef(
           <input
             id={inputId}
             ref={ref}
-            type={type}
+            type={isNumberType ? 'text' : type}
+            inputMode={isNumberType ? 'decimal' : undefined}
+            value={displayValue}
+            onChange={isNumberType ? handleNumberChange : onChange}
             className={`form-control ${error ? 'is-invalid' : ''} ${className}`}
             {...props}
           />
@@ -45,7 +86,9 @@ export const Input = forwardRef(
           )}
           {error && <div className="invalid-feedback">{error}</div>}
         </div>
-        {helperText && !error && <small className="text-muted-custom fs-8 mt-1 d-block">{helperText}</small>}
+        {helperText && !error && (
+          <small className="text-muted-custom fs-8 mt-1 d-block">{helperText}</small>
+        )}
       </div>
     );
   }

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSidebarStore } from '@/store/useSidebarStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ROUTES } from '@/constants/routes.constants';
 import { SearchInput } from '@/components/common/SearchInput/SearchInput';
 import { branchesApi } from '@/features/settings/api/branchesApi';
+import { notifyInfo } from '@/services/notification.service';
 import {
   LuMoon,
   LuSun,
@@ -15,10 +17,12 @@ import {
   LuLogOut,
   LuArrowLeft,
   LuGitBranch,
+  LuRefreshCw,
 } from 'react-icons/lu';
 
 export const Navbar = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { toggleMobileSidebar } = useSidebarStore();
   const { theme, toggleTheme } = useThemeStore();
   const { user, logout } = useAuthStore();
@@ -28,6 +32,7 @@ export const Navbar = () => {
   const [activeBranchId, setActiveBranchId] = useState(
     localStorage.getItem('active_branch_id') || ''
   );
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -54,6 +59,23 @@ export const Navbar = () => {
     localStorage.setItem('active_branch_id', branchId);
     setActiveBranchId(branchId);
     window.location.reload();
+  };
+
+  const handlePageReload = async () => {
+    setIsRefreshing(true);
+    try {
+      // 1. Refetch all active queries in TanStack React Query
+      await queryClient.invalidateQueries();
+
+      // 2. Dispatch custom event for non-react-query page states
+      window.dispatchEvent(new Event('app-page-reload'));
+
+      notifyInfo("Joriy sahifa ma'lumotlari yangilandi", 'Qayta yuklandi');
+    } catch (err) {
+      console.error('Page refresh error:', err);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   const handleLogout = async () => {
@@ -97,6 +119,16 @@ export const Navbar = () => {
 
         {/* Right Controls */}
         <div className="d-flex align-items-center gap-2">
+          {/* Page Data Reload Button */}
+          <button
+            className="btn btn-sm btn-outline-secondary border-custom bg-body-custom text-main p-2 d-flex align-items-center justify-content-center"
+            onClick={handlePageReload}
+            title="Joriy sahifa ma'lumotlarini qayta yangilash (API)"
+            disabled={isRefreshing}
+          >
+            <LuRefreshCw className={`fs-6 ${isRefreshing ? 'spin-animation text-primary' : ''}`} />
+          </button>
+
           {/* Branch Switcher Dropdown */}
           {branches.length > 0 && (
             <div className="dropdown">
@@ -163,7 +195,11 @@ export const Navbar = () => {
                 <span className="fw-semibold text-main fs-8 d-block">
                   {user?.name || 'Foydalanuvchi'}
                 </span>
-                <small className="text-muted-custom fs-8">{user?.role || 'Xodim'}</small>
+                <small className="text-muted-custom fs-8">
+                  {user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'OWNER'
+                    ? 'OWNER'
+                    : user?.role || 'OWNER'}
+                </small>
               </div>
             </button>
             <ul className="dropdown-menu dropdown-menu-end border-custom shadow-sm p-1 fs-7">

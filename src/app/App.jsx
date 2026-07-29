@@ -5,6 +5,7 @@ import { QueryProvider } from './providers/QueryProvider';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { useNotificationStore } from '@/store/useNotificationStore';
 import { NetworkStatusOverlay } from '@/components/common/NetworkStatusOverlay/NetworkStatusOverlay';
+import { GlobalErrorBoundary } from '@/components/common/ErrorBoundary/GlobalErrorBoundary';
 import { ERP_ICONS } from '@/shared/icons';
 
 export const App = () => {
@@ -16,7 +17,10 @@ export const App = () => {
         {/* Global Offline Network Banner */}
         <NetworkStatusOverlay />
 
-        <RouterProvider router={router} />
+        {/* Global Error Boundary for UX Protection */}
+        <GlobalErrorBoundary>
+          <RouterProvider router={router} />
+        </GlobalErrorBoundary>
 
         {/* Global Toast Overlay */}
         <div className="toast-container position-fixed bottom-0 end-0 p-3 z-3">

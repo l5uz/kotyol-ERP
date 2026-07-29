@@ -29,28 +29,44 @@ export const Modal = ({
 
   if (!isOpen) return null;
 
-  const sizeClass = size === 'sm' ? 'modal-sm' : size === 'lg' ? 'modal-lg' : size === 'xl' ? 'modal-xl' : 'modal-md';
+  const sizeClass =
+    size === 'sm'
+      ? 'modal-sm'
+      : size === 'lg'
+        ? 'modal-lg'
+        : size === 'xl'
+          ? 'modal-xl'
+          : 'modal-md';
 
   return createPortal(
     <div
-      className="modal fade show erp-glass"
+      className="modal fade show"
+      style={{
+        display: 'block',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 1060,
+        overflowY: 'auto',
+      }}
       tabIndex="-1"
       role="dialog"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={`modal-dialog ${sizeClass}`} role="document">
-        <div className="modal-content animate-fade-in shadow-lg border">
-          <div className="modal-header py-3 px-3">
-            <h5 className="modal-title fs-6 fw-semibold mb-0">{title}</h5>
-            <button type="button" className="btn-close" onClick={onClose} aria-label="Close"></button>
+      <div className={`modal-dialog modal-dialog-centered ${sizeClass}`} role="document">
+        <div className="modal-content animate-fade-in shadow-lg border-custom bg-body-custom text-main">
+          <div className="modal-header py-3 px-3 border-bottom border-custom">
+            <h5 className="modal-title fs-6 fw-semibold mb-0 text-main">{title}</h5>
+            <button
+              type="button"
+              className="btn-close text-main"
+              onClick={onClose}
+              aria-label="Close"
+            ></button>
           </div>
           <div className="modal-body p-3">{children}</div>
           {footer && (
-            <div className="modal-footer py-2 px-3">
-              {footer}
-            </div>
+            <div className="modal-footer py-2 px-3 border-top border-custom">{footer}</div>
           )}
         </div>
       </div>

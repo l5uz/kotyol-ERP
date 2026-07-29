@@ -25,6 +25,20 @@ export const formatNumber = (num, decimals = 2) => {
   }).format(parsed);
 };
 
+export const formatNumberWithSpaces = (val) => {
+  if (val === undefined || val === null || val === '') return '';
+  const str = String(val).replace(/\s/g, '').replace(/,/g, '.');
+  if (isNaN(str) && str !== '-' && str !== '.') return String(val);
+  const parts = str.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return parts.join('.');
+};
+
+export const parseNumberFromSpaces = (val) => {
+  if (!val) return '';
+  return String(val).replace(/\s/g, '').replace(/,/g, '.');
+};
+
 export const formatPercentage = (num) => {
   const parsed = Number(num);
   if (isNaN(parsed)) return '0%';

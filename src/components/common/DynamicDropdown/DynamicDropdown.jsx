@@ -59,22 +59,15 @@ export const DynamicDropdown = ({
 
   const handleAddSubmit = (newRecord) => {
     if (onAddNew) {
-      const created = onAddNew(newRecord);
-      if (created && (created.value || created.id)) {
-        onChange({ target: { value: created.value || created.id } });
+      const added = onAddNew(newRecord);
+      if (added && (added.value || added.id)) {
+        const val = added.value || added.id;
+        if (onChange) {
+          onChange({ target: { value: val } });
+        }
       }
     }
     setIsAddModalOpen(false);
-  };
-
-  const handleEditSubmit = (updatedRecord) => {
-    if (onEdit && value) {
-      const updated = onEdit(value, updatedRecord);
-      if (updated && (updated.value || updated.id)) {
-        onChange({ target: { value: updated.value || updated.id } });
-      }
-    }
-    setIsEditModalOpen(false);
   };
 
   const handleRestored = (restoredId) => {
@@ -88,8 +81,8 @@ export const DynamicDropdown = ({
 
   return (
     <div ref={containerRef} className="dynamic-dropdown-wrapper position-relative mb-3">
-      {/* Label Area with Icon-Only Action Buttons (No text) */}
-      <div className="d-flex align-items-center justify-content-between mb-1">
+      {/* Label Area Header Row (Specific Class to avoid selector overlap with button) */}
+      <div className="dynamic-dropdown-label-row d-flex align-items-center justify-content-between mb-1">
         {label && (
           <label className="form-label fs-7 fw-medium text-main mb-0">
             {label} {required && <span className="text-danger">*</span>}
@@ -112,7 +105,7 @@ export const DynamicDropdown = ({
           {canArchive && (entityKey || onAddNew) && (
             <button
               type="button"
-              className="btn btn-link p-0 text-muted text-decoration-none fs-7 p-1 d-inline-flex align-items-center justify-content-center rounded-2 hover-bg-light"
+              className="btn btn-link p-0 text-muted-custom text-decoration-none fs-7 p-1 d-inline-flex align-items-center justify-content-center rounded-2 hover-bg-light"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsArchiveModalOpen(true);
@@ -125,126 +118,92 @@ export const DynamicDropdown = ({
         </div>
       </div>
 
-      {/* Trigger Button (Closed State) */}
+      {/* Trigger Button (Closed State) - Fixed 40px Height */}
       <button
         type="button"
-        className={`form-select text-start fs-7 d-flex align-items-center justify-content-between border-custom ${
+        className={`form-control text-start fs-7 d-flex align-items-center justify-content-between border-custom bg-body-custom text-main ${
           error ? 'is-invalid' : ''
         }`}
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
         disabled={disabled}
-        style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}
+        style={{
+          height: '40px !important',
+          minHeight: '40px !important',
+          maxHeight: '40px !important',
+          paddingLeft: '0.85rem',
+          paddingRight: '0.85rem',
+          paddingTop: 0,
+          paddingBottom: 0,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+        }}
       >
-        <span className={`text-truncate ${selectedOption ? 'text-main fw-medium' : 'text-muted'}`}>
+        <span className={`text-truncate ${selectedOption ? 'text-main fw-medium' : 'text-muted-custom'}`}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <LuChevronDown className="fs-6 text-muted flex-shrink-0 ms-2" />
+        <LuChevronDown className="fs-6 text-muted-custom flex-shrink-0 ms-2" />
       </button>
 
       {error && <div className="invalid-feedback fs-8 d-block mt-1">{error}</div>}
-      {helperText && !error && <small className="text-muted fs-8 d-block mt-1">{helperText}</small>}
+      {helperText && !error && <small className="text-muted-custom fs-8 d-block mt-1">{helperText}</small>}
 
-      {/* Dropdown Menu Popover */}
+      {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className="position-absolute start-0 w-100 shadow-lg rounded-3 p-2 bg-body border z-3 animate-fade-in"
-          style={{ top: '100%', marginTop: '4px', zIndex: 1050 }}
+          className="dropdown-menu show w-100 p-2 shadow-lg border-custom bg-body-custom animate-fade-in"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            zIndex: 1070,
+            maxHeight: '260px',
+            overflowY: 'auto',
+          }}
         >
-          {/* 1. Search Input */}
+          {/* Search Bar */}
           <div className="input-group input-group-sm mb-2">
-            <span className="input-group-text bg-body-tertiary">
-              <LuSearch className="text-muted" />
+            <span className="input-group-text bg-body-custom border-custom text-muted-custom">
+              <LuSearch className="fs-7" />
             </span>
             <input
               type="text"
-              className="form-control"
+              className="form-control bg-body-custom text-main border-custom fs-8"
               placeholder="Qidirish..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
               autoFocus
             />
           </div>
 
-          {/* 2. Available Records List */}
-          <div className="dropdown-options-list" style={{ maxHeight: '180px', overflowY: 'auto' }}>
-            {filteredOptions.length === 0 ? (
-              <div className="text-center py-2 text-muted fs-8">Yozuvlar topilmadi</div>
-            ) : (
+          {/* Options List */}
+          <div className="options-list">
+            {filteredOptions.length > 0 ? (
               filteredOptions.map((opt) => {
                 const optVal = opt.value !== undefined ? opt.value : opt.id;
-                const isSelected = value === optVal;
+                const isSelected = optVal === value;
                 return (
-                  <div
+                  <button
                     key={optVal}
-                    className={`d-flex align-items-center justify-content-between p-2 rounded-2 fs-7 cursor-pointer transition-all ${
-                      isSelected ? 'bg-primary text-white fw-semibold' : 'text-main hover-bg-light'
+                    type="button"
+                    className={`dropdown-item rounded-2 py-2 px-3 fs-7 d-flex align-items-center justify-content-between mb-1 ${
+                      isSelected ? 'active bg-primary text-white fw-bold' : 'text-main'
                     }`}
                     onClick={() => handleSelectOption(opt)}
-                    style={{ cursor: 'pointer' }}
                   >
-                    <span className="text-truncate">{opt.label}</span>
-                    {isSelected && <LuCheck className="fs-6 flex-shrink-0 ms-2" />}
-                  </div>
+                    <span className="text-truncate">{opt.label || opt.name}</span>
+                    {isSelected && <LuCheck className="fs-6 ms-2 flex-shrink-0" />}
+                  </button>
                 );
               })
-            )}
-          </div>
-
-          {/* 3. Divider */}
-          <hr className="my-2 border-secondary opacity-25" />
-
-          {/* 4. In-Menu Action Items */}
-          <div className="d-flex flex-column gap-1">
-            {/* Yangi qo'shish */}
-            {canCreate && (onAddNew || entityKey) && (
-              <button
-                type="button"
-                className="btn btn-sm btn-link text-primary text-decoration-none text-start d-flex align-items-center flex-nowrap gap-2 p-1 px-2 rounded-2 hover-bg-light fs-7 fw-semibold border-0 w-100"
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsAddModalOpen(true);
-                }}
-              >
-                <LuPlus className="fs-6 flex-shrink-0" />
-                <span className="text-nowrap">Yangi qo'shish</span>
-              </button>
-            )}
-
-            {/* Tanlanganni tahrirlash (Only visible when a value is selected) */}
-            {canEdit && value && (onEdit || entityKey) && (
-              <button
-                type="button"
-                className="btn btn-sm btn-link text-warning text-decoration-none text-start d-flex align-items-center flex-nowrap gap-2 p-1 px-2 rounded-2 hover-bg-light fs-7 fw-semibold border-0 w-100"
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsEditModalOpen(true);
-                }}
-              >
-                <LuPencil className="fs-6 flex-shrink-0" />
-                <span className="text-nowrap">Tanlanganni tahrirlash</span>
-              </button>
-            )}
-
-            {/* Arxivlanganlarni boshqarish */}
-            {canArchive && (entityKey || onAddNew) && (
-              <button
-                type="button"
-                className="btn btn-sm btn-link text-muted text-decoration-none text-start d-flex align-items-center flex-nowrap gap-2 p-1 px-2 rounded-2 hover-bg-light fs-7 fw-medium border-0 w-100"
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsArchiveModalOpen(true);
-                }}
-              >
-                <LuArchive className="fs-6 flex-shrink-0" />
-                <span className="text-nowrap">Arxivlanganlarni boshqarish</span>
-              </button>
+            ) : (
+              <div className="text-center py-3 text-muted-custom fs-8">
+                Ma'lumot topilmadi
+              </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Add New Modal */}
+      {/* Modals */}
       {isAddModalOpen && (
         <QuickAddModal
           isOpen={isAddModalOpen}
@@ -254,18 +213,6 @@ export const DynamicDropdown = ({
         />
       )}
 
-      {/* Edit Selected Modal */}
-      {isEditModalOpen && (
-        <QuickAddModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSubmit={handleEditSubmit}
-          entityTitle={`${entityTitle}ni tahrirlash`}
-          initialData={selectedOption ? { name: selectedOption.label } : null}
-        />
-      )}
-
-      {/* Archive Management Modal */}
       {isArchiveModalOpen && (
         <ArchiveManagementModal
           isOpen={isArchiveModalOpen}

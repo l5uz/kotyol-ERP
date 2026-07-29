@@ -9,11 +9,14 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { EmployeeFilterBar } from '../components/EmployeeFilterBar';
 import { EmployeeFormModal } from '../components/EmployeeFormModal';
 import { employeesApi } from '../api/employeesApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
+import { useAuthStore } from '@/store/useAuthStore';
+import { formatCurrency } from '@/utils/currency.utils';
 import { ERP_ICONS } from '@/shared/icons';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const EmployeesPage = () => {
+  const { user: currentUser } = useAuthStore();
   const [employees, setEmployees] = useState([]);
   const [positions, setPositions] = useState([]);
   const [salaryTypes, setSalaryTypes] = useState([]);
@@ -64,6 +67,21 @@ export const EmployeesPage = () => {
   };
 
   const handleDeleteConfirm = async () => {
+    if (!deletingId) return;
+    const targetEmp = employees.find((e) => e.id === deletingId);
+
+    const isSelfOrOwner =
+      targetEmp?.id === currentUser?.id ||
+      targetEmp?.isOwner ||
+      targetEmp?.role === 'OWNER' ||
+      (currentUser?.phone && targetEmp?.phone === currentUser?.phone);
+
+    if (isSelfOrOwner) {
+      notifyError("Tizim egasi (Owner) yoki joriy foydalanuvchini o'chirib bo'lmaydi!");
+      setDeletingId(null);
+      return;
+    }
+
     const res = await employeesApi.deleteEmployee(deletingId);
     notifySuccess(res.message);
     setDeletingId(null);
@@ -75,22 +93,35 @@ export const EmployeesPage = () => {
       header: 'F.I.Sh.',
       cell: (row) => (
         <div>
-          <Link to={`${ROUTES.PROTECTED.EMPLOYEES}/${row.id}`} className="fw-bold text-primary text-decoration-none fs-7">
+          <Link
+            to={`${ROUTES.PROTECTED.EMPLOYEES}/${row.id}`}
+            className="fw-bold text-primary text-decoration-none fs-7"
+          >
             {row.fullName}
           </Link>
-          <small className="d-block text-muted-custom fs-8">Kod: {row.code}</small>
+          {row.isOwner && (
+            <span className="badge bg-warning bg-opacity-20 text-warning ms-2 fs-8">Owner</span>
+          )}
+          {row.code && <small className="d-block text-muted-custom fs-8">Kod: {row.code}</small>}
         </div>
       ),
     },
-    { header: 'Lavozim', accessor: 'positionName' },
+    {
+      header: 'Lavozim',
+      cell: (row) => (
+        <span className="fw-semibold text-main fs-7">
+          {row.positionName || '-'}
+        </span>
+      ),
+    },
     { header: 'Telefon', accessor: 'phone' },
     {
       header: 'Oylik Turi',
       cell: (row) => (
         <div>
-          <span>{row.salaryTypeName}</span>
+          <span>{row.salaryTypeName || '-'}</span>
           <small className="d-block font-mono text-muted-custom fs-8">
-            Stavka: ${(Number(row.salaryAmount) || 0).toLocaleString()}
+            Stavka: {formatCurrency(row.salaryAmount)}
           </small>
         </div>
       ),
@@ -98,31 +129,45 @@ export const EmployeesPage = () => {
     { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
     {
       header: 'Amal',
-      cell: (row) => (
-        <div className="d-flex align-items-center gap-1">
-          <Link
-            to={`${ROUTES.PROTECTED.EMPLOYEES}/${row.id}`}
-            className="btn btn-sm btn-outline-primary p-1 border-0"
-            title="Tafsilot"
-          >
-            <i className={`bi ${ERP_ICONS.EYE}`}></i>
-          </Link>
-          <button
-            className="btn btn-sm btn-outline-warning p-1 border-0"
-            onClick={() => handleEditClick(row)}
-            title="Tahrirlash"
-          >
-            <i className={`bi ${ERP_ICONS.EDIT}`}></i>
-          </button>
-          <button
-            className="btn btn-sm btn-outline-danger p-1 border-0"
-            onClick={() => setDeletingId(row.id)}
-            title="O'chirish"
-          >
-            <i className={`bi ${ERP_ICONS.TRASH}`}></i>
-          </button>
-        </div>
-      ),
+      cell: (row) => {
+        const isSelfOrOwner =
+          row.id === currentUser?.id ||
+          row.isOwner ||
+          row.role === 'OWNER' ||
+          (currentUser?.phone && row.phone === currentUser?.phone);
+
+        return (
+          <div className="d-flex align-items-center gap-1">
+            <Link
+              to={`${ROUTES.PROTECTED.EMPLOYEES}/${row.id}`}
+              className="btn btn-sm btn-outline-primary p-1 border-0"
+              title="Tafsilot"
+            >
+              <i className={`bi ${ERP_ICONS.EYE}`}></i>
+            </Link>
+            <button
+              className="btn btn-sm btn-outline-warning p-1 border-0"
+              onClick={() => handleEditClick(row)}
+              title="Tahrirlash"
+            >
+              <i className={`bi ${ERP_ICONS.EDIT}`}></i>
+            </button>
+            <button
+              className="btn btn-sm btn-outline-danger p-1 border-0"
+              onClick={() => setDeletingId(row.id)}
+              disabled={isSelfOrOwner}
+              title={
+                isSelfOrOwner
+                  ? "Tizim egasi (Owner) yoki joriy foydalanuvchini o'chirib bo'lmaydi!"
+                  : "O'chirish"
+              }
+              style={{ opacity: isSelfOrOwner ? 0.4 : 1, cursor: isSelfOrOwner ? 'not-allowed' : 'pointer' }}
+            >
+              <i className={`bi ${ERP_ICONS.TRASH}`}></i>
+            </button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -178,7 +223,7 @@ export const EmployeesPage = () => {
         onClose={() => setDeletingId(null)}
         onConfirm={handleDeleteConfirm}
         title="Xodimlarni O'chirish"
-        message="Haqiqatan ham ushbu xodimni tizimdan o'chirib tashlamoqchimisiz?"
+        message="Haqiqatan ham ushbu xodimlarni tizimdan o'chirib tashlamoqchimisiz?"
         isDanger={true}
         confirmText="O'chirish"
         cancelText="Bekor qilish"

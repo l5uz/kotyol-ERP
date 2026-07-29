@@ -4,8 +4,6 @@ import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
 import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { Button } from '@/components/common/Button/Button';
-import { FileUpload } from '@/components/common/FileUpload/FileUpload';
-import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const EmployeeFormModal = ({
@@ -16,7 +14,6 @@ export const EmployeeFormModal = ({
   positions = [],
   salaryTypes = [],
 }) => {
-  const [roleOptions, setRoleOptions] = useState(dynamicSettingsService.getRoleOptions());
   const [localPositions, setLocalPositions] = useState(positions);
 
   useEffect(() => {
@@ -30,7 +27,6 @@ export const EmployeeFormModal = ({
     email: '',
     passportNumber: '',
     positionId: '',
-    role: roleOptions[0]?.value || 'Administrator',
     salaryTypeId: '',
     salaryAmount: '',
     hireDate: new Date().toISOString().split('T')[0],
@@ -46,9 +42,8 @@ export const EmployeeFormModal = ({
         phone: employee.phone || '',
         email: employee.email || '',
         passportNumber: employee.passportNumber || '',
-        positionId: employee.positionId || (localPositions[0]?.id || ''),
-        role: employee.role || (roleOptions[0]?.value || 'Administrator'),
-        salaryTypeId: employee.salaryTypeId || (salaryTypes[0]?.id || ''),
+        positionId: employee.positionId || localPositions[0]?.id || '',
+        salaryTypeId: employee.salaryTypeId || salaryTypes[0]?.id || '',
         salaryAmount: employee.salaryAmount || '',
         hireDate: employee.hireDate || new Date().toISOString().split('T')[0],
         status: employee.status || 'ACTIVE',
@@ -62,7 +57,6 @@ export const EmployeeFormModal = ({
         email: '',
         passportNumber: '',
         positionId: localPositions[0]?.id || '',
-        role: roleOptions[0]?.value || 'Administrator',
         salaryTypeId: salaryTypes[0]?.id || '',
         salaryAmount: '',
         hireDate: new Date().toISOString().split('T')[0],
@@ -83,13 +77,6 @@ export const EmployeeFormModal = ({
     return { value: newPos.id, label: newPos.name };
   };
 
-  const handleAddNewRole = (newRecord) => {
-    const newRole = { value: newRecord.name, label: newRecord.name };
-    setRoleOptions((prev) => [...prev, newRole]);
-    setFormData((prev) => ({ ...prev, role: newRole.value }));
-    return newRole;
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const selectedPos = localPositions.find((p) => p.id === formData.positionId);
@@ -97,6 +84,7 @@ export const EmployeeFormModal = ({
 
     onSubmit({
       ...formData,
+      role: selectedPos ? selectedPos.name : 'EMPLOYEE',
       positionName: selectedPos ? selectedPos.name : '',
       salaryTypeName: selectedSal ? selectedSal.name : '',
       salaryAmount: parseFloat(formData.salaryAmount) || 0,
@@ -164,20 +152,6 @@ export const EmployeeFormModal = ({
             />
           </div>
 
-          {/* Dynamic Role Selector */}
-          <div className="col-12 col-md-6">
-            <DynamicSelect
-              label="Tizim Roli"
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              options={roleOptions}
-              managePath={ROUTES.PROTECTED.SETTINGS_ROLES}
-              onAddNew={handleAddNewRole}
-              entityTitle="Tizim Roli"
-              required
-            />
-          </div>
-
           <div className="col-12 col-md-6">
             <Select
               label="Oylik Maosh Turi"
@@ -188,8 +162,8 @@ export const EmployeeFormModal = ({
           </div>
           <div className="col-12 col-md-6">
             <Input
-              label="Maosh Stavkasi Summasi ($)"
-              placeholder="1200.00"
+              label="Maosh Stavkasi Summasi (so'mda)"
+              placeholder="1 200 000"
               type="number"
               value={formData.salaryAmount}
               onChange={(e) => setFormData({ ...formData, salaryAmount: e.target.value })}
@@ -211,25 +185,18 @@ export const EmployeeFormModal = ({
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
               options={[
                 { value: 'ACTIVE', label: 'Faol' },
-                { value: 'ON_LEAVE', label: 'Ta\'tilda' },
-                { value: 'SICK_LEAVE', label: 'Kasallik Ta\'tili' },
-                { value: 'TERMINATED', label: 'Bo\'shatilgan' },
+                { value: 'ON_LEAVE', label: "Ta'tilda" },
+                { value: 'TERMINATED', label: 'Bo’shatilgan' },
               ]}
             />
           </div>
           <div className="col-12">
-            <label className="form-label fs-7 fw-medium text-main">Xodim Haqida Qo'shimcha Izoh</label>
-            <textarea
-              className="form-control fs-7"
-              rows="2"
+            <Input
+              label="Xodim Haqida Qo'shimcha Izoh"
+              placeholder="Malaka darajasi, maxsus sertifikatlari..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Malaka darajasi, maxsus sertifikatlari..."
-            ></textarea>
-          </div>
-          <div className="col-12">
-            <label className="form-label fs-7 fw-medium text-main">Xodim Rasmi (Avatar)</label>
-            <FileUpload label="Xodim suratini yuklash" maxSizeMB={2} />
+            />
           </div>
         </div>
       </form>

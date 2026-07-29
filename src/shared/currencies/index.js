@@ -1,6 +1,6 @@
 export const SUPPORTED_CURRENCIES = {
-  USD: { code: 'USD', symbol: '$', name: 'AQSH Dollari', rateToUSD: 1.0 },
-  UZS: { code: 'UZS', symbol: "so'm", name: "O'zbekiston So'mi", rateToUSD: 0.000079 },
+  UZS: { code: 'UZS', symbol: "so'm", name: "O'zbekiston So'mi", rateToUSD: 1.0 },
+  USD: { code: 'USD', symbol: '$', name: 'AQSH Dollari', rateToUSD: 12850.0 },
 };
 
-export const DEFAULT_CURRENCY_CODE = 'USD';
+export const DEFAULT_CURRENCY_CODE = 'UZS';

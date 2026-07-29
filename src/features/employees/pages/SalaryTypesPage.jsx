@@ -11,6 +11,7 @@ import { SearchInput } from '@/components/common/SearchInput/SearchInput';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { employeesApi } from '../api/employeesApi';
 import { notifySuccess, notifyError } from '@/services/notification.service';
+import { formatCurrency, parseRawNumber } from '@/utils/currency.utils';
 import { ERP_ICONS } from '@/shared/icons';
 
 export const SalaryTypesPage = () => {
@@ -20,7 +21,6 @@ export const SalaryTypesPage = () => {
   const [editingItem, setEditingItem] = useState(null);
 
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
 
@@ -28,6 +28,9 @@ export const SalaryTypesPage = () => {
 
   useEffect(() => {
     loadSalaryTypes();
+    const handleReload = () => loadSalaryTypes();
+    window.addEventListener('app-page-reload', handleReload);
+    return () => window.removeEventListener('app-page-reload', handleReload);
   }, []);
 
   const loadSalaryTypes = async () => {
@@ -41,12 +44,10 @@ export const SalaryTypesPage = () => {
     setEditingItem(item);
     if (item) {
       setName(item.name || '');
-      setCode(item.code || '');
       setAmount(item.amount ?? '');
       setDescription(item.description || '');
     } else {
       setName('');
-      setCode('');
       setAmount('');
       setDescription('');
     }
@@ -60,17 +61,33 @@ export const SalaryTypesPage = () => {
       return;
     }
 
+    const numericAmount = parseRawNumber(amount);
+    if (!numericAmount || numericAmount <= 0) {
+      notifyError("Maosh stavkasi narxini kiriting (0 dan yuqori bo'lishi kerak)");
+      return;
+    }
+
+    const autoCode =
+      editingItem?.code ||
+      name
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 30) +
+        '_' +
+        Math.floor(100 + Math.random() * 900);
+
     const payload = {
       name,
-      code,
-      amount: Number(amount) || 0,
-      description,
+      code: autoCode,
+      amount: numericAmount,
+      description: description.trim() || name.trim(),
     };
 
     if (editingItem) {
       const res = await employeesApi.updateSalaryType(editingItem.id, payload);
       if (res.success) {
-        notifySuccess('Maosh turi va stavkasi tahrirlandi.');
+        notifySuccess('Maosh turi va narxi tahrirlandi.');
         setIsModalOpen(false);
         loadSalaryTypes();
       }
@@ -99,20 +116,16 @@ export const SalaryTypesPage = () => {
     const q = search.toLowerCase();
     return (
       (st.name && st.name.toLowerCase().includes(q)) ||
-      (st.code && st.code.toLowerCase().includes(q)) ||
       (st.description && st.description.toLowerCase().includes(q))
     );
   });
 
   const columns = [
-    { header: 'Maosh Turi Kodi', accessor: 'code' },
     { header: 'Oylik Maosh Turi Nomi', accessor: 'name' },
     {
-      header: 'Standart Narx / Stavkasi ($)',
+      header: 'Standart Narx / Stavkasi',
       cell: (row) => (
-        <strong className="text-primary fs-7">
-          ${(Number(row.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-        </strong>
+        <strong className="text-primary fs-7">{formatCurrency(row.amount)}</strong>
       ),
     },
     { header: 'Tavsifi va Hisoblash Usuli', accessor: 'description' },
@@ -166,7 +179,7 @@ export const SalaryTypesPage = () => {
 
       <div className="mb-3" style={{ maxWidth: '380px' }}>
         <SearchInput
-          placeholder="Maosh turi yoki kodi bo'yicha qidiruv..."
+          placeholder="Maosh turi bo'yicha qidiruv..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={() => setSearch('')}
@@ -201,19 +214,12 @@ export const SalaryTypesPage = () => {
             required
           />
           <Input
-            label="Maosh Stavkasi Narxi ($ yoki so'mda) *"
-            placeholder="150000 yoki 50"
+            label="Maosh Stavkasi Narxi (so'mda) *"
+            placeholder="Masalan: 800 000"
             type="number"
-            step="any"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             required
-          />
-          <Input
-            label="Maosh Kodi"
-            placeholder="SALARY_RATE_01"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
           />
           <Input
             label="Tavsifi va Hisoblash Izohi"
