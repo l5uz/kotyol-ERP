@@ -20,7 +20,7 @@ export const Input = forwardRef(
       type = 'text',
       className = '',
       id,
-      containerClass = 'mb-3 text-start',
+      containerClass,
       value,
       onChange,
       ...props
@@ -29,6 +29,12 @@ export const Input = forwardRef(
   ) => {
     const inputId = id || `input_${Math.random().toString(36).substring(2, 7)}`;
     const isNumberType = type === 'number';
+    const finalContainerClass =
+      containerClass !== undefined
+        ? containerClass
+        : label
+          ? 'mb-3 text-start'
+          : 'text-start';
 
     const handleNumberChange = (e) => {
       if (!onChange) return;
@@ -57,7 +63,7 @@ export const Input = forwardRef(
         : '';
 
     return (
-      <div className={containerClass}>
+      <div className={finalContainerClass}>
         {label && (
           <label htmlFor={inputId} className="form-label fw-medium fs-7 mb-1 text-main">
             {label}

@@ -10,15 +10,21 @@ export const Select = forwardRef(
       className = '',
       id,
       placeholder = 'Tanlang...',
-      containerClass = 'mb-3 text-start',
+      containerClass,
       ...props
     },
     ref
   ) => {
     const selectId = id || `select_${Math.random().toString(36).substring(2, 7)}`;
+    const finalContainerClass =
+      containerClass !== undefined
+        ? containerClass
+        : label
+          ? 'mb-3 text-start'
+          : 'text-start';
 
     return (
-      <div className={containerClass}>
+      <div className={finalContainerClass}>
         {label && (
           <label htmlFor={selectId} className="form-label fw-medium fs-7 mb-1 text-main">
             {label}

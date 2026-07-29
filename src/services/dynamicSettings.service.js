@@ -426,6 +426,19 @@ class DynamicSettingsService {
   getDefectReasonOptions() {
     return (this.getDefectReasons() || []).map((d) => ({ value: d.id || d.name, label: d.name }));
   }
+
+  // Insurance Types
+  getInsuranceTypes() {
+    const list = this.getList('insuranceTypes');
+    if (list && list.length > 0) return list;
+    return [
+      { id: 'ins_1', name: 'Zavod kafolati va yetkazib berish sug\'urtasi' },
+      { id: 'ins_2', name: 'Sanoat uskunasi to\'liq sug\'urtasi' },
+    ];
+  }
+  getInsuranceTypeOptions() {
+    return (this.getInsuranceTypes() || []).map((i) => ({ value: i.id, label: i.name }));
+  }
 }
 
 export const dynamicSettingsService = new DynamicSettingsService();
