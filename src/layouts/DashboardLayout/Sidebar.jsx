@@ -8,6 +8,7 @@ import {
   LuTruck,
   LuShoppingBag,
   LuWarehouse,
+  LuStore,
   LuSettings2,
   LuBadgeDollarSign,
   LuShoppingCart,
@@ -50,6 +51,7 @@ const SETTINGS_SUB_PAGES = [
 ];
 
 const WAREHOUSE_SUB_PAGES = [
+  { label: 'Omborlar Ro\'yxati', path: ROUTES.PROTECTED.WAREHOUSE_LIST, icon: LuStore },
   { label: 'Mavjud Zaxiralar', path: ROUTES.PROTECTED.WAREHOUSE_STOCK, icon: LuBoxes },
   { label: 'Ombor Harakatlari', path: ROUTES.PROTECTED.WAREHOUSE_MOVEMENTS, icon: LuActivity },
   { label: 'Qayta Baholash', path: ROUTES.PROTECTED.WAREHOUSE_REVALUATION, icon: LuBadgeDollarSign },
@@ -112,7 +114,7 @@ const MENU_CATEGORIES = [
     label: 'Ombor',
     icon: LuWarehouse,
     items: [
-      { label: 'Omborxona', path: ROUTES.PROTECTED.WAREHOUSE_STOCK, icon: LuWarehouse, isParent: true },
+      { label: 'Omborxona', path: ROUTES.PROTECTED.WAREHOUSE_LIST, icon: LuWarehouse, isParent: true },
       { label: 'Xaridlar', path: ROUTES.PROTECTED.PURCHASING, icon: LuShoppingBag },
       { label: 'Ta\'minotchilar', path: ROUTES.PROTECTED.SUPPLIERS, icon: LuTruck },
     ],
@@ -430,7 +432,7 @@ export const Sidebar = () => {
           <div
             className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
             style={{
-              left: '338px', // 84px + 250px + 4px gap = 338px
+              left: '338px',
               top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 420))}px`,
               width: '500px',
               maxHeight: 'calc(100vh - 40px)',
@@ -441,7 +443,6 @@ export const Sidebar = () => {
               zIndex: 1060,
             }}
           >
-            {/* Header Label */}
             <div className="d-flex align-items-center justify-content-between mb-2 px-1 pb-1 border-bottom border-secondary border-opacity-25">
               <span
                 className="text-uppercase text-white-50 fw-bold"
@@ -451,7 +452,6 @@ export const Sidebar = () => {
               </span>
             </div>
 
-            {/* List of Sub-Settings Pages */}
             <div className="d-grid gap-1" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
               {SETTINGS_SUB_PAGES.map(renderItem)}
             </div>
@@ -463,7 +463,7 @@ export const Sidebar = () => {
           <div
             className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
             style={{
-              left: '338px', // 84px + 250px + 4px gap = 338px
+              left: '338px',
               top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 250))}px`,
               width: '250px',
               maxHeight: 'calc(100vh - 40px)',
@@ -474,7 +474,6 @@ export const Sidebar = () => {
               zIndex: 1060,
             }}
           >
-            {/* Header Label */}
             <div className="d-flex align-items-center justify-content-between mb-2 px-1 pb-1 border-bottom border-secondary border-opacity-25">
               <span
                 className="text-uppercase text-white-50 fw-bold"
@@ -484,7 +483,6 @@ export const Sidebar = () => {
               </span>
             </div>
 
-            {/* List of Sub-Warehouse Pages */}
             <div className="d-flex flex-column gap-1">
               {WAREHOUSE_SUB_PAGES.map(renderItem)}
             </div>
@@ -496,7 +494,7 @@ export const Sidebar = () => {
           <div
             className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
             style={{
-              left: '338px', // 84px + 250px + 4px gap = 338px
+              left: '338px',
               top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 320))}px`,
               width: '250px',
               maxHeight: 'calc(100vh - 40px)',
@@ -507,7 +505,6 @@ export const Sidebar = () => {
               zIndex: 1060,
             }}
           >
-            {/* Header Label */}
             <div className="d-flex align-items-center justify-content-between mb-2 px-1 pb-1 border-bottom border-secondary border-opacity-25">
               <span
                 className="text-uppercase text-white-50 fw-bold"
@@ -517,7 +514,6 @@ export const Sidebar = () => {
               </span>
             </div>
 
-            {/* List of Sub-Reports Pages */}
             <div className="d-flex flex-column gap-1">
               {REPORTS_SUB_PAGES.map(renderItem)}
             </div>
@@ -529,7 +525,7 @@ export const Sidebar = () => {
           <div
             className="position-fixed shadow-lg rounded-3 p-3 z-3 animate-fade-in"
             style={{
-              left: '338px', // 84px + 250px + 4px gap = 338px
+              left: '338px',
               top: `${Math.min(Math.max(10, popoverTop - 40), Math.max(10, window.innerHeight - 350))}px`,
               width: '250px',
               maxHeight: 'calc(100vh - 40px)',
@@ -540,7 +536,6 @@ export const Sidebar = () => {
               zIndex: 1060,
             }}
           >
-            {/* Header Label */}
             <div className="d-flex align-items-center justify-content-between mb-2 px-1 pb-1 border-bottom border-secondary border-opacity-25">
               <span
                 className="text-uppercase text-white-50 fw-bold"
@@ -550,7 +545,6 @@ export const Sidebar = () => {
               </span>
             </div>
 
-            {/* List of Sub-Master-Data Pages */}
             <div className="d-flex flex-column gap-1">
               {MASTER_DATA_SUB_PAGES.map(renderItem)}
             </div>

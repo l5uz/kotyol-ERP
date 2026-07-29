@@ -58,65 +58,66 @@ export const INITIAL_DYNAMIC_SETTINGS = {
   regions: [
     { id: 'reg_1', name: 'Toshkent shahri' },
     { id: 'reg_2', name: 'Toshkent viloyati' },
-    { id: 'reg_3', name: 'Samarqand viloyati' },
+    { id: 'reg_3', name: 'Andijon viloyati' },
     { id: 'reg_4', name: 'Farg\'ona viloyati' },
-    { id: 'reg_5', name: 'Andijon viloyati' },
-    { id: 'reg_6', name: 'Namangan viloyati' },
+    { id: 'reg_5', name: 'Namangan viloyati' },
+    { id: 'reg_6', name: 'Samarqand viloyati' },
     { id: 'reg_7', name: 'Buxoro viloyati' },
-    { id: 'reg_8', name: 'Navoiy viloyati' },
+    { id: 'reg_8', name: 'Xorazm viloyati' },
     { id: 'reg_9', name: 'Qashqadaryo viloyati' },
     { id: 'reg_10', name: 'Surxondaryo viloyati' },
-    { id: 'reg_11', name: 'Xorazm viloyati' },
+    { id: 'reg_11', name: 'Navoiy viloyati' },
     { id: 'reg_12', name: 'Jizzax viloyati' },
     { id: 'reg_13', name: 'Sirdaryo viloyati' },
     { id: 'reg_14', name: 'Qoraqalpog\'iston Respublikasi' },
   ],
-  serviceStatuses: [
-    { id: 'srv_st_1', code: 'NEW', name: 'Yangi Ariza' },
-    { id: 'srv_st_2', code: 'IN_PROGRESS', name: 'Diagnostika va Ta\'mirda' },
-    { id: 'srv_st_3', code: 'COMPLETED', name: 'Bajarildi' },
-    { id: 'srv_st_4', code: 'CANCELLED', name: 'Bekor Qilingan' },
+  warehouses: [
+    { id: 'wh_main', name: 'Asosiy Ombor', status: 'ACTIVE' },
   ],
+  positions: MOCK_POSITIONS,
+  salaryTypes: MOCK_SALARY_TYPES,
+  expenseTypes: MOCK_EXPENSE_TYPES,
+  defectReasons: MOCK_DEFECT_REASONS,
+  productionStages: MOCK_PRODUCTION_STAGES,
+  roles: MOCK_ROLES,
+  movementTypes: MOCK_MOVEMENT_TYPES,
+  movementReasons: MOCK_MOVEMENT_REASONS,
+  revaluationReasons: MOCK_REVALUATION_REASONS,
+  inventoryReasons: MOCK_INVENTORY_REASONS,
 };
 
 class DynamicSettingsService {
   constructor() {
-    this.initStorage();
-  }
-
-  initStorage() {
-    try {
-      const existing = localStorage.getItem(STORAGE_KEYS.DYNAMIC_SETTINGS);
-      if (!existing) {
-        localStorage.setItem(STORAGE_KEYS.DYNAMIC_SETTINGS, JSON.stringify(INITIAL_DYNAMIC_SETTINGS));
-      }
-    } catch (e) {
-      console.warn('LocalStorage error in dynamicSettingsService', e);
-    }
+    this.storageKey = STORAGE_KEYS.DYNAMIC_SETTINGS || 'kotyol_erp_dynamic_settings';
   }
 
   getSettings() {
     try {
-      const data = localStorage.getItem(STORAGE_KEYS.DYNAMIC_SETTINGS);
-      return data ? JSON.parse(data) : INITIAL_DYNAMIC_SETTINGS;
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        return JSON.parse(stored);
+      }
     } catch {
-      return INITIAL_DYNAMIC_SETTINGS;
+      // ignore
     }
+    return { ...INITIAL_DYNAMIC_SETTINGS };
   }
 
   saveSettings(settings) {
     try {
-      localStorage.setItem(STORAGE_KEYS.DYNAMIC_SETTINGS, JSON.stringify(settings));
-    } catch (e) {
-      console.warn('LocalStorage error saving settings', e);
+      localStorage.setItem(this.storageKey, JSON.stringify(settings));
+    } catch {
+      // ignore
     }
   }
 
   getList(key, options = {}) {
-    const { includeArchived = true } = options;
     const settings = this.getSettings();
     const list = settings[key] || INITIAL_DYNAMIC_SETTINGS[key] || [];
-    if (includeArchived) return list;
+
+    if (options.includeArchived) {
+      return list;
+    }
     return list.filter((item) => item.status !== 'INACTIVE' && item.status !== 'ARCHIVED');
   }
 
@@ -171,7 +172,6 @@ class DynamicSettingsService {
     return { success: true };
   }
 
-
   // Currencies
   getCurrencies() {
     return MOCK_CURRENCIES;
@@ -185,14 +185,23 @@ class DynamicSettingsService {
     const list = this.getList('warehouses');
     if (list && list.length > 0) return list;
     return [
-      { id: 'wh_main', code: 'WH-01', name: 'Asosiy Xomashyo Ombori' },
-      { id: 'wh_finished', code: 'WH-02', name: 'Tayyor Mahsulotlar Ombori' },
-      { id: 'wh_shop', code: 'WH-03', name: 'Sex Liniyasi Oraliq Ombori' },
-      { id: 'wh_parts', code: 'WH-04', name: 'Ehtiyot Qismlar Ombori' },
+      { id: 'wh_main', name: 'Asosiy Ombor' },
     ];
   }
+
+  addWarehouseOption(option) {
+    const currentList = this.getWarehouses();
+    const exists = currentList.some(w => w.id === option.value || w.name === option.label);
+    if (!exists) {
+      this.addItem('warehouses', {
+        id: option.value,
+        name: option.label,
+      });
+    }
+  }
+
   getWarehouseOptions() {
-    return this.getWarehouses().map((w) => ({ value: w.id, label: `${w.code || 'WH'} — ${w.name}` }));
+    return this.getWarehouses().map((w) => ({ value: w.id, label: w.name }));
   }
 
   // Suppliers
@@ -235,76 +244,102 @@ class DynamicSettingsService {
     return MOCK_MOVEMENT_TYPES.map((mt) => ({ value: mt.code, label: mt.name }));
   }
 
-  // Movement Reasons
-  getMovementReasons() {
-    return MOCK_MOVEMENT_REASONS;
-  }
-  getMovementReasonOptions() {
-    return MOCK_MOVEMENT_REASONS.map((mr) => ({ value: mr.name, label: mr.name }));
-  }
-
-  // Revaluation Reasons
-  getRevaluationReasons() {
-    return MOCK_REVALUATION_REASONS;
-  }
-  getRevaluationReasonOptions() {
-    return MOCK_REVALUATION_REASONS.map((rr) => ({ value: rr.name, label: rr.name }));
-  }
-
-  // Inventory Reasons
-  getInventoryReasons() {
-    return MOCK_INVENTORY_REASONS;
-  }
-  getInventoryReasonOptions() {
-    return MOCK_INVENTORY_REASONS.map((ir) => ({ value: ir.name, label: ir.name }));
-  }
-
-  // Production Stages
-  getProductionStages() {
-    return MOCK_PRODUCTION_STAGES;
-  }
-  getStageOptions() {
-    return MOCK_PRODUCTION_STAGES.map((s) => ({ value: s.id, label: `${s.stageOrder}. ${s.stageName}` }));
-  }
-
-  // Roles
-  getRoles() {
-    return MOCK_ROLES;
-  }
-  getRoleOptions() {
-    return MOCK_ROLES.map((r) => ({ value: r.name, label: r.name }));
-  }
-
-  // Employee Positions
+  // Positions
   getPositions() {
-    return MOCK_POSITIONS;
+    return this.getList('positions');
   }
   getPositionOptions() {
-    return MOCK_POSITIONS.map((p) => ({ value: p.id, label: p.name }));
+    return this.getPositions().map((p) => ({ value: p.id, label: p.name }));
   }
 
   // Salary Types
   getSalaryTypes() {
-    return MOCK_SALARY_TYPES;
+    return this.getList('salaryTypes');
   }
   getSalaryTypeOptions() {
-    return MOCK_SALARY_TYPES.map((st) => ({ value: st.id, label: st.name }));
+    return this.getSalaryTypes().map((s) => ({ value: s.id, label: s.name }));
+  }
+
+  // Customer Types
+  getCustomerTypes() {
+    return this.getList('customerTypes');
+  }
+  getCustomerTypeOptions() {
+    return this.getCustomerTypes().map((ct) => ({ value: ct.id, label: ct.name }));
+  }
+
+  // Inventory Reasons
+  getInventoryReasons() {
+    return this.getList('inventoryReasons');
+  }
+  getInventoryReasonOptions() {
+    const list = this.getInventoryReasons();
+    if (list && list.length > 0) {
+      return list.map((r) => ({ value: r.id || r.name, label: r.name }));
+    }
+    return [
+      { value: 'Rejalashtirilgan inventarizatsiya', label: 'Rejalashtirilgan inventarizatsiya' },
+      { value: 'Texnik tafovutni tuzatish', label: 'Texnik tafovutni tuzatish' },
+      { value: 'Kamchilik / Ortiqchalik', label: 'Kamchilik / Ortiqchalik' },
+    ];
+  }
+
+  // Revaluation Reasons
+  getRevaluationReasons() {
+    return this.getList('revaluationReasons');
+  }
+  getRevaluationReasonOptions() {
+    const list = this.getRevaluationReasons();
+    if (list && list.length > 0) {
+      return list.map((r) => ({ value: r.id || r.name, label: r.name }));
+    }
+    return [
+      { value: 'Bozor narxi o\'zgarishi', label: 'Bozor narxi o\'zgarishi' },
+      { value: 'Valyuta kursi o\'zgarishi', label: 'Valyuta kursi o\'zgarishi' },
+      { value: 'Eskirish va sifat pasayishi', label: 'Eskirish va sifat pasayishi' },
+    ];
+  }
+
+  // Movement Reasons
+  getMovementReasons() {
+    return this.getList('movementReasons');
+  }
+  getMovementReasonOptions() {
+    const list = this.getMovementReasons();
+    if (list && list.length > 0) {
+      return list.map((r) => ({ value: r.id || r.name, label: r.name }));
+    }
+    return [
+      { value: 'Ombor kirimi', label: 'Ombor kirimi' },
+      { value: 'Ishlab chiqarishga topshirish', label: 'Ishlab chiqarishga topshirish' },
+      { value: 'Omborlararo ko\'chirish', label: 'Omborlararo ko\'chirish' },
+    ];
+  }
+
+  // Production Stages
+  getProductionStages() {
+    const list = this.getList('productionStages');
+    if (list && list.length > 0) return list;
+    return [
+      { id: 'st_1', name: 'Metall Kesish va Zagotovka', code: 'CUTTING', isDefault: true },
+      { id: 'st_2', name: 'Payvandlash va Yig\'ish', code: 'WELDING', isDefault: false },
+      { id: 'st_3', name: 'Gidravlik Sinov', code: 'TESTING', isDefault: false },
+      { id: 'st_4', name: 'Bo\'yash va Quritish', code: 'PAINTING', isDefault: false },
+      { id: 'st_5', name: 'Gatovka va Qadoqlash', code: 'PACKAGING', isDefault: false },
+    ];
   }
 
   // Expense Types
   getExpenseTypes() {
-    return MOCK_EXPENSE_TYPES;
+    return this.getList('expenseTypes');
   }
   getExpenseTypeOptions() {
-    return MOCK_EXPENSE_TYPES.map((e) => ({ value: e.id, label: e.name }));
+    return this.getExpenseTypes().map((e) => ({ value: e.id, label: e.name }));
   }
 
   // Defect Reasons
   getDefectReasons() {
-    return MOCK_DEFECT_REASONS;
-  }
-  getDefectReasonOptions() {
-    return MOCK_DEFECT_REASONS.map((d) => ({ value: d.id, label: d.name }));
+    return this.getList('defectReasons');
   }
 
   // Service Types
@@ -320,39 +355,20 @@ class DynamicSettingsService {
     return this.getList('warrantyTypes');
   }
   getWarrantyTypeOptions() {
-    return this.getWarrantyTypes().map((w) => ({ value: w.id, label: `${w.name} (${w.duration || 12} oy)` }));
+    return this.getWarrantyTypes().map((w) => ({ value: w.id, label: w.name }));
   }
 
-  // Insurance Types
-  getInsuranceTypes() {
-    return MOCK_INSURANCE_TYPES;
-  }
-  getInsuranceTypeOptions() {
-    return MOCK_INSURANCE_TYPES.map((i) => ({ value: i.id, label: i.name }));
+  // Roles
+  getRoles() {
+    return this.getList('roles');
   }
 
-  // Customer Types
-  getCustomerTypes() {
-    return this.getList('customerTypes');
-  }
-  getCustomerTypeOptions() {
-    return this.getCustomerTypes().map((ct) => ({ value: ct.id, label: ct.name }));
-  }
-
-  // Regions
-  getRegions() {
-    return this.getList('regions');
-  }
-  getRegionOptions() {
-    return this.getRegions().map((r) => ({ value: r.name, label: r.name }));
-  }
-
-  // Order Priorities
+  // Priorities
   getOrderPriorities() {
     return this.getList('priorities');
   }
   getOrderPriorityOptions() {
-    return this.getOrderPriorities().map((p) => ({ value: p.code, label: p.name }));
+    return (this.getOrderPriorities() || []).map((p) => ({ value: p.code || p.id, label: p.name }));
   }
 
   // Order Statuses
@@ -360,15 +376,55 @@ class DynamicSettingsService {
     return this.getList('orderStatuses');
   }
   getOrderStatusOptions() {
-    return this.getOrderStatuses().map((s) => ({ value: s.code, label: s.name }));
+    return (this.getOrderStatuses() || []).map((st) => ({ value: st.code || st.id, label: st.name }));
   }
 
-  // Service Statuses
-  getServiceStatuses() {
-    return this.getList('serviceStatuses');
+  // Payment Statuses
+  getPaymentStatuses() {
+    return this.getList('paymentStatuses');
   }
-  getServiceStatusOptions() {
-    return this.getServiceStatuses().map((s) => ({ value: s.code, label: s.name }));
+  getPaymentStatusOptions() {
+    return (this.getPaymentStatuses() || []).map((ps) => ({ value: ps.code || ps.id, label: ps.name }));
+  }
+
+  // Delivery Statuses
+  getDeliveryStatuses() {
+    return this.getList('deliveryStatuses');
+  }
+  getDeliveryStatusOptions() {
+    return (this.getDeliveryStatuses() || []).map((ds) => ({ value: ds.code || ds.id, label: ds.name }));
+  }
+
+  // Regions
+  getRegions() {
+    return this.getList('regions');
+  }
+  getRegionOptions() {
+    return (this.getRegions() || []).map((r) => ({ value: r.name, label: r.name }));
+  }
+
+  // Production Stage Options
+  getProductionStageOptions() {
+    return (this.getProductionStages() || []).map((st) => ({ value: st.id, label: st.name }));
+  }
+
+  // Boiler Types
+  getBoilerTypes() {
+    const list = this.getList('boilerTypes');
+    if (list && list.length > 0) return list;
+    return [
+      { id: 'bt_1', name: 'Suv Isitish Kotyoli (Водогрейный)' },
+      { id: 'bt_2', name: 'Bug\' Kotyoli (Паровой)' },
+      { id: 'bt_3', name: 'Moyli Kotyol (Термомасляный)' },
+    ];
+  }
+  getBoilerTypeOptions() {
+    return (this.getBoilerTypes() || []).map((b) => ({ value: b.id || b.name, label: b.name }));
+  }
+
+  // Defect Reason Options
+  getDefectReasonOptions() {
+    return (this.getDefectReasons() || []).map((d) => ({ value: d.id || d.name, label: d.name }));
   }
 }
 

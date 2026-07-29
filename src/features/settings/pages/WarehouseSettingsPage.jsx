@@ -15,7 +15,6 @@ export const WarehouseSettingsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const columns = [
-    { header: 'Ombor Kodi', accessor: 'code' },
     { header: 'Ombor Nomi', accessor: 'name' },
     { header: 'Tavsifi', accessor: 'description' },
     {
@@ -70,7 +69,6 @@ export const WarehouseSettingsPage = () => {
           </div>
         }
       >
-        <Input label="Ombor Kodi (masalan: WH-04)" placeholder="WH-04" />
         <Input label="Ombor Nomi" placeholder="Elektrotexnika Qismlari Ombori" />
         <Input label="Tavsif va Sex Biriktiruvi" placeholder="B-sexdagi omborxona" />
       </Modal>

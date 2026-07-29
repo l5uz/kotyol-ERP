@@ -110,12 +110,12 @@ export const Table = ({
       )}
 
       {/* Main Table Render */}
-      <div className="table-responsive">
-        <table className="table table-hover align-middle mb-0">
+      <div className="table-responsive" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <table className="table table-hover align-middle mb-0" style={{ width: '100%', minWidth: 'max-content' }}>
           <thead className="table-light">
             <tr>
               {visibleColumns.map((col, idx) => (
-                <th key={idx} style={{ width: col.width || 'auto' }}>
+                <th key={idx} style={{ width: col.width || 'auto', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
                   {col.header}
                 </th>
               ))}
@@ -124,7 +124,7 @@ export const Table = ({
           <tbody>
             {data.map((row, rowIdx) => (
               <tr
-                key={row.id || rowIdx}
+                key={row.id ? `${row.id}-${rowIdx}` : `row-${rowIdx}`}
                 onClick={() => onRowClick && onRowClick(row)}
                 style={{ cursor: onRowClick ? 'pointer' : 'default' }}
               >

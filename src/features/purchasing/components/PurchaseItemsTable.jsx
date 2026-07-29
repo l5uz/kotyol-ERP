@@ -149,7 +149,7 @@ export const PurchaseItemsTable = ({
                   />
                 </td>
                 <td>
-                  <strong className="text-primary fs-7">${(row.total || 0).toFixed(2)}</strong>
+                  <strong className="text-primary fs-7">${(Number(row.total) || 0).toFixed(2)}</strong>
                 </td>
                 <td className="text-center">
                   <button

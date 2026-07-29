@@ -153,11 +153,14 @@ export const EmployeeFormModal = ({
           </div>
 
           <div className="col-12 col-md-6">
-            <Select
+            <DynamicSelect
               label="Oylik Maosh Turi"
               value={formData.salaryTypeId}
               onChange={(e) => setFormData({ ...formData, salaryTypeId: e.target.value })}
               options={salaryTypes.map((s) => ({ value: s.id, label: s.name }))}
+              managePath={ROUTES.PROTECTED.EMPLOYEES_SALARY_TYPES}
+              entityKey="salaryTypes"
+              entityTitle="Oylik Maosh Turi"
             />
           </div>
           <div className="col-12 col-md-6">

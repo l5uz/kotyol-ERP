@@ -129,11 +129,13 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   background-color: var(--erp-bg-body);
   color: var(--erp-text-muted);
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 2px solid var(--erp-border-color);
   padding: 0.85rem 1rem;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
 }
 
 .table td {
@@ -141,6 +143,53 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   border-bottom: 1px solid var(--erp-border-color);
   background-color: var(--erp-bg-card);
   color: var(--erp-text-main);
+  vertical-align: middle !important;
+}
+
+.table-responsive {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+
+/* MODAL SPACIOUS RESPONSIVE WIDTHS */
+.modal-dialog {
+  max-width: 760px;
+  width: 92%;
+  margin: 1.75rem auto;
+}
+
+.modal-dialog.modal-sm {
+  max-width: 480px;
+}
+
+.modal-dialog.modal-md {
+  max-width: 760px;
+}
+
+.modal-dialog.modal-lg {
+  max-width: 920px;
+}
+
+.modal-dialog.modal-xl {
+  max-width: 1160px;
 }
 
 /* DARK MODE FULL COMPREHENSIVE OVERRIDES */

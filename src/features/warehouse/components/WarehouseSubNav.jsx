@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LuLayoutDashboard, LuBoxes, LuArrowLeftRight, LuBadgeDollarSign, LuClipboardCheck } from 'react-icons/lu';
+import { LuStore, LuBoxes, LuArrowLeftRight, LuBadgeDollarSign, LuClipboardCheck } from 'react-icons/lu';
 import { ROUTES } from '@/constants/routes.constants';
 
 const SUB_NAV_ITEMS = [
+  { label: "Omborlar Ro'yxati", path: ROUTES.PROTECTED.WAREHOUSE_LIST, icon: LuStore },
   { label: 'Ombordagi Mahsulotlar', path: ROUTES.PROTECTED.WAREHOUSE_STOCK, icon: LuBoxes },
   { label: 'Harakatlar', path: ROUTES.PROTECTED.WAREHOUSE_MOVEMENTS, icon: LuArrowLeftRight },
   { label: 'Qayta Baholash', path: ROUTES.PROTECTED.WAREHOUSE_REVALUATION, icon: LuBadgeDollarSign },

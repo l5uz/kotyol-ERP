@@ -9,6 +9,7 @@ import { Timeline } from '@/components/common/Timeline/Timeline';
 import { RecipesSubNav } from '../components/RecipesSubNav';
 import { recipesApi } from '../api/recipesApi';
 import { notifySuccess } from '@/services/notification.service';
+import { formatCurrency } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const RecipeDetailPage = () => {
@@ -47,39 +48,67 @@ export const RecipeDetailPage = () => {
     );
   }
 
-  // Cost calculations
-  const baseMaterialCost = recipe.items.reduce((acc, row) => acc + (row.requiredQuantity * row.unitPrice), 0);
-  const estimatedWasteCost = recipe.items.reduce((acc, row) => acc + (row.requiredQuantity * row.unitPrice * (row.wastePercent / 100)), 0);
+  const items = Array.isArray(recipe.items) ? recipe.items : [];
+
+  // Cost calculations with safe numeric parsing
+  const baseMaterialCost = items.reduce(
+    (acc, row) => acc + (Number(row.requiredQuantity) || 0) * (Number(row.unitPrice) || 0),
+    0
+  );
+  const estimatedWasteCost = items.reduce(
+    (acc, row) =>
+      acc +
+      (Number(row.requiredQuantity) || 0) *
+        (Number(row.unitPrice) || 0) *
+        ((Number(row.wastePercent) || 0) / 100),
+    0
+  );
   const totalProductionCost = baseMaterialCost + estimatedWasteCost;
 
   const itemColumns = [
     { header: 'Material Nomi', accessor: 'materialName' },
     {
       header: 'Material Turi',
-      cell: (row) => <span className="badge bg-info bg-opacity-10 text-info fs-8">{row.materialTypeName}</span>,
+      cell: (row) => (
+        <span className="badge bg-info bg-opacity-10 text-info fs-8">
+          {row.materialTypeName || '-'}
+        </span>
+      ),
     },
     {
       header: 'Sarf Miqdori',
-      cell: (row) => <strong className="text-main">{row.requiredQuantity} {row.unitName}</strong>,
+      cell: (row) => (
+        <strong className="text-main">
+          {row.requiredQuantity || 0} {row.unitName || 'dona'}
+        </strong>
+      ),
     },
     {
       header: 'Isrofo (%)',
-      cell: (row) => <span className="text-danger">+{row.wastePercent}%</span>,
+      cell: (row) => <span className="text-danger">+{Number(row.wastePercent) || 0}%</span>,
     },
     {
-      header: 'Birlik Narxi ($)',
-      cell: (row) => <span>${row.unitPrice.toFixed(2)}</span>,
+      header: 'Birlik Narxi',
+      cell: (row) => <span>{formatCurrency(row.unitPrice)}</span>,
     },
     {
-      header: 'Jami Xarajat ($)',
-      cell: (row) => <strong className="text-primary">${(row.totalCost || 0).toFixed(2)}</strong>,
+      header: 'Jami Xarajat',
+      cell: (row) => (
+        <strong className="text-primary">
+          {formatCurrency(row.totalCost)}
+        </strong>
+      ),
     },
   ];
 
   const versionColumns = [
     {
       header: 'Versiya',
-      cell: (row) => <span className="badge bg-secondary bg-opacity-10 text-secondary fs-8 fw-bold">v{row.version}</span>,
+      cell: (row) => (
+        <span className="badge bg-secondary bg-opacity-10 text-secondary fs-8 fw-bold">
+          v{row.version}
+        </span>
+      ),
     },
     { header: 'Yaratilgan Sana', accessor: 'createdDate' },
     {
@@ -140,7 +169,9 @@ export const RecipeDetailPage = () => {
               </div>
               <div>
                 <h6 className="fw-bold text-main mb-0 font-heading">{recipe.recipeName}</h6>
-                <span className="badge bg-secondary bg-opacity-10 text-secondary fs-8">Versiya v{recipe.version}</span>
+                <span className="badge bg-secondary bg-opacity-10 text-secondary fs-8">
+                  Versiya v{recipe.version}
+                </span>
               </div>
             </div>
 
@@ -159,7 +190,7 @@ export const RecipeDetailPage = () => {
               </div>
               <div>
                 <small className="text-muted-custom d-block">Masalliqlar Turlari Soni:</small>
-                <strong className="text-main">{recipe.items.length} ta xomashyo</strong>
+                <strong className="text-main">{items.length} ta xomashyo</strong>
               </div>
               <div>
                 <small className="text-muted-custom d-block">Yaratilgan Sana:</small>
@@ -181,15 +212,15 @@ export const RecipeDetailPage = () => {
             <div className="text-start fs-7 d-flex flex-column gap-1 bg-body-custom p-3 rounded-3 border-custom">
               <div className="d-flex justify-content-between">
                 <span className="text-muted-custom">Materiallar Sof Narxi:</span>
-                <span>${baseMaterialCost.toFixed(2)}</span>
+                <span>{formatCurrency(baseMaterialCost)}</span>
               </div>
               <div className="d-flex justify-content-between text-danger">
                 <span>Taxminiy Isrofo Summasi:</span>
-                <span>+${estimatedWasteCost.toFixed(2)}</span>
+                <span>+{formatCurrency(estimatedWasteCost)}</span>
               </div>
               <div className="d-flex justify-content-between fw-bold pt-2 border-top border-custom text-primary fs-6">
                 <span>1 Birlik Tannarxi:</span>
-                <span>${totalProductionCost.toFixed(2)}</span>
+                <span>{formatCurrency(totalProductionCost)}</span>
               </div>
             </div>
           </Card>
@@ -200,12 +231,14 @@ export const RecipeDetailPage = () => {
           <div className="d-flex flex-column gap-3">
             {/* Ingredients Table */}
             <Card title="Retsept Tarkibiy Masalliqlar Ro'yxati">
-              <Table columns={itemColumns} data={recipe.items} />
+              <Table columns={itemColumns} data={items} />
             </Card>
 
             {/* Description Card */}
             <Card title="Texnologik Izoh va Standartlar">
-              <p className="fs-7 text-main mb-0">{recipe.description || 'Texnologik izoh kiritilmagan.'}</p>
+              <p className="fs-7 text-main mb-0">
+                {recipe.description || 'Texnologik izoh kiritilmagan.'}
+              </p>
             </Card>
 
             {/* Versions History */}

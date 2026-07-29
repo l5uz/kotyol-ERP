@@ -1,7 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LuChevronDown, LuSearch, LuPlus, LuPencil, LuArchive, LuCheck, LuSettings } from 'react-icons/lu';
 import { QuickAddModal } from '../DynamicSelect/QuickAddModal';
 import { ArchiveManagementModal } from './ArchiveManagementModal';
+import { ROUTES } from '@/constants/routes.constants';
+
+const ENTITY_PATH_MAP = {
+  positions: ROUTES.PROTECTED.EMPLOYEES_POSITIONS || '/employees/positions',
+  salaryTypes: ROUTES.PROTECTED.EMPLOYEES_SALARY_TYPES || '/employees/salary-types',
+  warehouses: ROUTES.PROTECTED.WAREHOUSE_LIST || '/warehouse/list',
+  products: ROUTES.PROTECTED.PRODUCTS || '/products',
+  categories: ROUTES.PROTECTED.SETTINGS_CATEGORIES || '/settings/categories',
+  units: ROUTES.PROTECTED.SETTINGS_UNITS || '/settings/units',
+  suppliers: ROUTES.PROTECTED.SUPPLIERS || '/suppliers',
+  customers: ROUTES.PROTECTED.CUSTOMERS || '/customers',
+  expenseTypes: ROUTES.PROTECTED.SETTINGS_EXPENSE_TYPES || '/settings/expense-types',
+  serviceTypes: ROUTES.PROTECTED.SETTINGS_SERVICE_TYPES || '/settings/service-types',
+  warrantyTypes: ROUTES.PROTECTED.SETTINGS_WARRANTY_TYPES || '/settings/warranty-types',
+  roles: ROUTES.PROTECTED.SETTINGS_ROLES || '/settings/roles',
+};
 
 export const DynamicDropdown = ({
   label,
@@ -21,7 +38,10 @@ export const DynamicDropdown = ({
   canCreate = true,
   canEdit = true,
   canArchive = true,
+  managePath = null,
+  manageUrl = null,
 }) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -57,6 +77,26 @@ export const DynamicDropdown = ({
     setIsOpen(false);
   };
 
+  const handleAddClick = (e) => {
+    e.stopPropagation();
+    const targetPath = managePath || manageUrl || (entityKey ? ENTITY_PATH_MAP[entityKey] : null);
+    if (targetPath) {
+      navigate(targetPath);
+    } else {
+      setIsAddModalOpen(true);
+    }
+  };
+
+  const handleManageClick = (e) => {
+    e.stopPropagation();
+    const targetPath = managePath || manageUrl || (entityKey ? ENTITY_PATH_MAP[entityKey] : null);
+    if (targetPath) {
+      navigate(targetPath);
+    } else {
+      setIsArchiveModalOpen(true);
+    }
+  };
+
   const handleAddSubmit = (newRecord) => {
     if (onAddNew) {
       const added = onAddNew(newRecord);
@@ -81,7 +121,7 @@ export const DynamicDropdown = ({
 
   return (
     <div ref={containerRef} className="dynamic-dropdown-wrapper position-relative mb-3">
-      {/* Label Area Header Row (Specific Class to avoid selector overlap with button) */}
+      {/* Label Area Header Row */}
       <div className="dynamic-dropdown-label-row d-flex align-items-center justify-content-between mb-1">
         {label && (
           <label className="form-label fs-7 fw-medium text-main mb-0">
@@ -89,28 +129,22 @@ export const DynamicDropdown = ({
           </label>
         )}
         <div className="d-flex align-items-center gap-1">
-          {canCreate && (onAddNew || entityKey) && (
+          {canCreate && (
             <button
               type="button"
               className="btn btn-link p-0 text-primary text-decoration-none fs-7 p-1 d-inline-flex align-items-center justify-content-center rounded-2 hover-bg-light"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsAddModalOpen(true);
-              }}
-              title="Yangi qo'shish"
+              onClick={handleAddClick}
+              title="Sahifada yangi qo'shish"
             >
               <LuPlus className="fs-6" />
             </button>
           )}
-          {canArchive && (entityKey || onAddNew) && (
+          {canArchive && (
             <button
               type="button"
               className="btn btn-link p-0 text-muted-custom text-decoration-none fs-7 p-1 d-inline-flex align-items-center justify-content-center rounded-2 hover-bg-light"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsArchiveModalOpen(true);
-              }}
-              title="Boshqarish"
+              onClick={handleManageClick}
+              title="Boshqarish sahifasiga o'tish"
             >
               <LuSettings className="fs-6" />
             </button>

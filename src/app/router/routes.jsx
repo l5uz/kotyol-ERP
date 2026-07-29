@@ -40,6 +40,7 @@ import { PurchasingPage, PurchaseDetailPage } from '@/features/purchasing';
 
 import {
   WarehousePage,
+  WarehousesListPage,
   StockDetailPage,
   MovementsPage,
   MovementDetailPage,
@@ -164,7 +165,8 @@ export const router = createBrowserRouter([
           { path: '/purchasing/:id', element: <PurchaseDetailPage /> },
 
           // Warehouse Routes
-          { path: '/warehouse', element: <Navigate to="/warehouse/stock" replace /> },
+          { path: '/warehouse', element: <Navigate to="/warehouse/list" replace /> },
+          { path: '/warehouse/list', element: <WarehousesListPage /> },
           { path: '/warehouse/stock', element: <WarehousePage /> },
           { path: '/warehouse/stock/:id', element: <StockDetailPage /> },
           { path: '/warehouse/movements', element: <MovementsPage /> },

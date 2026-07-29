@@ -1,44 +1,88 @@
 import React, { useState, useEffect } from 'react';
+import { LuPlus, LuListFilter } from 'react-icons/lu';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
-import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { Button } from '@/components/common/Button/Button';
+import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { employeesApi } from '@/features/employees/api/employeesApi';
+import { productsApi } from '@/features/products/api/productsApi';
+import { useAuthStore } from '@/store/useAuthStore';
+import { warehouseApi } from '../api/warehouseApi';
+import { notifyError } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
-import { LuPlus, LuListFilter } from 'react-icons/lu';
 
-export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) => {
+export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
+  const user = useAuthStore((state) => state.user);
+  const currentUser = user || { name: 'Mas\'ul Xodim' };
+  const [warehouseOptions, setWarehouseOptions] = useState([]);
+  const [productOptions, setProductOptions] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [isNewProductMode, setIsNewProductMode] = useState(true);
-
-  const [movementTypeOptions, setMovementTypeOptions] = useState(dynamicSettingsService.getMovementTypeOptions());
-  const [warehouseOptions, setWarehouseOptions] = useState(dynamicSettingsService.getWarehouseOptions());
-  const [unitOptions] = useState([
-    { value: 'dona', label: 'dona' },
-    { value: 'kg', label: 'kg' },
-    { value: 'metr', label: 'metr' },
-    { value: 'litr', label: 'litr' },
-    { value: 'komplekt', label: 'komplekt' },
-  ]);
-
-  const productOptions = products.map((p) => ({
-    value: p.id || p.productId,
-    label: `${p.productName || p.name} (Hozirgi qoldiq: ${p.quantity || 0} ${p.unitName || 'dona'})`,
-  }));
 
   const [formData, setFormData] = useState({
     customProductName: '',
-    productId: productOptions[0]?.value || '',
-    warehouseId: warehouseOptions[0]?.value || '',
+    productId: '',
+    warehouseId: '',
     movementTypeCode: 'PURCHASE',
     quantity: '',
     unitName: 'dona',
     unitPrice: '',
+    createdBy: '',
     notes: '',
   });
 
+  const movementTypeOptions = [
+    { value: 'PURCHASE', label: "Ta'minotchidan Kirim (Xarid)" },
+    { value: 'PRODUCTION_INPUT', label: 'Ishlab Chiqarishdan Omborga Kirim' },
+    { value: 'RETURN', label: 'Mijoz Qaytargan Kirim' },
+    { value: 'INITIAL_BALANCE', label: 'Boshlang\'ich Qoldiq Kiritish' },
+  ];
+
   useEffect(() => {
     if (isOpen) {
+      loadDropdownData();
+    }
+  }, [isOpen]);
+
+  const loadDropdownData = async () => {
+    const [whRes, prodRes, empRes] = await Promise.all([
+      warehouseApi.getWarehouses(),
+      productsApi.getProducts(),
+      employeesApi.getEmployees(),
+    ]);
+
+    if (whRes.success && Array.isArray(whRes.data) && whRes.data.length > 0) {
+      setWarehouseOptions(
+        whRes.data.map((w) => ({
+          value: w.id,
+          label: w.name || w.label,
+        }))
+      );
+    } else {
+      setWarehouseOptions(dynamicSettingsService.getWarehouseOptions());
+    }
+
+    if (prodRes.success) {
+      setProducts(prodRes.data);
+      setProductOptions(
+        prodRes.data.map((p) => ({
+          value: p.id || p.productId,
+          label: `${p.name} (${p.internalCode || 'Kodsiz'})`,
+        }))
+      );
+    }
+
+    if (empRes.success) {
+      setEmployees(empRes.data);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      const defaultName = currentUser?.name || currentUser?.full_name || (employees[0]?.fullName || '');
       setFormData({
         customProductName: '',
         productId: productOptions[0]?.value || '',
@@ -47,11 +91,12 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
         quantity: '',
         unitName: 'dona',
         unitPrice: '',
+        createdBy: defaultName,
         notes: '',
       });
       setIsNewProductMode(true);
     }
-  }, [isOpen]);
+  }, [isOpen, employees, currentUser]);
 
   const handleAddNewWarehouse = (newRecord) => {
     const newWH = { value: `wh_${Date.now()}`, label: newRecord.name };
@@ -61,31 +106,44 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
 
     let finalProductName = '';
     let finalUnitName = formData.unitName;
 
     if (isNewProductMode) {
-      if (!formData.customProductName.trim()) return;
+      if (!formData.customProductName || !formData.customProductName.trim()) {
+        notifyError("Mahsulot nomini kiriting!");
+        return;
+      }
       finalProductName = formData.customProductName.trim();
     } else {
-      const selectedProd = products.find((p) => (p.id || p.productId) === formData.productId);
-      finalProductName = selectedProd ? (selectedProd.productName || selectedProd.name) : 'Noma\'lum mahsulot';
+      const selectedProd = products.find((p) => String(p.id || p.productId) === String(formData.productId));
+      finalProductName = selectedProd ? selectedProd.productName || selectedProd.name : '';
+      if (!finalProductName) {
+        notifyError("Mavjud mahsulotni tanlang!");
+        return;
+      }
       if (selectedProd?.unitName) finalUnitName = selectedProd.unitName;
     }
 
+    if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
+      notifyError("Kirim miqdorini noldan yuqori kiriting!");
+      return;
+    }
+
     const selectedMType = movementTypeOptions.find((m) => m.value === formData.movementTypeCode);
-    const selectedWH = warehouseOptions.find((w) => w.value === formData.warehouseId);
+    const selectedWH = warehouseOptions.find((w) => String(w.value) === String(formData.warehouseId));
 
     onSubmit({
       ...formData,
       productName: finalProductName,
-      unitName: finalUnitName,
+      unitName: finalUnitName || 'dona',
       movementTypeName: selectedMType ? selectedMType.label : 'Kirim',
       warehouseName: selectedWH ? selectedWH.label : 'Asosiy Ombor',
       quantity: parseFloat(formData.quantity) || 0,
       unitPrice: parseFloat(formData.unitPrice) || 0,
+      createdBy: formData.createdBy || currentUser?.name || currentUser?.full_name || 'Mas\'ul Xodim',
     });
   };
 
@@ -93,15 +151,15 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Omborga Mahsulot Kirim Qilish"
       size="lg"
+      title="Omborga Kirim Qilish Hujjatini Rasmiylashtirish"
       footer={
         <div className="d-flex justify-content-end gap-2 w-100">
           <Button variant="outline-secondary" size="sm" onClick={onClose}>
             Bekor qilish
           </Button>
           <Button variant="primary" size="sm" onClick={handleSubmit}>
-            Mahsulotni Omborga Saqlash
+            Kirimni Tasdiqlash va Saqlash
           </Button>
         </div>
       }
@@ -133,7 +191,7 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
           {isNewProductMode ? (
             <div className="col-12 col-md-8">
               <Input
-                label="Mahsulot / Xomashyo Nomi"
+                label="Mahsulot / Xomashyo Nomi *"
                 placeholder="Masalan: Kotyol Nasosi 25kW, Truba 50mm, Gaskat..."
                 value={formData.customProductName}
                 onChange={(e) => setFormData({ ...formData, customProductName: e.target.value })}
@@ -141,13 +199,16 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
               />
             </div>
           ) : (
-            /* Mode 2: Existing Product Select */
+            /* Mode 2: Existing Product DynamicSelect */
             <div className="col-12 col-md-8">
-              <Select
+              <DynamicSelect
                 label="Mavjud Mahsulot Ro'yxati"
                 value={formData.productId}
                 onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
                 options={productOptions}
+                managePath={ROUTES.PROTECTED.PRODUCTS}
+                entityKey="products"
+                entityTitle="Mahsulot"
               />
             </div>
           )}
@@ -159,7 +220,8 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
               value={formData.warehouseId}
               onChange={(e) => setFormData({ ...formData, warehouseId: e.target.value })}
               options={warehouseOptions}
-              managePath={ROUTES.PROTECTED.SETTINGS_WAREHOUSE}
+              managePath={ROUTES.PROTECTED.WAREHOUSE_LIST}
+              entityKey="warehouses"
               onAddNew={handleAddNewWarehouse}
               entityTitle="Ombor"
               required
@@ -168,46 +230,73 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit, products = [] }) 
 
           <div className="col-12 col-md-4">
             <Input
-              label="Kirim Miqdori"
+              label="Kirim Miqdori *"
               placeholder="Masalan: 100"
               type="number"
               min="0.01"
-              step="any"
+              step="0.01"
               value={formData.quantity}
               onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
               required
             />
           </div>
-
-          <div className="col-12 col-md-4">
-            <Select
-              label="O'lchov Birligi"
-              value={formData.unitName}
-              onChange={(e) => setFormData({ ...formData, unitName: e.target.value })}
-              options={unitOptions}
-            />
-          </div>
-
           <div className="col-12 col-md-4">
             <Input
-              label="Birlik Narxi ($) (Ixtiyoriy)"
+              label="O'lchov Birligi Nomi"
+              placeholder="dona, kg, metr..."
+              value={formData.unitName}
+              onChange={(e) => setFormData({ ...formData, unitName: e.target.value })}
+            />
+          </div>
+          <div className="col-12 col-md-4">
+            <Input
+              label="Birlik Kirim Narxi ($)"
               placeholder="0.00"
               type="number"
-              step="any"
+              min="0"
+              step="0.01"
               value={formData.unitPrice}
               onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
             />
           </div>
 
+          <div className="col-12 col-md-6">
+            <Select
+              label="Harakat / Kirim Turi"
+              value={formData.movementTypeCode}
+              onChange={(e) => setFormData({ ...formData, movementTypeCode: e.target.value })}
+              options={movementTypeOptions}
+            />
+          </div>
+
+          {/* Responsible Employee Selector */}
+          <div className="col-12 col-md-6">
+            <DynamicSelect
+              label="Mas'ul Xodim"
+              value={formData.createdBy}
+              onChange={(e) => setFormData({ ...formData, createdBy: e.target.value })}
+              options={
+                employees.length > 0
+                  ? employees.map((emp) => ({
+                      value: emp.fullName,
+                      label: `${emp.fullName} (${emp.positionName || 'Xodim'})`,
+                    }))
+                  : [{ value: currentUser?.name || currentUser?.full_name || 'Mas\'ul Xodim', label: currentUser?.name || currentUser?.full_name || 'Mas\'ul Xodim' }]
+              }
+              managePath={ROUTES.PROTECTED.EMPLOYEES}
+              entityKey="employees"
+              entityTitle="Xodim"
+              required
+            />
+          </div>
+
           <div className="col-12">
-            <label className="form-label fs-7 fw-medium text-main">Izoh / Hujjat Ma'lumoti (Ixtiyoriy)</label>
-            <textarea
-              className="form-control fs-7"
-              rows="2"
+            <Input
+              label="Hujjat Izohi yoki Shartnoma Raqami (Ixtiyoriy)"
+              placeholder="Masalan: Shartnoma №12-B, Mas'ul topshirdi..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Masalan: 1-partiya kirim shartnoma №402..."
-            ></textarea>
+            />
           </div>
         </div>
       </form>

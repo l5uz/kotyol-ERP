@@ -61,6 +61,7 @@ export const ROUTES = {
 
     // Warehouse Sub-Routes
     WAREHOUSE: '/warehouse',
+    WAREHOUSE_LIST: '/warehouse/list',
     WAREHOUSE_STOCK: '/warehouse/stock',
     WAREHOUSE_STOCK_DETAIL: '/warehouse/stock/:id',
     WAREHOUSE_MOVEMENTS: '/warehouse/movements',

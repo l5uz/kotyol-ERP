@@ -44,14 +44,13 @@ export const MovementsPage = () => {
 
   const columns = [
     {
-      header: 'Harakat №',
+      header: 'Mahsulot',
       cell: (row) => (
-        <Link to={`${ROUTES.PROTECTED.WAREHOUSE_MOVEMENTS}/${row.id}`} className="fw-bold text-primary text-decoration-none fs-7">
-          {row.movementNumber}
-        </Link>
+        <span className="fw-bold text-main fs-7">
+          {row.productName}
+        </span>
       ),
     },
-    { header: 'Mahsulot', accessor: 'productName' },
     { header: 'Ombor', accessor: 'warehouseName' },
     {
       header: 'Miqdor',
@@ -69,7 +68,7 @@ export const MovementsPage = () => {
         </span>
       ),
     },
-    { header: 'Sababi', accessor: 'reason' },
+    { header: 'Sababi', cell: (row) => row.reason || row.notes || '-' },
     { header: 'Mas\'ul Xodim', accessor: 'createdBy' },
     { header: 'Sana', accessor: 'createdDate' },
     {
@@ -88,7 +87,6 @@ export const MovementsPage = () => {
 
   return (
     <div className="movements-page animate-fade-in pb-5">
-
       <PageHeader
         title="Ombor Harakatlari Jurnali"
         subtitle="Xomashyo va mahsulotlarning kirim, chiqim, sarf va ko'chirish operatsiyalari"
@@ -113,7 +111,7 @@ export const MovementsPage = () => {
           <SearchInput
             value={search}
             onChange={setSearch}
-            placeholder="Harakat raqami yoki mahsulot nomi bo'yicha..."
+            placeholder="Mahsulot yoki ombor nomi bo'yicha..."
           />
         </div>
         <div className="col-12 col-md-4">
