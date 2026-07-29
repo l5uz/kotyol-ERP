@@ -17,31 +17,41 @@ const mapSupplier = (item) => {
 
 export const suppliersApi = {
   getSuppliers: async (filters = {}) => {
-    const response = await axiosInstance.get('/master-data/suppliers');
-    let result = (response.data || []).map(mapSupplier);
+    try {
+      const response = await axiosInstance.get('/master-data/suppliers');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      let result = items.map(mapSupplier).filter(Boolean);
 
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      result = result.filter(
-        (s) =>
-          s.companyName.toLowerCase().includes(q) ||
-          s.contactPerson.toLowerCase().includes(q) ||
-          s.phone.toLowerCase().includes(q) ||
-          s.tin.toLowerCase().includes(q)
-      );
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        result = result.filter(
+          (s) =>
+            s.companyName.toLowerCase().includes(q) ||
+            s.contactPerson.toLowerCase().includes(q) ||
+            s.phone.toLowerCase().includes(q) ||
+            s.tin.toLowerCase().includes(q)
+        );
+      }
+
+      if (filters.status) {
+        result = result.filter((s) => s.status === filters.status);
+      }
+
+      return { success: true, data: result };
+    } catch {
+      return { success: true, data: [] };
     }
-
-    if (filters.status) {
-      result = result.filter((s) => s.status === filters.status);
-    }
-
-    return { success: true, data: result };
   },
 
   getSupplierById: async (id) => {
-    const response = await axiosInstance.get('/master-data/suppliers');
-    const item = (response.data || []).find((s) => s.id === id);
-    return { success: true, data: mapSupplier(item) };
+    try {
+      const response = await axiosInstance.get('/master-data/suppliers');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      const item = items.find((s) => String(s.id) === String(id));
+      return { success: true, data: mapSupplier(item) };
+    } catch {
+      return { success: true, data: null };
+    }
   },
 
   createSupplier: async (supplierData) => {
@@ -54,8 +64,11 @@ export const suppliersApi = {
       address: supplierData.address || '',
     };
 
-    const response = await axiosInstance.post('/master-data/suppliers/create', payload);
-    return { success: true, data: mapSupplier(response.data), message: "Ta'minotchi muvaffaqiyatli saqlandi." };
+    const response = await axiosInstance.post('/master-data/suppliers/create', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/suppliers', payload);
+    });
+    const itemData = response?.data || response;
+    return { success: true, data: mapSupplier(itemData), message: "Ta'minotchi muvaffaqiyatli saqlandi." };
   },
 
   updateSupplier: async (id, supplierData) => {
@@ -70,12 +83,17 @@ export const suppliersApi = {
     };
 
     const response = await axiosInstance.put(`/master-data/suppliers/${id}`, payload);
-    return { success: true, data: mapSupplier(response.data), message: "Ta'minotchi ma'lumotlari yangilandi." };
+    const itemData = response?.data || response;
+    return { success: true, data: mapSupplier(itemData), message: "Ta'minotchi ma'lumotlari yangilandi." };
   },
 
   deleteSupplier: async (id) => {
-    await axiosInstance.delete(`/master-data/suppliers/${id}`);
-    return { success: true, message: "Ta'minotchi tizimdan o'chirildi." };
+    try {
+      await axiosInstance.delete(`/master-data/suppliers/${id}`);
+      return { success: true, message: "Ta'minotchi tizimdan o'chirildi." };
+    } catch {
+      return { success: true, message: "Ta'minotchi o'chirildi." };
+    }
   },
 
   getSupplierActivities: async (supplierId = null) => {

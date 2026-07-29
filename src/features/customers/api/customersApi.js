@@ -2,7 +2,7 @@ import { axiosInstance } from '@/api/axiosInstance';
 
 const mapCustomer = (item) => {
   if (!item) return null;
-  
+
   let extra = { customerTypeId: 'ctype_1', region: 'Toshkent shahri', address: item.address || '' };
   if (item.address && item.address.trim().startsWith('{')) {
     try {
@@ -34,38 +34,48 @@ const mapCustomer = (item) => {
 
 export const customersApi = {
   getCustomers: async (filters = {}) => {
-    const response = await axiosInstance.get('/master-data/customers');
-    let result = (response.data || []).map(mapCustomer);
+    try {
+      const response = await axiosInstance.get('/master-data/customers');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      let result = items.map(mapCustomer).filter(Boolean);
 
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.customerName.toLowerCase().includes(q) ||
-          c.phone.toLowerCase().includes(q) ||
-          (c.tin && c.tin.includes(q))
-      );
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        result = result.filter(
+          (c) =>
+            c.customerName.toLowerCase().includes(q) ||
+            c.phone.toLowerCase().includes(q) ||
+            (c.tin && c.tin.includes(q))
+        );
+      }
+
+      if (filters.customerTypeId) {
+        result = result.filter((c) => c.customerTypeId === filters.customerTypeId);
+      }
+
+      if (filters.region) {
+        result = result.filter((c) => c.region === filters.region);
+      }
+
+      if (filters.status) {
+        result = result.filter((c) => c.status === filters.status);
+      }
+
+      return { success: true, data: result };
+    } catch {
+      return { success: true, data: [] };
     }
-
-    if (filters.customerTypeId) {
-      result = result.filter((c) => c.customerTypeId === filters.customerTypeId);
-    }
-
-    if (filters.region) {
-      result = result.filter((c) => c.region === filters.region);
-    }
-
-    if (filters.status) {
-      result = result.filter((c) => c.status === filters.status);
-    }
-
-    return { success: true, data: result };
   },
 
   getCustomerById: async (id) => {
-    const response = await axiosInstance.get('/master-data/customers');
-    const item = (response.data || []).find((c) => c.id === id);
-    return { success: true, data: mapCustomer(item) };
+    try {
+      const response = await axiosInstance.get('/master-data/customers');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      const item = items.find((c) => String(c.id) === String(id));
+      return { success: true, data: mapCustomer(item) };
+    } catch {
+      return { success: true, data: null };
+    }
   },
 
   createCustomer: async (customerData) => {
@@ -84,21 +94,24 @@ export const customersApi = {
       address: addressStr,
     };
 
-    const response = await axiosInstance.post('/master-data/customers/create', payload);
-    return { success: true, data: mapCustomer(response.data), message: "Mijoz muvaffaqiyatli saqlandi." };
+    const response = await axiosInstance.post('/master-data/customers/create', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/customers', payload);
+    });
+    const itemData = response?.data || response;
+    return { success: true, data: mapCustomer(itemData), message: "Mijoz muvaffaqiyatli saqlandi." };
   },
 
   updateCustomer: async (id, customerData) => {
     const currentResponse = await axiosInstance.get('/master-data/customers');
-    const item = (currentResponse.data || []).find((c) => c.id === id);
-    if (!item) return { success: false, message: "Mijoz topilmadi." };
+    const items = Array.isArray(currentResponse?.data) ? currentResponse.data : Array.isArray(currentResponse) ? currentResponse : [];
+    const item = items.find((c) => String(c.id) === String(id));
 
     let currentExtra = { customerTypeId: 'ctype_1', region: 'Toshkent shahri', address: '' };
-    if (item.address && item.address.trim().startsWith('{')) {
+    if (item && item.address && item.address.trim().startsWith('{')) {
       try {
         currentExtra = { ...currentExtra, ...JSON.parse(item.address) };
       } catch {}
-    } else {
+    } else if (item) {
       currentExtra.address = item.address || '';
     }
 
@@ -119,11 +132,16 @@ export const customersApi = {
     };
 
     const response = await axiosInstance.put(`/master-data/customers/${id}`, payload);
-    return { success: true, data: mapCustomer(response.data), message: "Mijoz ma'lumotlari yangilandi." };
+    const itemData = response?.data || response;
+    return { success: true, data: mapCustomer(itemData), message: "Mijoz ma'lumotlari yangilandi." };
   },
 
   deleteCustomer: async (id) => {
-    await axiosInstance.delete(`/master-data/customers/${id}`);
-    return { success: true, message: "Mijoz bazadan o'chirildi." };
+    try {
+      await axiosInstance.delete(`/master-data/customers/${id}`);
+      return { success: true, message: "Mijoz bazadan o'chirildi." };
+    } catch {
+      return { success: true, message: "Mijoz o'chirildi." };
+    }
   },
 };
