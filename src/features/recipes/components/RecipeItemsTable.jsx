@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LuPlus, LuTrash2, LuCircleAlert } from 'react-icons/lu';
 import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
+import { getCurrencySymbol } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const RecipeItemsTable = ({
@@ -107,8 +108,8 @@ export const RecipeItemsTable = ({
               <th style={{ width: '80px' }}>Birlik</th>
               <th style={{ width: '110px' }}>Sarf Miqdori</th>
               <th style={{ width: '100px' }}>Isrofo / Chiqindi (%)</th>
-              <th style={{ width: '110px' }}>Birlik Narxi ($)</th>
-              <th style={{ width: '130px' }}>Xarajat ($)</th>
+              <th style={{ width: '110px' }}>Birlik Narxi ({getCurrencySymbol()})</th>
+              <th style={{ width: '130px' }}>Xarajat ({getCurrencySymbol()})</th>
               <th style={{ width: '50px' }}></th>
             </tr>
           </thead>

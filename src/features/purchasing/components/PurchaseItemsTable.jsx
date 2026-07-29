@@ -1,6 +1,7 @@
 import React from 'react';
 import { LuPlus, LuTrash2 } from 'react-icons/lu';
 import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
+import { getCurrencySymbol } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const PurchaseItemsTable = ({
@@ -91,10 +92,10 @@ export const PurchaseItemsTable = ({
               <th style={{ minWidth: '220px' }}>Mahsulot</th>
               <th style={{ width: '100px' }}>Miqdor</th>
               <th style={{ width: '80px' }}>Birlik</th>
-              <th style={{ width: '120px' }}>Narx ($)</th>
+              <th style={{ width: '120px' }}>Narx ({getCurrencySymbol()})</th>
               <th style={{ width: '100px' }}>Chegirma (%)</th>
               <th style={{ width: '90px' }}>Soliq (%)</th>
-              <th style={{ width: '130px' }}>Jami ($)</th>
+              <th style={{ width: '130px' }}>Jami ({getCurrencySymbol()})</th>
               <th style={{ width: '50px' }}></th>
             </tr>
           </thead>

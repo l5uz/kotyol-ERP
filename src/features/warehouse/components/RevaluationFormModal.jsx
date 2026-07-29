@@ -5,6 +5,7 @@ import { Select } from '@/components/common/Select/Select';
 import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { Button } from '@/components/common/Button/Button';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { getCurrencySymbol, formatCurrency } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const RevaluationFormModal = ({ isOpen, onClose, onSubmit, products = [] }) => {
@@ -86,14 +87,14 @@ export const RevaluationFormModal = ({ isOpen, onClose, onSubmit, products = [] 
           </div>
           <div className="col-12 col-md-6">
             <Input
-              label="Amaldagi Narx ($)"
-              value={previousPrice.toFixed(2)}
+              label={`Amaldagi Narx (${getCurrencySymbol()})`}
+              value={formatCurrency(previousPrice)}
               disabled
             />
           </div>
           <div className="col-12 col-md-6">
             <Input
-              label="Yangi Narx ($)"
+              label={`Yangi Narx (${getCurrencySymbol()})`}
               placeholder="5.20"
               type="number"
               value={newPrice}

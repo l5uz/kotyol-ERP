@@ -11,6 +11,7 @@ import { productsApi } from '@/features/products/api/productsApi';
 import { useAuthStore } from '@/store/useAuthStore';
 import { warehouseApi } from '../api/warehouseApi';
 import { notifyError } from '@/services/notification.service';
+import { getCurrencySymbol } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
@@ -250,7 +251,7 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
           <div className="col-12 col-md-4">
             <Input
-              label="Birlik Kirim Narxi ($)"
+              label={`Birlik Kirim Narxi (${getCurrencySymbol()})`}
               placeholder="0.00"
               type="number"
               min="0"
