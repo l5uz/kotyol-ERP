@@ -106,7 +106,6 @@ const MENU_CATEGORIES = [
     items: [
       { label: 'Ishlab chiqarish', path: ROUTES.PROTECTED.PRODUCTION, icon: LuSettings2 },
       { label: 'Kotyol Turlari', path: ROUTES.PROTECTED.BOILERS, icon: LuFlame },
-      { label: 'Mahsulotlar', path: ROUTES.PROTECTED.PRODUCTS, icon: LuBoxes },
     ],
   },
   {
@@ -115,6 +114,7 @@ const MENU_CATEGORIES = [
     icon: LuWarehouse,
     items: [
       { label: 'Omborxona', path: ROUTES.PROTECTED.WAREHOUSE_LIST, icon: LuWarehouse, isParent: true },
+      { label: 'Mahsulotlar', path: ROUTES.PROTECTED.PRODUCTS, icon: LuBoxes },
       { label: 'Xaridlar', path: ROUTES.PROTECTED.PURCHASING, icon: LuShoppingBag },
       { label: 'Ta\'minotchilar', path: ROUTES.PROTECTED.SUPPLIERS, icon: LuTruck },
     ],

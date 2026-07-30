@@ -12,6 +12,7 @@ import { recipesApi } from '@/features/recipes/api/recipesApi';
 import { RecipeFormModal } from '@/features/recipes/components/RecipeFormModal';
 import { ERP_ICONS } from '@/shared/icons';
 import { ROUTES } from '@/constants/routes.constants';
+import { WarehouseSubNav } from '@/features/warehouse/components/WarehouseSubNav';
 import { notifySuccess } from '@/services/notification.service';
 import { LuBookOpen, LuPlus, LuPencil } from 'react-icons/lu';
 
@@ -107,6 +108,7 @@ export const ProductDetailPage = () => {
 
   return (
     <div className="product-detail-page animate-fade-in pb-5">
+      <WarehouseSubNav />
       <PageHeader
         title={`Mahsulot Kartochkasi: ${product.name}`}
         subtitle={`Kodi: ${product.internalCode} — ${product.categoryName}`}

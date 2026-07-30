@@ -15,6 +15,7 @@ import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { notifySuccess } from '@/services/notification.service';
 import { ERP_ICONS } from '@/shared/icons';
 import { ROUTES } from '@/constants/routes.constants';
+import { WarehouseSubNav } from '@/features/warehouse/components/WarehouseSubNav';
 
 export const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -85,7 +86,6 @@ export const ProductsPage = () => {
           </Link>
           <div className="d-flex align-items-center gap-2 mt-1">
             <span className="badge bg-secondary bg-opacity-10 text-secondary fs-8">{row.internalCode}</span>
-            <small className="text-muted-custom fs-8"><i className="bi bi-qr-code me-1"></i>{row.qrCode}</small>
           </div>
         </div>
       ),
@@ -144,6 +144,7 @@ export const ProductsPage = () => {
 
   return (
     <div className="products-page animate-fade-in pb-5">
+      <WarehouseSubNav />
       <PageHeader
         title="Mahsulotlar va Xomashyolar Nomenklaturasi"
         subtitle="Zavod xomashyolari, komplektatsiya qismlari va tayyor bosim klapanlari reyestri"
