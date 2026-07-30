@@ -194,9 +194,7 @@ export const settingsApi = {
         description: catData.description || '',
         status: catData.status || 'ACTIVE'
       };
-      const response = await axiosInstance.post('/master-data/supplier-categories/create', payload).catch(async () => {
-        return await axiosInstance.post('/master-data/supplier-categories', payload);
-      });
+      const response = await axiosInstance.post('/master-data/supplier-categories', payload);
       const data = response?.data || response;
       return { success: true, data, message: "Yangi ta'minotchi kategoriyasi yaratildi." };
     } catch (err) {
@@ -221,9 +219,7 @@ export const settingsApi = {
 
   deleteSupplierCategory: async (id) => {
     try {
-      await axiosInstance.delete(`/master-data/supplier-categories/${id}`).catch(async () => {
-        return await axiosInstance.delete(`/master-data/supplier-categories/${id}/delete`);
-      });
+      await axiosInstance.delete(`/master-data/supplier-categories/${id}`);
       return { success: true, message: "Ta'minotchi kategoriyasi o'chirildi." };
     } catch (err) {
       return { success: false, error: err };
