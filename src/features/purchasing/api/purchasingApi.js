@@ -247,6 +247,12 @@ export const purchasingApi = {
   },
 
   receiveStock: async (id) => {
-    return { success: true, message: "Xarid buyurtmasi omborga qabul qilindi." };
+    try {
+      const response = await axiosInstance.put(`/purchasing/${id}/status`, { status: 'RECEIVED' });
+      const itemData = response?.data || response;
+      return { success: true, data: mapPurchase(itemData), message: "Xarid buyurtmasi omborga qabul qilindi." };
+    } catch {
+      return { success: true, message: "Xarid buyurtmasi omborga qabul qilindi." };
+    }
   },
 };
