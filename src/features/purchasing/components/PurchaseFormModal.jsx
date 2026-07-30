@@ -14,7 +14,7 @@ import { useFormDraftStore } from '@/store/useFormDraftStore';
 import { LuPlus, LuSave } from 'react-icons/lu';
 
 export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
-  const { getDraft, setDraft, clearDraft } = useFormDraftStore();
+  const { getDraft, saveDraft, clearDraft } = useFormDraftStore();
   const DRAFT_KEY = 'purchase_form_draft';
 
   const [suppliers, setSuppliers] = useState([]);
@@ -78,7 +78,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
 
   useEffect(() => {
     if (!purchase && isOpen && formData.supplierId) {
-      setDraft(DRAFT_KEY, formData);
+      saveDraft(DRAFT_KEY, formData);
     }
   }, [formData, purchase, isOpen]);
 
