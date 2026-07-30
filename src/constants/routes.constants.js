@@ -94,6 +94,7 @@ export const ROUTES = {
     SETTINGS_CURRENCY: '/settings/currency',
     SETTINGS_WAREHOUSE: '/settings/warehouse',
     SETTINGS_CATEGORIES: '/settings/categories',
+    SETTINGS_SUPPLIER_CATEGORIES: '/settings/supplier-categories',
     SETTINGS_MATERIAL_TYPES: '/settings/material-types',
     SETTINGS_UNITS: '/settings/units',
     SETTINGS_EXPENSE_TYPES: '/settings/expense-types',

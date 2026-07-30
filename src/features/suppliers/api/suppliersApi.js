@@ -1,4 +1,5 @@
 import { axiosInstance } from '@/api/axiosInstance';
+import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 
 const mapSupplier = (item) => {
   if (!item) return null;
@@ -101,15 +102,15 @@ export const suppliersApi = {
   },
 
   getSupplierCategories: async () => {
-    return {
-      success: true,
-      data: [
-        { id: 'raw-materials', name: 'Xom ashyo' },
-        { id: 'components', name: 'Ehtiyot qismlar' },
-        { id: 'equipment', name: 'Uskunalar' },
-        { id: 'services', name: 'Xizmatlar' },
-        { id: 'logistics', name: 'Logistika' },
-      ],
-    };
+    try {
+      const response = await axiosInstance.get('/master-data/supplier-categories');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      return { success: true, data: items };
+    } catch {
+      return {
+        success: true,
+        data: dynamicSettingsService.getSupplierCategories(),
+      };
+    }
   },
 };

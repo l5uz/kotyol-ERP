@@ -37,6 +37,7 @@ const SETTINGS_SUB_PAGES = [
   { label: 'Valyuta va Kurslar', path: ROUTES.PROTECTED.SETTINGS_CURRENCY, icon: LuSlidersHorizontal },
   { label: 'Omborlar Sozlamalari', path: ROUTES.PROTECTED.SETTINGS_WAREHOUSE, icon: LuSlidersHorizontal },
   { label: 'Mahsulot Kategoriyalari', path: ROUTES.PROTECTED.SETTINGS_CATEGORIES, icon: LuSlidersHorizontal },
+  { label: 'Ta\'minot Kategoriyalari', path: ROUTES.PROTECTED.SETTINGS_SUPPLIER_CATEGORIES, icon: LuSlidersHorizontal },
   { label: 'O\'lchov Birliklari', path: ROUTES.PROTECTED.SETTINGS_UNITS, icon: LuSlidersHorizontal },
   { label: 'Xarajat Turlari', path: ROUTES.PROTECTED.SETTINGS_EXPENSE_TYPES, icon: LuSlidersHorizontal },
   { label: 'Defekt Sabablari', path: ROUTES.PROTECTED.SETTINGS_DEFECT_REASONS, icon: LuSlidersHorizontal },

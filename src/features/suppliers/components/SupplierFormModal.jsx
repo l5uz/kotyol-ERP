@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
+import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
+import { ROUTES } from '@/constants/routes.constants';
 import { suppliersApi } from '../api/suppliersApi';
 
 export const SupplierFormModal = ({ isOpen, onClose, supplier, onSave }) => {
@@ -95,15 +97,14 @@ export const SupplierFormModal = ({ isOpen, onClose, supplier, onSave }) => {
           required
         />
 
-        <Select
+        <DynamicSelect
           label="Ta'minot Kategoriya Turi"
           value={formData.categoryId}
           onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
           error={errors.categoryId}
-          options={[
-            { value: '', label: 'Kategoriyani Tanlang' },
-            ...categories.map((c) => ({ value: c.id, label: c.name })),
-          ]}
+          options={categories.map((c) => ({ value: c.id, label: c.name }))}
+          managePath={ROUTES.PROTECTED.SETTINGS_SUPPLIER_CATEGORIES}
+          entityTitle="Kategoriya"
           required
         />
 

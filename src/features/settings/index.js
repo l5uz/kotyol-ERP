@@ -15,4 +15,5 @@ export * from './pages/PermissionsSettingsPage';
 export * from './pages/MasterDataManagementPage';
 export * from './pages/BranchesManagementPage';
 export * from './pages/BranchesStatisticsPage';
+export * from './pages/SupplierCategoriesSettingsPage';
 

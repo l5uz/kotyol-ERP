@@ -80,6 +80,7 @@ import {
   MasterDataManagementPage,
   BranchesManagementPage,
   BranchesStatisticsPage,
+  SupplierCategoriesSettingsPage,
 } from '@/features/settings';
 
 import { Forbidden403Page } from '@/pages/errors/Forbidden403Page';
@@ -200,6 +201,7 @@ export const router = createBrowserRouter([
           { path: '/settings/currency', element: <CurrencySettingsPage /> },
           { path: '/settings/warehouse', element: <WarehouseSettingsPage /> },
           { path: '/settings/categories', element: <CategoriesSettingsPage /> },
+          { path: '/settings/supplier-categories', element: <SupplierCategoriesSettingsPage /> },
           { path: '/settings/material-types', element: <MaterialTypesSettingsPage /> },
           { path: '/settings/units', element: <UnitsSettingsPage /> },
           { path: '/settings/expense-types', element: <ExpenseTypesSettingsPage /> },

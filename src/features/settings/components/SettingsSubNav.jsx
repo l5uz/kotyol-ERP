@@ -8,6 +8,7 @@ const SETTINGS_PAGES = [
   { label: 'Valyuta', path: ROUTES.PROTECTED.SETTINGS_CURRENCY, icon: 'bi-cash-stack' },
   { label: 'Omborlar', path: ROUTES.PROTECTED.SETTINGS_WAREHOUSE, icon: 'bi-box-seam' },
   { label: 'Kategoriyalar', path: ROUTES.PROTECTED.SETTINGS_CATEGORIES, icon: 'bi-tags' },
+  { label: 'Ta\'minot Kategoriyalari', path: ROUTES.PROTECTED.SETTINGS_SUPPLIER_CATEGORIES, icon: 'bi-tags-fill' },
   { label: 'Material Turlari', path: ROUTES.PROTECTED.SETTINGS_MATERIAL_TYPES, icon: 'bi-boxes' },
   { label: 'Birliklar', path: ROUTES.PROTECTED.SETTINGS_UNITS, icon: 'bi-rulers' },
   { label: 'Xarajat Turlari', path: ROUTES.PROTECTED.SETTINGS_EXPENSE_TYPES, icon: 'bi-receipt' },

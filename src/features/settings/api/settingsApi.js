@@ -177,6 +177,59 @@ export const settingsApi = {
     }
   },
 
+  getSupplierCategories: async () => {
+    try {
+      const response = await axiosInstance.get('/master-data/supplier-categories');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      return { success: true, data: items };
+    } catch {
+      return { success: false, data: [] };
+    }
+  },
+
+  createSupplierCategory: async (catData) => {
+    try {
+      const payload = {
+        name: catData.name,
+        description: catData.description || '',
+        status: catData.status || 'ACTIVE'
+      };
+      const response = await axiosInstance.post('/master-data/supplier-categories/create', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/supplier-categories', payload);
+      });
+      const data = response?.data || response;
+      return { success: true, data, message: "Yangi ta'minotchi kategoriyasi yaratildi." };
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  },
+
+  updateSupplierCategory: async (id, catData) => {
+    try {
+      const payload = {
+        name: catData.name,
+        description: catData.description || '',
+        status: catData.status || 'ACTIVE'
+      };
+      const response = await axiosInstance.put(`/master-data/supplier-categories/${id}`, payload);
+      const data = response?.data || response;
+      return { success: true, data, message: "Ta'minotchi kategoriyasi yangilandi." };
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  },
+
+  deleteSupplierCategory: async (id) => {
+    try {
+      await axiosInstance.delete(`/master-data/supplier-categories/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/supplier-categories/${id}/delete`);
+      });
+      return { success: true, message: "Ta'minotchi kategoriyasi o'chirildi." };
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  },
+
   getUnits: async () => {
     const response = await axiosInstance.get('/master-data/units');
     return { success: true, data: response.data || [] };

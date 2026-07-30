@@ -22,10 +22,19 @@ import { MOCK_POSITIONS, MOCK_SALARY_TYPES } from '@/features/employees/constant
 import { MOCK_SUPPLIERS } from '@/features/suppliers/constants/suppliers.mock';
 import { dataIntegrityService } from './dataIntegrity.service';
 
+export const MOCK_SUPPLIER_CATEGORIES = [
+  { id: 'raw-materials', name: 'Xom ashyo', status: 'ACTIVE' },
+  { id: 'components', name: 'Ehtiyot qismlar', status: 'ACTIVE' },
+  { id: 'equipment', name: 'Uskunalar', status: 'ACTIVE' },
+  { id: 'services', name: 'Xizmatlar', status: 'ACTIVE' },
+  { id: 'logistics', name: 'Logistika', status: 'ACTIVE' },
+];
+
 export const INITIAL_DYNAMIC_SETTINGS = {
   productCategories: MOCK_PRODUCT_CATEGORIES,
   units: MOCK_UNITS,
   materialTypes: MOCK_MATERIAL_TYPES,
+  supplierCategories: MOCK_SUPPLIER_CATEGORIES,
   customerTypes: [
     { id: 'ctype_1', name: 'Jismoniy Shaxs', status: 'ACTIVE' },
     { id: 'ctype_2', name: 'Yuridik Shaxs', status: 'ACTIVE' },
@@ -228,6 +237,16 @@ class DynamicSettingsService {
   }
   getCategoryOptions() {
     return this.getCategories().map((cat) => ({ value: cat.id, label: cat.name }));
+  }
+
+  // Supplier Categories
+  getSupplierCategories() {
+    const list = this.getList('supplierCategories');
+    if (list && list.length > 0) return list;
+    return MOCK_SUPPLIER_CATEGORIES;
+  }
+  getSupplierCategoryOptions() {
+    return this.getSupplierCategories().map((c) => ({ value: c.id, label: c.name }));
   }
 
   // Material Types
