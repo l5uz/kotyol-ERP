@@ -44,7 +44,7 @@ export const WarehousePage = () => {
   }, [search, categoryFilter, warehouseFilter, materialFilter, statusFilter]);
 
   const loadWarehouseData = async () => {
-    const [statsRes, stockRes] = await Promise.all([
+    const [statsRes, stockRes, prodRes] = await Promise.all([
       warehouseApi.getWarehouseStats(),
       warehouseApi.getCurrentStock({
         search,
@@ -53,9 +53,28 @@ export const WarehousePage = () => {
         materialTypeId: materialFilter,
         status: statusFilter,
       }),
+      productsApi.getProducts({ limit: 500 }).catch(() => null),
     ]);
+
     if (statsRes.success) setStats(statsRes.data);
-    if (stockRes.success) setStock(stockRes.data);
+
+    if (stockRes.success) {
+      const stockData = stockRes.data || [];
+      const productList = prodRes?.success ? prodRes.data : [];
+
+      const mappedStock = stockData.map((item) => {
+        const prod = productList.find((p) => p.id === item.productId);
+        const cost = item.purchasePrice || item.unitPrice || prod?.purchasePrice || 0;
+        return {
+          ...item,
+          purchasePrice: cost,
+          unitPrice: cost,
+          currentValue: item.quantity * cost,
+        };
+      });
+
+      setStock(mappedStock);
+    }
   };
 
   const handleSaveMovement = async (formData) => {
