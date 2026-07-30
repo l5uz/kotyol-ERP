@@ -40,6 +40,7 @@ export const DynamicDropdown = ({
   canArchive = true,
   managePath = null,
   manageUrl = null,
+  compact = false,
 }) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -120,37 +121,39 @@ export const DynamicDropdown = ({
   };
 
   return (
-    <div ref={containerRef} className="dynamic-dropdown-wrapper position-relative mb-3">
+    <div ref={containerRef} className={`dynamic-dropdown-wrapper position-relative ${compact ? '' : 'mb-3'}`}>
       {/* Label Area Header Row */}
-      <div className="dynamic-dropdown-label-row d-flex align-items-center justify-content-between mb-1">
-        {label && (
-          <label className="form-label fs-7 fw-medium text-main mb-0">
-            {label} {required && <span className="text-danger">*</span>}
-          </label>
-        )}
-        <div className="d-flex align-items-center gap-1">
-          {canCreate && (
-            <button
-              type="button"
-              className="btn btn-link p-0 text-primary text-decoration-none fs-7 p-1 d-inline-flex align-items-center justify-content-center rounded-2 hover-bg-light"
-              onClick={handleAddClick}
-              title="Sahifada yangi qo'shish"
-            >
-              <LuPlus className="fs-6" />
-            </button>
+      {!compact && (
+        <div className="dynamic-dropdown-label-row d-flex align-items-center justify-content-between mb-1">
+          {label && (
+            <label className="form-label fs-7 fw-medium text-main mb-0">
+              {label} {required && <span className="text-danger">*</span>}
+            </label>
           )}
-          {canArchive && (
-            <button
-              type="button"
-              className="btn btn-link p-0 text-muted-custom text-decoration-none fs-7 p-1 d-inline-flex align-items-center justify-content-center rounded-2 hover-bg-light"
-              onClick={handleManageClick}
-              title="Boshqarish sahifasiga o'tish"
-            >
-              <LuSettings className="fs-6" />
-            </button>
-          )}
+          <div className="d-flex align-items-center gap-1">
+            {canCreate && (
+              <button
+                type="button"
+                className="btn btn-link p-0 text-primary text-decoration-none fs-7 p-1 d-inline-flex align-items-center justify-content-center rounded-2 hover-bg-light"
+                onClick={handleAddClick}
+                title="Sahifada yangi qo'shish"
+              >
+                <LuPlus className="fs-6" />
+              </button>
+            )}
+            {canArchive && (
+              <button
+                type="button"
+                className="btn btn-link p-0 text-muted-custom text-decoration-none fs-7 p-1 d-inline-flex align-items-center justify-content-center rounded-2 hover-bg-light"
+                onClick={handleManageClick}
+                title="Boshqarish sahifasiga o'tish"
+              >
+                <LuSettings className="fs-6" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Trigger Button (Closed State) - Fixed 40px Height */}
       <button

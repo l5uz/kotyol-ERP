@@ -216,15 +216,6 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
           </div>
         </div>
 
-        <hr className="border-custom my-2" />
-
-        <div className="d-flex align-items-center justify-content-between">
-          <h6 className="mb-0 fw-bold text-main font-heading">Xomashyolar va Mahsulotlar Ro'yxati</h6>
-          <button type="button" className="btn btn-sm btn-outline-primary" onClick={handleAddItem}>
-            <LuPlus className="me-1" /> Mahsulot Qo'shish
-          </button>
-        </div>
-
         {errors.items && <small className="text-danger d-block">{errors.items}</small>}
 
         <PurchaseItemsTable

@@ -110,6 +110,7 @@ export const PurchaseItemsTable = ({
                     managePath={ROUTES.PROTECTED.PRODUCTS}
                     onAddNew={onAddNewProduct}
                     entityTitle="Mahsulot"
+                    compact={true}
                   />
                 </td>
                 <td>
