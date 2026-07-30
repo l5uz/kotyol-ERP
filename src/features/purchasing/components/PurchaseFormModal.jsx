@@ -134,14 +134,18 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
       totalAmount: financialTotals.totalAmount,
     };
 
-    if (purchase) {
-      await purchasingApi.updatePurchase(purchase.id, payload);
-    } else {
-      await purchasingApi.createPurchase(payload);
-    }
+    try {
+      if (purchase) {
+        await purchasingApi.updatePurchase(purchase.id, payload);
+      } else {
+        await purchasingApi.createPurchase(payload);
+      }
 
-    onSave();
-    onClose();
+      onSave();
+      onClose();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const selectedSupplierObj = suppliers.find((s) => s.id === formData.supplierId);

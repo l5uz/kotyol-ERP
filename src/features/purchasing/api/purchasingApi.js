@@ -26,6 +26,7 @@ const mapPurchase = (item) => {
       productName: i.product_name || 'Mahsulot',
       internalCode: i.product_code || 'SKU',
       quantity: Number(i.quantity) || 0,
+      unitPrice: Number(i.unit_price) || 0,
       purchasePrice: Number(i.unit_price) || 0,
       totalPrice: Number(i.total_price) || 0,
       unitName: 'dona',
