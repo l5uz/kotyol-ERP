@@ -385,8 +385,10 @@ export const warehouseApi = {
         }
       }
 
+      console.log("RAW REVALUATION RESPONSE:", response);
       const rawLogs = response?.data?.data || response?.data || response || [];
       const logs = Array.isArray(rawLogs) ? rawLogs : [];
+      console.log("PARSED REVALUATION LOGS:", logs);
 
       const apiRevaluations = logs
         .filter((l) => l.entity_name === 'STOCK' && l.action === 'UPDATE' && (l.new_values?.avg_unit_cost !== undefined || l.new_values?.unit_price !== undefined || l.new_values?.purchase_price !== undefined))
@@ -407,6 +409,8 @@ export const warehouseApi = {
           };
         });
 
+      console.log("FILTERED API REVALUATIONS:", apiRevaluations);
+
       // Merge API logs with in-memory session changes
       const merged = [...sessionRevaluations];
       apiRevaluations.forEach((item) => {
@@ -416,7 +420,8 @@ export const warehouseApi = {
       });
 
       return { success: true, data: merged };
-    } catch {
+    } catch (err) {
+      console.error("Error in getRevaluations:", err);
       return { success: true, data: sessionRevaluations };
     }
   },
@@ -469,8 +474,10 @@ export const warehouseApi = {
         }
       }
 
+      console.log("RAW INVENTORY COUNT RESPONSE:", response);
       const rawLogs = response?.data?.data || response?.data || response || [];
       const logs = Array.isArray(rawLogs) ? rawLogs : [];
+      console.log("PARSED INVENTORY COUNT LOGS:", logs);
 
       const apiCounts = logs
         .filter((l) => l.entity_name === 'STOCK' && l.action === 'UPDATE' && l.new_values?.quantity !== undefined)
@@ -492,6 +499,8 @@ export const warehouseApi = {
           };
         });
 
+      console.log("FILTERED API COUNTS:", apiCounts);
+
       // Merge API logs with in-memory session changes
       const merged = [...sessionCounts];
       apiCounts.forEach((item) => {
@@ -501,7 +510,8 @@ export const warehouseApi = {
       });
 
       return { success: true, data: merged };
-    } catch {
+    } catch (err) {
+      console.error("Error in getInventoryCounts:", err);
       return { success: true, data: sessionCounts };
     }
   },
