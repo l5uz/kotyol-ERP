@@ -226,7 +226,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
               label="Hujjat Statusi"
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              options={purchasingStatuses.map((st) => ({ value: st.code, label: st.name }))}
+              options={purchasingStatuses}
             />
           </div>
         </div>
