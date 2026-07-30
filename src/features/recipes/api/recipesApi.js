@@ -79,6 +79,7 @@ export const recipesApi = {
         .map((p) => {
           let rec = parseRecipeFromDescription(p.description, p);
           if (!rec) {
+            if (p.type !== 'FINISHED_GOOD') return null;
             rec = {
               id: p.id,
               recipeName: `${p.name} Resepturasi`,
@@ -145,6 +146,9 @@ export const recipesApi = {
       if (prodRes.success && prodRes.data) {
         let recipe = parseRecipeFromDescription(prodRes.data.description, prodRes.data);
         if (!recipe) {
+          if (prodRes.data.type !== 'FINISHED_GOOD') {
+            return { success: true, data: null };
+          }
           recipe = {
             id: prodRes.data.id,
             recipeName: `${prodRes.data.name} Resepturasi`,

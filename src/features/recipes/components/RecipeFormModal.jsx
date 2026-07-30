@@ -16,13 +16,13 @@ export const RecipeFormModal = ({
   recipe = null,
   products = [],
 }) => {
-  const [productOptions, setProductOptions] = useState(products.map((p) => ({ value: p.id || p.productId, label: p.name || p.productName })));
+  const [productOptions, setProductOptions] = useState(products.filter((p) => p.type === 'FINISHED_GOOD' || p.type === undefined).map((p) => ({ value: p.id || p.productId, label: p.name || p.productName })));
   const [productList, setProductList] = useState(products);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
-    setProductOptions(products.map((p) => ({ value: p.id || p.productId, label: p.name || p.productName })));
+    setProductOptions(products.filter((p) => p.type === 'FINISHED_GOOD' || p.type === undefined).map((p) => ({ value: p.id || p.productId, label: p.name || p.productName })));
     setProductList(products);
   }, [products]);
 

@@ -192,55 +192,57 @@ export const ProductDetailPage = () => {
             </Card>
 
             {/* Recipe / BOM Integration Card */}
-            <Card
-              title="Mahsulot Retsepturasi va BOM (Bill of Materials)"
-              actions={
-                recipe ? (
-                  <Button variant="outline-primary" size="sm" onClick={() => setIsRecipeModalOpen(true)}>
-                    <LuPencil className="me-1" /> Retseptni Tahrirlash
-                  </Button>
-                ) : (
-                  <Button variant="primary" size="sm" onClick={() => setIsRecipeModalOpen(true)}>
-                    <LuPlus className="me-1" /> Retsept Yaratish
-                  </Button>
-                )
-              }
-            >
-              {recipe ? (
-                <div>
-                  <div className="d-flex align-items-center gap-2 mb-3">
-                    <span className="badge bg-success bg-opacity-10 text-success fs-7 fw-bold">v{recipe.version}</span>
-                    <span className={`badge ${recipe.status === 'ACTIVE' ? 'bg-success' : 'bg-secondary'} fs-8`}>
-                      {recipe.status === 'ACTIVE' ? 'Faol Versiya' : 'Nofaol'}
-                    </span>
-                  </div>
+            {product.type === 'FINISHED_GOOD' && (
+              <Card
+                title="Mahsulot Retsepturasi va BOM (Bill of Materials)"
+                actions={
+                  recipe ? (
+                    <Button variant="outline-primary" size="sm" onClick={() => setIsRecipeModalOpen(true)}>
+                      <LuPencil className="me-1" /> Retseptni Tahrirlash
+                    </Button>
+                  ) : (
+                    <Button variant="primary" size="sm" onClick={() => setIsRecipeModalOpen(true)}>
+                      <LuPlus className="me-1" /> Retsept Yaratish
+                    </Button>
+                  )
+                }
+              >
+                {recipe ? (
+                  <div>
+                    <div className="d-flex align-items-center gap-2 mb-3">
+                      <span className="badge bg-success bg-opacity-10 text-success fs-7 fw-bold">v{recipe.version}</span>
+                      <span className={`badge ${recipe.status === 'ACTIVE' ? 'bg-success' : 'bg-secondary'} fs-8`}>
+                        {recipe.status === 'ACTIVE' ? 'Faol Versiya' : 'Nofaol'}
+                      </span>
+                    </div>
 
-                  <Table columns={recipeColumns} data={recipeItems} />
+                    <Table columns={recipeColumns} data={recipeItems} />
 
-                  <div className="p-3 bg-body-custom rounded-3 border-custom mt-3">
-                    <div className="row g-2 text-end fs-7">
-                      <div className="col-6 col-md-4">
-                        <span className="text-muted-custom d-block">Materiallar Sof Narxi:</span>
-                        <strong className="text-main">{formatCurrency(recipe.baseMaterialCost)}</strong>
-                      </div>
-                      <div className="col-6 col-md-4">
-                        <span className="text-muted-custom d-block">Taxminiy Isrofo:</span>
-                        <strong className="text-danger">+{formatCurrency(recipe.estimatedWasteCost)}</strong>
-                      </div>
-                      <div className="col-12 col-md-4">
-                        <span className="text-muted-custom d-block fw-bold">Taxminiy Tannarx:</span>
-                        <strong className="text-primary fs-6">{formatCurrency(recipe.estimatedTotalCost)}</strong>
+                    <div className="p-3 bg-body-custom rounded-3 border-custom mt-3">
+                      <div className="row g-2 text-end fs-7">
+                        <div className="col-6 col-md-4">
+                          <span className="text-muted-custom d-block">Materiallar Sof Narxi:</span>
+                          <strong className="text-main">{formatCurrency(recipe.baseMaterialCost)}</strong>
+                        </div>
+                        <div className="col-6 col-md-4">
+                          <span className="text-muted-custom d-block">Taxminiy Isrofo:</span>
+                          <strong className="text-danger">+{formatCurrency(recipe.estimatedWasteCost)}</strong>
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <span className="text-muted-custom d-block fw-bold">Taxminiy Tannarx:</span>
+                          <strong className="text-primary fs-6">{formatCurrency(recipe.estimatedTotalCost)}</strong>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-4 bg-body-custom rounded-3 border-custom">
-                  <LuBookOpen className="fs-3 text-muted-custom d-block mb-2 mx-auto" />
-                  <p className="fs-7 text-muted-custom mb-0">Ushbu mahsulot uchun texnologik retseptura / BOM kiritilmagan.</p>
-                </div>
-              )}
-            </Card>
+                ) : (
+                  <div className="text-center py-4 bg-body-custom rounded-3 border-custom">
+                    <LuBookOpen className="fs-3 text-muted-custom d-block mb-2 mx-auto" />
+                    <p className="fs-7 text-muted-custom mb-0">Ushbu mahsulot uchun texnologik retseptura / BOM kiritilmagan.</p>
+                  </div>
+                )}
+              </Card>
+            )}
 
             {/* Warehouse Stock Location Placeholder */}
             <Card title="Omborxona va Sex Joylashuvi (Warehouse Location)">

@@ -51,6 +51,7 @@ const mapProduct = (item) => {
       }
       return d || 'Sanoat mahsuloti xomashyosi.';
     })(),
+    type: item.type || 'FINISHED_GOOD',
     image: null,
   };
 };
