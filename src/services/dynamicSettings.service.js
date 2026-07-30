@@ -470,6 +470,16 @@ class DynamicSettingsService {
   getInsuranceTypeOptions() {
     return (this.getInsuranceTypes() || []).map((i) => ({ value: i.id, label: i.name }));
   }
+
+  // Service Status Options
+  getServiceStatusOptions() {
+    return [
+      { value: 'NEW', label: 'Yangi' },
+      { value: 'IN_PROGRESS', label: 'Jarayonda' },
+      { value: 'COMPLETED', label: 'Yakunlangan' },
+      { value: 'CANCELLED', label: 'Bekor qilingan' },
+    ];
+  }
 }
 
 export const dynamicSettingsService = new DynamicSettingsService();

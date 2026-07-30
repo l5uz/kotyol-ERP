@@ -8,7 +8,7 @@ import { CalculationBreakdown } from '@/components/common/CalculationBreakdown/C
 import { salesApi } from '../api/salesApi';
 import { businessRulesService } from '@/services/businessRules.service';
 import { documentNumberingService } from '@/services/documentNumbering.service';
-import { formatCurrency } from '@/utils/currency.utils';
+import { formatCurrency, getCurrencySymbol } from '@/utils/currency.utils';
 import { LuPlus, LuTrash2, LuSave } from 'react-icons/lu';
 
 export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
@@ -160,14 +160,13 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
           </div>
         </div>
 
-        <div className="row g-2">
           <div className="col-12 col-md-6">
             <DynamicSelect
               label="Mijoz Korxona"
               value={formData.customerId}
               onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
               error={errors.customerId}
-              options={customers.map((c) => ({ value: c.id, label: c.customerName }))}
+              options={customers.map((c) => ({ value: c.id, label: c.customerName || c.name }))}
               placeholder="Mijozni tanlang"
               required
               managePath="/customers"
@@ -181,14 +180,13 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
               value={formData.boilerId}
               onChange={(e) => setFormData({ ...formData, boilerId: e.target.value })}
               error={errors.boilerId}
-              options={boilers.map((b) => ({ value: b.id, label: `${b.modelName} (${b.capacity})` }))}
+              options={boilers.map((b) => ({ value: b.id, label: b.name || b.modelName }))}
               placeholder="Kotyol modelini tanlang"
               required
               managePath="/boilers"
               entityType="Boiler"
             />
           </div>
-        </div>
 
         {selectedCustomerObj && (
           <EntityPreviewCard
@@ -215,7 +213,7 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
 
           <div className="col-12 col-md-4">
             <Input
-              label="Sotuv Narxi ($)"
+              label={`Sotuv Narxi (${getCurrencySymbol()})`}
               type="number"
               value={formData.unitPrice}
               onChange={(e) => setFormData({ ...formData, unitPrice: Number(e.target.value) })}
@@ -226,7 +224,7 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
 
           <div className="col-12 col-md-4">
             <Input
-              label="Chegirma ($)"
+              label={`Chegirma (${getCurrencySymbol()})`}
               type="number"
               value={formData.discountAmount}
               onChange={(e) => setFormData({ ...formData, discountAmount: Number(e.target.value) })}
@@ -241,11 +239,11 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
             <CalculationBreakdown
               title="Sotuv Hisob-Kitobi va Soliq"
               breakdowns={[
-                { label: 'Boshlang\'ich Qiymat', formula: 'Miqdor × Birlik Narxi', value: formatCurrency(subtotal, 'USD') },
-                { label: 'Chegirma', formula: 'Berilgan chegirma', value: `-${formatCurrency(formData.discountAmount, 'USD')}` },
-                { label: `Soliq (QQS ${formData.taxRate}%)`, formula: `(Boshlang'ich - Chegirma) × ${formData.taxRate}%`, value: formatCurrency(financialTotals.taxAmount, 'USD') },
+                { label: 'Boshlang\'ich Qiymat', formula: 'Miqdor × Birlik Narxi', value: formatCurrency(subtotal) },
+                { label: 'Chegirma', formula: 'Berilgan chegirma', value: `-${formatCurrency(formData.discountAmount)}` },
+                { label: `Soliq (QQS ${formData.taxRate}%)`, formula: `(Boshlang'ich - Chegirma) × ${formData.taxRate}%`, value: formatCurrency(financialTotals.taxAmount) },
               ]}
-              finalTotal={{ label: 'Jami Sotuv Summasi', value: formatCurrency(financialTotals.totalAmount, 'USD') }}
+              finalTotal={{ label: 'Jami Sotuv Summasi', value: formatCurrency(financialTotals.totalAmount) }}
             />
           </div>
 
