@@ -53,9 +53,9 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
         status: purchase.status || 'DRAFT',
         items: purchase.items ? [...purchase.items] : [],
       });
-    } else {
+    } else if (isOpen) {
       const draft = getDraft(DRAFT_KEY);
-      if (draft && isOpen) {
+      if (draft) {
         setFormData(draft);
       } else {
         const autoNumber = documentNumberingService.generateNumber('PURCHASING');
@@ -156,6 +156,13 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
     }
 
     onSave();
+    handleClose();
+  };
+
+  const handleClose = () => {
+    if (!purchase) {
+      clearDraft(DRAFT_KEY);
+    }
     onClose();
   };
 
@@ -164,7 +171,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={purchase ? "Xarid Hujjatini Tahrirlash" : "Yangi Xarid Buyurtmasini Rasmiylashtirish"}
       size="xl"
     >
@@ -265,7 +272,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
 
           <div className="col-12 col-md-6 text-end">
             <div className="d-flex justify-content-end gap-2">
-              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onClose}>
+              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={handleClose}>
                 Bekor Qilish
               </button>
               <button type="submit" className="btn btn-primary btn-sm">
