@@ -170,11 +170,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
     >
       <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
         <div className="row g-2">
-          <div className="col-12 col-md-3">
-            <Input label="Xarid №" value={formData.purchaseNumber} readOnly />
-          </div>
-
-          <div className="col-12 col-md-5">
+          <div className="col-12 col-md-6">
             <DynamicSelect
               label="Ta'minotchi Korxona"
               value={formData.supplierId}
@@ -188,7 +184,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
             />
           </div>
 
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-6">
             <Select
               label="Kirim Qilinadigan Ombor"
               value={formData.warehouseId}
@@ -215,15 +211,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
         )}
 
         <div className="row g-2">
-          <div className="col-12 col-md-4">
-            <Input
-              label="Schyot-Faktura №"
-              value={formData.invoiceNumber}
-              readOnly
-            />
-          </div>
-
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-6">
             <Input
               label="Buyurtma Sanasi"
               type="date"
@@ -233,7 +221,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
             />
           </div>
 
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-6">
             <Select
               label="Hujjat Statusi"
               value={formData.status}
