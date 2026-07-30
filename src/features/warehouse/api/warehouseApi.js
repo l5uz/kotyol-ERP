@@ -10,6 +10,10 @@ const mapStock = (item) => {
   const resolvedCategory = dynamicSettingsService.getItemById('productCategories', categoryId);
   const categoryName = item.category_name || item.product?.category_name || resolvedCategory?.name || '-';
 
+  const materialTypeId = item.material_type_id || item.product?.material_type_id || '';
+  const resolvedMaterial = dynamicSettingsService.getItemById('materialTypes', materialTypeId);
+  const materialTypeName = item.material_type_name || item.product?.material_type_name || resolvedMaterial?.name || '';
+
   return {
     id: item.id,
     productId: item.product_id,
@@ -23,7 +27,8 @@ const mapStock = (item) => {
     unitName: item.unit_name || item.product?.unit_name || 'dona',
     categoryId,
     categoryName,
-    materialTypeName: item.material_type_name || item.product?.material_type_name || '',
+    materialTypeId,
+    materialTypeName,
     minQuantity: 10,
     purchasePrice: cost,
     currentValue: qty * cost,
