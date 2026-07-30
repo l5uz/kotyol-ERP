@@ -1,5 +1,6 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const mapStock = (item) => {
   if (!item) return null;
@@ -390,6 +391,18 @@ export const warehouseApi = {
       const logs = Array.isArray(rawLogs) ? rawLogs : [];
       console.log("PARSED REVALUATION LOGS:", logs);
 
+      let empResponse = null;
+      try {
+        empResponse = await axiosInstance.get('/auth/employees').catch(() => null);
+      } catch {}
+
+      const rawEmployees = empResponse?.data || empResponse || [];
+      const employees = Array.isArray(rawEmployees) ? rawEmployees : [];
+      const empMap = new Map(employees.map((e) => [String(e.id), e.full_name || e.fullName]));
+
+      const currentUser = useAuthStore.getState().user;
+      const currentUserName = currentUser?.fullName || currentUser?.full_name || currentUser?.username || 'Mas\'ul Xodim';
+
       const apiRevaluations = logs
         .filter((l) => {
           const name = String(l.entity_name || '').toUpperCase();
@@ -404,6 +417,13 @@ export const warehouseApi = {
         .map((l) => {
           const oldCost = Number(l.old_values?.avg_unit_cost || l.old_values?.unit_price || l.old_values?.purchase_price || l.old_values?.price) || 0;
           const newCost = Number(l.new_values?.avg_unit_cost || l.new_values?.unit_price || l.new_values?.purchase_price || l.new_values?.price) || 0;
+          const actorId = String(l.actor_id || l.user_id || '');
+          let actorName = empMap.get(actorId);
+          if (!actorName && (actorId === String(currentUser?.id) || actorId === String(currentUser?.userId))) {
+            actorName = currentUserName;
+          }
+          actorName = actorName || currentUserName || 'Mas\'ul Xodim';
+
           return {
             id: l.id,
             productId: l.entity_id,
@@ -413,7 +433,7 @@ export const warehouseApi = {
             priceDifference: newCost - oldCost,
             reason: l.new_values?.notes || l.old_values?.notes || 'Qayta baholash',
             notes: l.new_values?.description || '',
-            createdBy: 'Mas\'ul Xodim',
+            createdBy: actorName,
             createdDate: l.created_at ? l.created_at.replace('T', ' ').slice(0, 16) : new Date().toISOString().replace('T', ' ').slice(0, 16),
           };
         });
@@ -450,6 +470,9 @@ export const warehouseApi = {
       }).catch(() => null);
     }
 
+    const currentUser = useAuthStore.getState().user;
+    const currentUserName = currentUser?.fullName || currentUser?.full_name || currentUser?.username || 'Mas\'ul Xodim';
+
     const diff = Number(revaluationData.newPrice) - Number(revaluationData.previousPrice);
     const newRev = {
       id: `rev_${Date.now()}`,
@@ -460,7 +483,7 @@ export const warehouseApi = {
       priceDifference: diff,
       reason: revaluationData.reason || '',
       notes: revaluationData.notes || '',
-      createdBy: 'Mas\'ul Xodim',
+      createdBy: currentUserName,
       createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
     };
 
@@ -488,11 +511,30 @@ export const warehouseApi = {
       const logs = Array.isArray(rawLogs) ? rawLogs : [];
       console.log("PARSED INVENTORY COUNT LOGS:", logs);
 
+      let empResponse = null;
+      try {
+        empResponse = await axiosInstance.get('/auth/employees').catch(() => null);
+      } catch {}
+
+      const rawEmployees = empResponse?.data || empResponse || [];
+      const employees = Array.isArray(rawEmployees) ? rawEmployees : [];
+      const empMap = new Map(employees.map((e) => [String(e.id), e.full_name || e.fullName]));
+
+      const currentUser = useAuthStore.getState().user;
+      const currentUserName = currentUser?.fullName || currentUser?.full_name || currentUser?.username || 'Mas\'ul Xodim';
+
       const apiCounts = logs
         .filter((l) => l.entity_name === 'WAREHOUSE_STOCK' && (l.action === 'ADJUST_STOCK' || l.action === 'UPDATE_STOCK') && l.new_values?.quantity !== undefined)
         .map((l) => {
           const oldQty = Number(l.old_values?.quantity) || 0;
           const newQty = Number(l.new_values?.quantity) || 0;
+          const actorId = String(l.actor_id || l.user_id || '');
+          let actorName = empMap.get(actorId);
+          if (!actorName && (actorId === String(currentUser?.id) || actorId === String(currentUser?.userId))) {
+            actorName = currentUserName;
+          }
+          actorName = actorName || currentUserName || 'Mas\'ul Xodim';
+
           return {
             id: l.id,
             productId: l.entity_id,
@@ -504,6 +546,7 @@ export const warehouseApi = {
             reason: l.new_values?.notes || l.old_values?.notes || 'Sanoq',
             notes: l.new_values?.description || '',
             status: 'ADJUSTED',
+            createdBy: actorName,
             countDate: l.created_at ? l.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
           };
         });
@@ -540,6 +583,9 @@ export const warehouseApi = {
       }).catch(() => null);
     }
 
+    const currentUser = useAuthStore.getState().user;
+    const currentUserName = currentUser?.fullName || currentUser?.full_name || currentUser?.username || 'Mas\'ul Xodim';
+
     const diff = Number(countData.actualQuantity) - Number(countData.systemQuantity);
     const newCount = {
       id: `inv_${Date.now()}`,
@@ -552,6 +598,7 @@ export const warehouseApi = {
       reason: countData.reason || '',
       notes: countData.notes || '',
       status: 'ADJUSTED',
+      createdBy: currentUserName,
       countDate: new Date().toISOString().split('T')[0],
     };
 
