@@ -116,7 +116,7 @@ export const purchasingApi = {
         return {
           product_id: pId,
           quantity: Number(i.quantity) || 1,
-          unit_price: Number(i.purchasePrice) || 0,
+          unit_price: Number(i.unitPrice || i.purchasePrice) || 0,
         };
       })
       .filter((i) => isValidUUID(i.product_id));
@@ -135,6 +135,49 @@ export const purchasingApi = {
     const response = await axiosInstance.post('/purchasing', payload);
     const itemData = response?.data || response;
     return { success: true, data: mapPurchase(itemData), message: "Xarid buyurtmasi muvaffaqiyatli saqlandi." };
+  },
+
+  updatePurchase: async (id, purchaseData) => {
+    let targetSupplierId = purchaseData.supplierId;
+    let targetWarehouseId = purchaseData.warehouseId;
+
+    let realProducts = [];
+    try {
+      const prodRes = await axiosInstance.get('/products').catch(() => null);
+      realProducts = Array.isArray(prodRes?.data) ? prodRes.data : Array.isArray(prodRes) ? prodRes : [];
+    } catch {
+      realProducts = [];
+    }
+
+    const itemsPayload = (purchaseData.items || [])
+      .map((i) => {
+        let pId = i.productId;
+        if (!isValidUUID(pId)) {
+          const foundP = realProducts.find((p) => p.name?.toLowerCase() === i.productName?.toLowerCase());
+          pId = foundP?.id || realProducts[0]?.id || null;
+        }
+        return {
+          product_id: pId,
+          quantity: Number(i.quantity) || 1,
+          unit_price: Number(i.unitPrice || i.purchasePrice) || 0,
+        };
+      })
+      .filter((i) => isValidUUID(i.product_id));
+
+    const payload = {
+      purchase_number: purchaseData.purchaseNumber,
+      supplier_id: targetSupplierId,
+      warehouse_id: targetWarehouseId,
+      invoice_number: purchaseData.invoiceNumber || null,
+      order_date: purchaseData.orderDate || new Date().toISOString().split('T')[0],
+      tax_amount: Number(purchaseData.taxAmount) || 0.0,
+      exchange_rate_at_creation: Number(purchaseData.exchangeRate) || 1.0,
+      items: itemsPayload,
+    };
+
+    const response = await axiosInstance.put(`/purchasing/${id}`, payload);
+    const itemData = response?.data || response;
+    return { success: true, data: mapPurchase(itemData), message: "Xarid buyurtmasi muvaffaqiyatli yangilandi." };
   },
 
   updatePurchaseStatus: async (id, newStatus) => {
