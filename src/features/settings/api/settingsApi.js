@@ -124,6 +124,59 @@ export const settingsApi = {
     }
   },
 
+  getMaterialTypes: async () => {
+    try {
+      const response = await axiosInstance.get('/master-data/material-types');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      return { success: true, data: items };
+    } catch {
+      return { success: false, data: [] };
+    }
+  },
+
+  createMaterialType: async (matData) => {
+    try {
+      const payload = {
+        name: matData.name,
+        description: matData.description || '',
+        status: matData.status || 'ACTIVE'
+      };
+      const response = await axiosInstance.post('/master-data/material-types/create', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/material-types', payload);
+      });
+      const data = response?.data || response;
+      return { success: true, data, message: "Yangi material turi yaratildi." };
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  },
+
+  updateMaterialType: async (id, matData) => {
+    try {
+      const payload = {
+        name: matData.name,
+        description: matData.description || '',
+        status: matData.status || 'ACTIVE'
+      };
+      const response = await axiosInstance.put(`/master-data/material-types/${id}`, payload);
+      const data = response?.data || response;
+      return { success: true, data, message: "Material turi yangilandi." };
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  },
+
+  deleteMaterialType: async (id) => {
+    try {
+      await axiosInstance.delete(`/master-data/material-types/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/material-types/${id}/delete`);
+      });
+      return { success: true, message: "Material turi o'chirildi." };
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  },
+
   getUnits: async () => {
     const response = await axiosInstance.get('/master-data/units');
     return { success: true, data: response.data || [] };

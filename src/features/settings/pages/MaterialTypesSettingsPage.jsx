@@ -21,18 +21,22 @@ export const MaterialTypesSettingsPage = () => {
 
   const [deletingMat, setDeletingMat] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadMaterialTypes();
   }, []);
 
   const loadMaterialTypes = async () => {
+    setIsLoading(true);
     const res = await settingsApi.getMaterialTypes();
-    if (res.success && res.data) {
+    if (res.success && Array.isArray(res.data)) {
       setMaterialTypes(res.data);
+      dynamicSettingsService.saveList('materialTypes', res.data);
     } else {
       setMaterialTypes(dynamicSettingsService.getMaterialTypes() || []);
     }
+    setIsLoading(false);
   };
 
   const handleOpenModal = (mat = null) => {
@@ -47,39 +51,69 @@ export const MaterialTypesSettingsPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!name.trim()) return;
 
+    setIsLoading(true);
     if (editingMat) {
-      const updated = materialTypes.map((m) =>
-        m.id === editingMat.id ? { ...m, name, description } : m
-      );
-      setMaterialTypes(updated);
-      dynamicSettingsService.saveList('materialTypes', updated);
-      notifySuccess("Material turi tahrirlandi.");
-    } else {
-      const newMat = {
-        id: `mat_${Date.now()}`,
+      const res = await settingsApi.updateMaterialType(editingMat.id, {
         name,
         description,
-        status: 'ACTIVE',
-      };
-      const updated = [...materialTypes, newMat];
-      setMaterialTypes(updated);
-      dynamicSettingsService.saveList('materialTypes', updated);
-      notifySuccess("Yangi material turi qo'shildi.");
+        status: editingMat.status || 'ACTIVE'
+      });
+      if (res.success) {
+        notifySuccess("Material turi tahrirlandi.");
+        await loadMaterialTypes();
+      } else {
+        const updated = materialTypes.map((m) =>
+          m.id === editingMat.id ? { ...m, name, description } : m
+        );
+        setMaterialTypes(updated);
+        dynamicSettingsService.saveList('materialTypes', updated);
+        notifySuccess("Material turi tahrirlandi (Offline).");
+      }
+    } else {
+      const res = await settingsApi.createMaterialType({
+        name,
+        description,
+        status: 'ACTIVE'
+      });
+      if (res.success) {
+        notifySuccess("Yangi material turi qo'shildi.");
+        await loadMaterialTypes();
+      } else {
+        const newMat = {
+          id: `mat_${Date.now()}`,
+          name,
+          description,
+          status: 'ACTIVE',
+        };
+        const updated = [...materialTypes, newMat];
+        setMaterialTypes(updated);
+        dynamicSettingsService.saveList('materialTypes', updated);
+        notifySuccess("Yangi material turi qo'shildi (Offline).");
+      }
     }
 
+    setIsLoading(false);
     setIsModalOpen(false);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deletingMat) {
-      const updated = materialTypes.filter((m) => m.id !== deletingMat.id);
-      setMaterialTypes(updated);
-      dynamicSettingsService.saveList('materialTypes', updated);
-      notifySuccess("Material turi o'chirildi.");
+      setIsLoading(true);
+      const res = await settingsApi.deleteMaterialType(deletingMat.id);
+      if (res.success) {
+        notifySuccess("Material turi o'chirildi.");
+        await loadMaterialTypes();
+      } else {
+        const updated = materialTypes.filter((m) => m.id !== deletingMat.id);
+        setMaterialTypes(updated);
+        dynamicSettingsService.saveList('materialTypes', updated);
+        notifySuccess("Material turi o'chirildi (Offline).");
+      }
+      setIsLoading(false);
       setIsConfirmOpen(false);
       setDeletingMat(null);
     }
@@ -149,7 +183,7 @@ export const MaterialTypesSettingsPage = () => {
       />
 
       <Card title={`Material Turlari Ro'yxati (${materialTypes.length} ta)`}>
-        <Table columns={columns} data={materialTypes} />
+        <Table columns={columns} data={materialTypes} isLoading={isLoading} />
       </Card>
 
       <Modal
