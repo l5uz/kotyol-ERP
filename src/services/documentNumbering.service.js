@@ -4,18 +4,39 @@
  */
 
 const DEFAULT_CONFIGS = {
-  ORDER: { prefix: 'ORD', sequenceLength: 6, currentCounter: 101 },
-  PRODUCTION: { prefix: 'PRD', sequenceLength: 6, currentCounter: 201 },
-  SALE: { prefix: 'SAL', sequenceLength: 6, currentCounter: 301 },
-  INVOICE: { prefix: 'INV', sequenceLength: 6, currentCounter: 7001 },
-  PURCHASE: { prefix: 'PUR', sequenceLength: 6, currentCounter: 401 },
-  MOVEMENT: { prefix: 'MOV', sequenceLength: 6, currentCounter: 501 },
-  SERVICE: { prefix: 'SRV', sequenceLength: 6, currentCounter: 601 },
-  BOILER: { prefix: 'BOIL', sequenceLength: 6, currentCounter: 101 },
-  RECIPE: { prefix: 'REC', sequenceLength: 6, currentCounter: 801 },
+  ORDER: { prefix: 'ORD', sequenceLength: 6, currentCounter: 1001 },
+  PRODUCTION: { prefix: 'PRD', sequenceLength: 6, currentCounter: 2001 },
+  SALE: { prefix: 'SAL', sequenceLength: 6, currentCounter: 3001 },
+  INVOICE: { prefix: 'INV', sequenceLength: 6, currentCounter: 9001 },
+  PURCHASE: { prefix: 'PUR', sequenceLength: 6, currentCounter: 5001 },
+  PURCHASING: { prefix: 'PUR', sequenceLength: 6, currentCounter: 5001 },
+  MOVEMENT: { prefix: 'MOV', sequenceLength: 6, currentCounter: 6001 },
+  SERVICE: { prefix: 'SRV', sequenceLength: 6, currentCounter: 7001 },
+  BOILER: { prefix: 'BOIL', sequenceLength: 6, currentCounter: 8001 },
+  RECIPE: { prefix: 'REC', sequenceLength: 6, currentCounter: 9001 },
 };
 
-let numberingState = { ...DEFAULT_CONFIGS };
+const STORAGE_KEY = 'kotyol_document_numbering_state';
+
+const loadState = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Merge with default configs to ensure new keys exist
+      return { ...DEFAULT_CONFIGS, ...parsed };
+    }
+  } catch {}
+  return { ...DEFAULT_CONFIGS };
+};
+
+let numberingState = loadState();
+
+const saveState = () => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(numberingState));
+  } catch {}
+};
 
 export const documentNumberingService = {
   /**
@@ -34,6 +55,7 @@ export const documentNumberingService = {
       ...config,
       currentCounter: config.currentCounter + 1,
     };
+    saveState();
 
     return documentNumber;
   },
