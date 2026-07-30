@@ -13,6 +13,7 @@ import { RevaluationFormModal } from '../components/RevaluationFormModal';
 import { InventoryCountModal } from '../components/InventoryCountModal';
 import { EditStockModal } from '../components/EditStockModal';
 import { warehouseApi } from '../api/warehouseApi';
+import { productsApi } from '@/features/products/api/productsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { notifySuccess } from '@/services/notification.service';
 import { formatCurrency, getCurrencySymbol } from '@/utils/currency.utils';
@@ -79,6 +80,22 @@ export const WarehousePage = () => {
   };
 
   const handleUpdateStock = async (updatedData) => {
+    if (editingStock && (
+      updatedData.productName !== editingStock.productName ||
+      updatedData.internalCode !== editingStock.internalCode ||
+      updatedData.categoryId !== editingStock.categoryId ||
+      updatedData.materialTypeId !== editingStock.materialTypeId ||
+      updatedData.unitName !== editingStock.unitName
+    )) {
+      await productsApi.updateProduct(updatedData.productId, {
+        name: updatedData.productName,
+        code: updatedData.internalCode,
+        categoryId: updatedData.categoryId,
+        materialTypeId: updatedData.materialTypeId,
+        unitId: updatedData.unitId,
+      }).catch(() => null);
+    }
+
     const res = await warehouseApi.updateStock(updatedData.id, updatedData);
     notifySuccess(res.message);
     setEditingStock(null);

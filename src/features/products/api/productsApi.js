@@ -118,6 +118,7 @@ export const productsApi = {
   updateProduct: async (id, productData) => {
     const payload = {
       name: productData.name || undefined,
+      code: productData.code || productData.internalCode || undefined,
       category_id: isValidUUID(productData.categoryId) ? productData.categoryId : undefined,
       material_type_id: isValidUUID(productData.materialTypeId) ? productData.materialTypeId : undefined,
       unit_id: isValidUUID(productData.unitId) ? productData.unitId : undefined,
