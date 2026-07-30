@@ -76,7 +76,44 @@ export const recipesApi = {
       const products = Array.isArray(prodRes?.data) ? prodRes.data : [];
 
       let result = products
-        .map((p) => parseRecipeFromDescription(p.description, p))
+        .map((p) => {
+          let rec = parseRecipeFromDescription(p.description, p);
+          if (!rec) {
+            rec = {
+              id: p.id,
+              recipeName: `${p.name} Resepturasi`,
+              productId: p.id,
+              productName: p.name,
+              version: '1.0',
+              status: 'ACTIVE',
+              description: 'Standart texnologik xarita.',
+              createdDate: p.createdDate || new Date().toISOString().split('T')[0],
+              updatedDate: p.updatedDate || new Date().toISOString().split('T')[0],
+              items: [],
+              versionsHistory: [
+                {
+                  version: '1.0',
+                  createdDate: p.createdDate || new Date().toISOString().split('T')[0],
+                  status: 'ACTIVE',
+                  note: 'Boshlang\'ich versiya',
+                }
+              ],
+              timeline: [
+                {
+                  id: `rtl_${p.id}`,
+                  title: 'Retsept Yaratildi',
+                  timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
+                  description: 'Texnologik karta yaratishga tayyor.',
+                }
+              ],
+              totalMaterialCount: 0,
+              baseMaterialCost: 0,
+              estimatedWasteCost: 0,
+              estimatedTotalCost: 0,
+            };
+          }
+          return rec;
+        })
         .filter(Boolean);
 
       if (filters.search) {
@@ -106,10 +143,42 @@ export const recipesApi = {
     try {
       const prodRes = await productsApi.getProductById(id);
       if (prodRes.success && prodRes.data) {
-        const recipe = parseRecipeFromDescription(prodRes.data.description, prodRes.data);
-        if (recipe) {
-          return { success: true, data: recipe };
+        let recipe = parseRecipeFromDescription(prodRes.data.description, prodRes.data);
+        if (!recipe) {
+          recipe = {
+            id: prodRes.data.id,
+            recipeName: `${prodRes.data.name} Resepturasi`,
+            productId: prodRes.data.id,
+            productName: prodRes.data.name,
+            version: '1.0',
+            status: 'ACTIVE',
+            description: 'Standart texnologik xarita.',
+            createdDate: prodRes.data.createdDate || new Date().toISOString().split('T')[0],
+            updatedDate: prodRes.data.updatedDate || new Date().toISOString().split('T')[0],
+            items: [],
+            versionsHistory: [
+              {
+                version: '1.0',
+                createdDate: prodRes.data.createdDate || new Date().toISOString().split('T')[0],
+                status: 'ACTIVE',
+                note: 'Boshlang\'ich versiya',
+              }
+            ],
+            timeline: [
+              {
+                id: `rtl_${prodRes.data.id}`,
+                title: 'Retsept Yaratildi',
+                timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
+                description: 'Texnologik karta yaratishga tayyor.',
+              }
+            ],
+            totalMaterialCount: 0,
+            baseMaterialCost: 0,
+            estimatedWasteCost: 0,
+            estimatedTotalCost: 0,
+          };
         }
+        return { success: true, data: recipe };
       }
       return { success: true, data: null };
     } catch {
