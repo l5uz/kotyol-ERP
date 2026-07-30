@@ -57,8 +57,8 @@ export const suppliersApi = {
 
   createSupplier: async (supplierData) => {
     const payload = {
-      code: supplierData.tin || `SUP-${Date.now()}`,
-      name: supplierData.companyName,
+      code: supplierData.tin || supplierData.code || `SUP-${Date.now()}`,
+      name: supplierData.name || supplierData.companyName,
       contact_name: supplierData.contactPerson || '',
       phone: supplierData.phone || '',
       email: supplierData.email || '',
@@ -74,8 +74,8 @@ export const suppliersApi = {
 
   updateSupplier: async (id, supplierData) => {
     const payload = {
-      code: supplierData.tin || undefined,
-      name: supplierData.companyName || undefined,
+      code: supplierData.tin || supplierData.code || undefined,
+      name: supplierData.name || supplierData.companyName || undefined,
       contact_name: supplierData.contactPerson !== undefined ? supplierData.contactPerson : undefined,
       phone: supplierData.phone !== undefined ? supplierData.phone : undefined,
       email: supplierData.email !== undefined ? supplierData.email : undefined,
