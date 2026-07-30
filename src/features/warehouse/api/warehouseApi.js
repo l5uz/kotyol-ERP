@@ -389,8 +389,39 @@ export const warehouseApi = {
   // Revaluation Endpoints
   getRevaluations: async () => {
     try {
-      const revs = JSON.parse(localStorage.getItem('kotyol_erp_revaluations') || '[]');
-      return { success: true, data: revs };
+      let response;
+      try {
+        response = await axiosInstance.get('/audit-logs/logs', { params: { limit: 100 } });
+      } catch {
+        try {
+          response = await axiosInstance.get('/audit-logs', { params: { limit: 100 } });
+        } catch {
+          response = await axiosInstance.get('/audit-logs/list', { params: { limit: 100 } });
+        }
+      }
+
+      const rawLogs = response?.data?.data || response?.data || response || [];
+      const logs = Array.isArray(rawLogs) ? rawLogs : [];
+
+      const filtered = logs
+        .filter((l) => l.entity_name === 'STOCK' && l.action === 'UPDATE' && (l.new_values?.avg_unit_cost !== undefined || l.new_values?.unit_price !== undefined || l.new_values?.purchase_price !== undefined))
+        .map((l) => {
+          const oldCost = Number(l.old_values?.avg_unit_cost || l.old_values?.unit_price || l.old_values?.purchase_price) || 0;
+          const newCost = Number(l.new_values?.avg_unit_cost || l.new_values?.unit_price || l.new_values?.purchase_price) || 0;
+          return {
+            id: l.id,
+            productId: l.entity_id,
+            productName: l.new_values?.product_name || 'Mahsulot',
+            previousPrice: oldCost,
+            newPrice: newCost,
+            priceDifference: newCost - oldCost,
+            reason: l.new_values?.notes || 'Qayta baholash',
+            notes: l.new_values?.description || '',
+            createdBy: 'Mas\'ul Xodim',
+            createdDate: l.created_at ? l.created_at.replace('T', ' ').slice(0, 16) : new Date().toISOString().replace('T', ' ').slice(0, 16),
+          };
+        });
+      return { success: true, data: filtered };
     } catch {
       return { success: true, data: [] };
     }
@@ -425,20 +456,46 @@ export const warehouseApi = {
       createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
     };
 
-    try {
-      const existing = JSON.parse(localStorage.getItem('kotyol_erp_revaluations') || '[]');
-      existing.unshift(newRev);
-      localStorage.setItem('kotyol_erp_revaluations', JSON.stringify(existing));
-    } catch {}
-
     return { success: true, data: newRev, message: "Qayta baholash muvaffaqiyatli saqlandi va ombor yangilandi." };
   },
 
   // Inventory Count Endpoints
   getInventoryCounts: async () => {
     try {
-      const counts = JSON.parse(localStorage.getItem('kotyol_erp_inventory_counts') || '[]');
-      return { success: true, data: counts };
+      let response;
+      try {
+        response = await axiosInstance.get('/audit-logs/logs', { params: { limit: 100 } });
+      } catch {
+        try {
+          response = await axiosInstance.get('/audit-logs', { params: { limit: 100 } });
+        } catch {
+          response = await axiosInstance.get('/audit-logs/list', { params: { limit: 100 } });
+        }
+      }
+
+      const rawLogs = response?.data?.data || response?.data || response || [];
+      const logs = Array.isArray(rawLogs) ? rawLogs : [];
+
+      const filtered = logs
+        .filter((l) => l.entity_name === 'STOCK' && l.action === 'UPDATE' && l.new_values?.quantity !== undefined)
+        .map((l) => {
+          const oldQty = Number(l.old_values?.quantity) || 0;
+          const newQty = Number(l.new_values?.quantity) || 0;
+          return {
+            id: l.id,
+            productId: l.entity_id,
+            productName: l.new_values?.product_name || 'Mahsulot',
+            unitName: 'dona',
+            systemQuantity: oldQty,
+            actualQuantity: newQty,
+            difference: newQty - oldQty,
+            reason: l.new_values?.notes || 'Sanoq',
+            notes: l.new_values?.description || '',
+            status: 'ADJUSTED',
+            countDate: l.created_at ? l.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          };
+        });
+      return { success: true, data: filtered };
     } catch {
       return { success: true, data: [] };
     }
@@ -473,12 +530,6 @@ export const warehouseApi = {
       status: 'ADJUSTED',
       countDate: new Date().toISOString().split('T')[0],
     };
-
-    try {
-      const existing = JSON.parse(localStorage.getItem('kotyol_erp_inventory_counts') || '[]');
-      existing.unshift(newCount);
-      localStorage.setItem('kotyol_erp_inventory_counts', JSON.stringify(existing));
-    } catch {}
 
     return { success: true, data: newCount, message: "Inventarizatsiya sanoq tuzatishi saqlandi va ombor yangilandi." };
   },
