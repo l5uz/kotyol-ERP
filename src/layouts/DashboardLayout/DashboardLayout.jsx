@@ -9,7 +9,7 @@ export const DashboardLayout = () => {
       <Sidebar />
       <div className="d-flex flex-column flex-grow-1 min-vw-0">
         <Navbar />
-        <main className="flex-grow-1 p-3 p-md-4 overflow-x-hidden">
+        <main className="flex-grow-1 p-3 p-md-4" style={{ overflowX: 'hidden' }}>
           <Outlet />
         </main>
       </div>
