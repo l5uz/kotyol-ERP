@@ -104,6 +104,7 @@ const MENU_CATEGORIES = [
     icon: LuSettings2,
     items: [
       { label: 'Ishlab chiqarish', path: ROUTES.PROTECTED.PRODUCTION, icon: LuSettings2 },
+      { label: 'Retseptlar', path: ROUTES.PROTECTED.RECIPES, icon: LuBookOpen },
       { label: 'Kotyol Turlari', path: ROUTES.PROTECTED.BOILERS, icon: LuFlame },
     ],
   },
