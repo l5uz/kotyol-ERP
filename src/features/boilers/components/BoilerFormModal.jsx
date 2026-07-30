@@ -36,6 +36,7 @@ export const BoilerFormModal = ({
     internalCode: '',
     recipeId: '',
     warrantyTypeId: warrantyOptions[0]?.value || '',
+    warrantyDuration: 12,
     insuranceTypeId: insuranceOptions[0]?.value || '',
     selectedStageIds: allStages.map((s) => s.id),
     status: 'ACTIVE',
@@ -53,6 +54,7 @@ export const BoilerFormModal = ({
         internalCode: boiler.internalCode || '',
         recipeId: boiler.recipeId || (recipeOptions[0]?.value || ''),
         warrantyTypeId: boiler.warrantyTypeId || (warrantyOptions[0]?.value || ''),
+        warrantyDuration: boiler.warrantyDuration || 12,
         insuranceTypeId: boiler.insuranceTypeId || (insuranceOptions[0]?.value || ''),
         selectedStageIds: boiler.selectedStageIds || allStages.map((s) => s.id),
         status: boiler.status || 'ACTIVE',
@@ -64,6 +66,7 @@ export const BoilerFormModal = ({
         internalCode: documentNumberingService.generateNumber('BOILER'),
         recipeId: recipeOptions[0]?.value || '',
         warrantyTypeId: warrantyOptions[0]?.value || '',
+        warrantyDuration: 12,
         insuranceTypeId: insuranceOptions[0]?.value || '',
         selectedStageIds: allStages.map((s) => s.id),
         status: 'ACTIVE',
@@ -219,7 +222,7 @@ export const BoilerFormModal = ({
           {showAdvanced && (
             <div className="row g-3 pt-3 border-top border-custom mt-2">
               {/* Dynamic Warranty Select */}
-              <div className="col-12 col-md-6">
+              <div className="col-12 col-md-4">
                 <DynamicSelect
                   label="Zavod Kafolati Turi"
                   value={formData.warrantyTypeId}
@@ -228,6 +231,18 @@ export const BoilerFormModal = ({
                   managePath={ROUTES.PROTECTED.SETTINGS_WARRANTY_TYPES}
                   onAddNew={handleAddNewWarranty}
                   entityTitle="Kafolat Turi"
+                />
+              </div>
+
+              {/* Warranty Duration */}
+              <div className="col-12 col-md-2">
+                <Input
+                  label="Muddat (oy)"
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={formData.warrantyDuration}
+                  onChange={(e) => setFormData({ ...formData, warrantyDuration: parseInt(e.target.value) || 0 })}
                 />
               </div>
 
