@@ -10,12 +10,9 @@ import { purchasingApi } from '../api/purchasingApi';
 import { businessRulesService } from '@/services/businessRules.service';
 import { documentNumberingService } from '@/services/documentNumbering.service';
 import { formatCurrency } from '@/utils/currency.utils';
-import { useFormDraftStore } from '@/store/useFormDraftStore';
 import { LuPlus, LuSave } from 'react-icons/lu';
 
 export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
-  const { getDraft, saveDraft, clearDraft } = useFormDraftStore();
-  const DRAFT_KEY = 'purchase_form_draft';
 
   const [suppliers, setSuppliers] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
@@ -54,33 +51,22 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
         items: purchase.items ? [...purchase.items] : [],
       });
     } else if (isOpen) {
-      const draft = getDraft(DRAFT_KEY);
-      if (draft) {
-        setFormData(draft);
-      } else {
-        const autoNumber = documentNumberingService.generateNumber('PURCHASING');
-        const autoInvoiceNumber = documentNumberingService.generateNumber('INVOICE');
-        setFormData({
-          purchaseNumber: autoNumber,
-          supplierId: '',
-          warehouseId: '',
-          invoiceNumber: autoInvoiceNumber,
-          orderDate: new Date().toISOString().split('T')[0],
-          currency: 'USD',
-          taxRate: 12,
-          status: 'DRAFT',
-          items: [{ productId: '', quantity: 1, unitPrice: 0 }],
-        });
-      }
+      const autoNumber = documentNumberingService.generateNumber('PURCHASING');
+      const autoInvoiceNumber = documentNumberingService.generateNumber('INVOICE');
+      setFormData({
+        purchaseNumber: autoNumber,
+        supplierId: '',
+        warehouseId: '',
+        invoiceNumber: autoInvoiceNumber,
+        orderDate: new Date().toISOString().split('T')[0],
+        currency: 'USD',
+        taxRate: 12,
+        status: 'DRAFT',
+        items: [{ productId: '', quantity: 1, unitPrice: 0 }],
+      });
     }
     setErrors({});
   }, [purchase, isOpen]);
-
-  useEffect(() => {
-    if (!purchase && isOpen && formData.supplierId) {
-      saveDraft(DRAFT_KEY, formData);
-    }
-  }, [formData, purchase, isOpen]);
 
   const loadSelectData = async () => {
     const [supRes, whRes, stRes, prodRes] = await Promise.all([
@@ -152,17 +138,9 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
       await purchasingApi.updatePurchase(purchase.id, payload);
     } else {
       await purchasingApi.createPurchase(payload);
-      clearDraft(DRAFT_KEY);
     }
 
     onSave();
-    handleClose();
-  };
-
-  const handleClose = () => {
-    if (!purchase) {
-      clearDraft(DRAFT_KEY);
-    }
     onClose();
   };
 
@@ -171,7 +149,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
   return (
     <Modal
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={onClose}
       title={purchase ? "Xarid Hujjatini Tahrirlash" : "Yangi Xarid Buyurtmasini Rasmiylashtirish"}
       size="xl"
     >
@@ -272,7 +250,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
 
           <div className="col-12 col-md-6 text-end">
             <div className="d-flex justify-content-end gap-2">
-              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={handleClose}>
+              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onClose}>
                 Bekor Qilish
               </button>
               <button type="submit" className="btn btn-primary btn-sm">
