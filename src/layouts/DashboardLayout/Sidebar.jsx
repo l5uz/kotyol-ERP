@@ -53,7 +53,6 @@ const SETTINGS_SUB_PAGES = [
 
 const WAREHOUSE_SUB_PAGES = [
   { label: 'Omborlar Ro\'yxati', path: ROUTES.PROTECTED.WAREHOUSE_LIST, icon: LuStore },
-  { label: 'Mavjud Zaxiralar', path: ROUTES.PROTECTED.WAREHOUSE_STOCK, icon: LuBoxes },
   { label: 'Ombor Harakatlari', path: ROUTES.PROTECTED.WAREHOUSE_MOVEMENTS, icon: LuActivity },
   { label: 'Qayta Baholash', path: ROUTES.PROTECTED.WAREHOUSE_REVALUATION, icon: LuBadgeDollarSign },
   { label: 'Inventarizatsiya', path: ROUTES.PROTECTED.WAREHOUSE_INVENTORY_COUNT, icon: LuClipboardList },
