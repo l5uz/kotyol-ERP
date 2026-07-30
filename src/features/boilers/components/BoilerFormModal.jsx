@@ -163,22 +163,12 @@ export const BoilerFormModal = ({
       <form onSubmit={handleSubmit}>
         {/* Core Header Fields */}
         <div className="row g-3 mb-3">
-          <div className="col-12 col-md-6">
+          <div className="col-12 col-md-12">
             <Input
               label="Kotyol Modeli Nomi"
               placeholder="Kotyol Heavy Industry KV-200 Sanoat Pechi"
               value={formData.modelName}
               onChange={(e) => setFormData({ ...formData, modelName: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="col-12 col-md-6">
-            <Input
-              label="Ichki Kodi"
-              placeholder="BOIL-2026-000101"
-              value={formData.internalCode}
-              onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
               required
             />
           </div>
