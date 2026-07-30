@@ -27,7 +27,6 @@ const mapProduct = (item) => {
     id: item.id,
     name: item.name,
     internalCode: item.code,
-    qrCode: item.qrCode || `QR-PROD-${item.id?.slice(-4)}`,
     categoryId,
     categoryName,
     materialTypeId,
@@ -67,9 +66,27 @@ export const productsApi = {
         status: filters.status || 'ACTIVE',
       };
 
-      const response = await axiosInstance.get('/products', { params });
+      const [response, stockResponse] = await Promise.all([
+        axiosInstance.get('/products', { params }),
+        axiosInstance.get('/warehouse/stock').catch(() => null),
+      ]);
+
       const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-      return { success: true, data: items.map(mapProduct).filter(Boolean) };
+      const stockItems = Array.isArray(stockResponse?.data) ? stockResponse.data : Array.isArray(stockResponse) ? stockResponse : [];
+
+      const stockMap = new Map(
+        stockItems.map((s) => [String(s.product_id || s.product?.id), Number(s.quantity) || 0])
+      );
+
+      const mappedProducts = items.map((item) => {
+        const prod = mapProduct(item);
+        if (prod && stockMap.has(String(prod.id))) {
+          prod.currentStock = stockMap.get(String(prod.id));
+        }
+        return prod;
+      }).filter(Boolean);
+
+      return { success: true, data: mappedProducts };
     } catch {
       return { success: true, data: [] };
     }
@@ -77,9 +94,24 @@ export const productsApi = {
 
   getProductById: async (id) => {
     try {
-      const response = await axiosInstance.get(`/products/${id}`);
+      const [response, stockResponse] = await Promise.all([
+        axiosInstance.get(`/products/${id}`),
+        axiosInstance.get('/warehouse/stock').catch(() => null),
+      ]);
+
       const itemData = response?.data || response;
-      return { success: true, data: mapProduct(itemData) };
+      const stockItems = Array.isArray(stockResponse?.data) ? stockResponse.data : Array.isArray(stockResponse) ? stockResponse : [];
+
+      const stockMap = new Map(
+        stockItems.map((s) => [String(s.product_id || s.product?.id), Number(s.quantity) || 0])
+      );
+
+      const prod = mapProduct(itemData);
+      if (prod && stockMap.has(String(prod.id))) {
+        prod.currentStock = stockMap.get(String(prod.id));
+      }
+
+      return { success: true, data: prod };
     } catch {
       return { success: true, data: null };
     }
