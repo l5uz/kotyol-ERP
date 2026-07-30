@@ -19,7 +19,7 @@ export const PurchaseItemsTable = ({
       ...updated[index],
       productId,
       productName: selectedProd ? (selectedProd.name || selectedProd.productName) : '',
-      unitName: selectedProd ? (selectedProd.unitName || 'dona') : 'dona',
+      unitName: selectedProd ? (selectedProd.unit || selectedProd.unitName || 'dona') : 'dona',
       unitPrice: selectedProd ? (selectedProd.purchasePrice || selectedProd.unitPrice || 0) : updated[index].unitPrice,
     };
     calculateRowTotal(updated, index);
@@ -55,7 +55,7 @@ export const PurchaseItemsTable = ({
       productId: firstProd ? (firstProd.id || firstProd.productId) : '',
       productName: firstProd ? (firstProd.name || firstProd.productName) : '',
       quantity: 100,
-      unitName: firstProd ? (firstProd.unitName || 'dona') : 'dona',
+      unitName: firstProd ? (firstProd.unit || firstProd.unitName || 'dona') : 'dona',
       unitPrice: firstProd ? (firstProd.purchasePrice || firstProd.unitPrice || 0) : 0,
       discountPercent: 0,
       taxPercent: 12,

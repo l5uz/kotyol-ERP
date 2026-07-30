@@ -246,8 +246,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
           items={formData.items}
           products={products}
           currency={formData.currency}
-          onItemChange={handleItemChange}
-          onRemoveItem={handleRemoveItem}
+          onItemsChange={(items) => setFormData({ ...formData, items })}
         />
 
         <hr className="border-custom my-2" />
