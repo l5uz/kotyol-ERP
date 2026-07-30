@@ -1,120 +1,83 @@
 import { axiosInstance } from '@/api/axiosInstance';
+import { productsApi } from '@/features/products/api/productsApi';
 
-const mapRecipe = (item) => {
-  if (!item) return null;
+const parseRecipeFromDescription = (description, product) => {
+  if (!description || !description.trim().startsWith('{')) return null;
+  try {
+    const data = JSON.parse(description);
+    if (!data.recipeName && !data.items) return null;
 
-  const rawItems = Array.isArray(item.items) ? item.items : [];
-  const mappedItems = rawItems.map((ing) => {
-    const qty = Number(ing.required_quantity || ing.quantity || ing.requiredQuantity) || 0;
-    const price = Number(ing.unit_price || ing.unitPrice || ing.price) || 0;
-    const waste = Number(ing.waste_percent || ing.wastePercent || ing.waste_rate || 0);
-    const totalCost = qty * price * (1 + waste / 100);
+    const rawItems = Array.isArray(data.items) ? data.items : [];
+    const mappedItems = rawItems.map((ing) => {
+      const qty = Number(ing.requiredQuantity || ing.quantity || 0) || 0;
+      const price = Number(ing.unitPrice || ing.price || 0) || 0;
+      const waste = Number(ing.wastePercent || 0);
+      const totalCost = qty * price * (1 + waste / 100);
+
+      return {
+        id: ing.id || `ing_${Date.now()}_${Math.random()}`,
+        materialId: ing.materialId,
+        materialName: ing.materialName || 'Xomashyo',
+        materialTypeName: ing.materialTypeName || '',
+        unitName: ing.unitName || 'dona',
+        requiredQuantity: qty,
+        wastePercent: waste,
+        unitPrice: price,
+        totalCost: totalCost,
+        notes: ing.notes || '',
+      };
+    });
+
+    const baseMaterialCost = mappedItems.reduce((acc, row) => acc + row.requiredQuantity * row.unitPrice, 0);
+    const estimatedWasteCost = mappedItems.reduce((acc, row) => acc + row.requiredQuantity * row.unitPrice * (row.wastePercent / 100), 0);
+    const estimatedTotalCost = baseMaterialCost + estimatedWasteCost;
 
     return {
-      id: ing.id || ing.material_id || `item_${Date.now()}_${Math.random()}`,
-      materialId: ing.material_id || ing.materialId || ing.product_id || ing.productId,
-      materialName: ing.material_name || ing.materialName || ing.product_name || ing.productName || 'Xomashyo',
-      materialTypeName: ing.material_type_name || ing.materialTypeName || '',
-      unitName: ing.unit_name || ing.unitName || 'dona',
-      requiredQuantity: qty,
-      wastePercent: waste,
-      unitPrice: price,
-      totalCost: totalCost,
-      notes: ing.notes || ing.description || '',
+      id: product.id,
+      recipeName: data.recipeName || `${product.name} Resepturasi`,
+      productId: product.id,
+      productName: product.name,
+      version: data.version || '1.0',
+      status: data.status || 'ACTIVE',
+      description: data.description || '',
+      createdDate: product.createdDate || new Date().toISOString().split('T')[0],
+      updatedDate: product.updatedDate || new Date().toISOString().split('T')[0],
+      items: mappedItems,
+      versionsHistory: [
+        {
+          version: data.version || '1.0',
+          createdDate: product.createdDate || new Date().toISOString().split('T')[0],
+          status: data.status || 'ACTIVE',
+          note: 'Saqlangan versiya',
+        }
+      ],
+      timeline: [
+        {
+          id: `rtl_${product.id}`,
+          title: `Retsept v${data.version || '1.0'} Yuklandi`,
+          timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
+          description: 'Texnologik karta bazadan yuklandi.',
+        }
+      ],
+      totalMaterialCount: mappedItems.length,
+      baseMaterialCost,
+      estimatedWasteCost,
+      estimatedTotalCost,
     };
-  });
-
-  const baseMaterialCost = mappedItems.reduce((acc, row) => acc + row.requiredQuantity * row.unitPrice, 0);
-  const estimatedWasteCost = mappedItems.reduce((acc, row) => acc + row.requiredQuantity * row.unitPrice * (row.wastePercent / 100), 0);
-  const estimatedTotalCost = baseMaterialCost + estimatedWasteCost;
-
-  const rawVersions = Array.isArray(item.versions_history || item.versionsHistory)
-    ? (item.versions_history || item.versionsHistory)
-    : [];
-  const mappedVersions = rawVersions.map((v) => ({
-    version: v.version,
-    createdDate: v.created_date || v.createdDate || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-    status: v.status,
-    note: v.note || v.notes || '',
-  }));
-
-  if (mappedVersions.length === 0) {
-    mappedVersions.push({
-      version: item.version || '1.0',
-      createdDate: item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-      status: item.status || 'ACTIVE',
-      note: 'Yaratilgan versiya',
-    });
+  } catch {
+    return null;
   }
-
-  const rawTimeline = Array.isArray(item.timeline) ? item.timeline : [];
-  const mappedTimeline = rawTimeline.map((tl) => ({
-    id: tl.id,
-    title: tl.title,
-    timestamp: tl.timestamp || tl.created_at || new Date().toISOString().replace('T', ' ').slice(0, 16),
-    description: tl.description || '',
-  }));
-
-  if (mappedTimeline.length === 0) {
-    mappedTimeline.push({
-      id: `rtl_${Date.now()}`,
-      title: `Retsept v${item.version || '1.0'} Yaratildi`,
-      timestamp: item.created_at?.replace('T', ' ').slice(0, 16) || new Date().toISOString().replace('T', ' ').slice(0, 16),
-      description: 'Yaratilgan versiya',
-    });
-  }
-
-  return {
-    id: item.id,
-    recipeName: item.recipe_name || item.recipeName || item.name || 'Retsept',
-    productId: item.product_id || item.productId,
-    productName: item.product_name || item.productName || item.product?.name || 'Mahsulot',
-    version: item.version || '1.0',
-    status: item.status || 'ACTIVE',
-    description: item.description || '',
-    createdDate: item.created_at?.split('T')[0] || item.created_date || item.createdDate || new Date().toISOString().split('T')[0],
-    updatedDate: item.updated_at?.split('T')[0] || item.updated_date || item.updatedDate || new Date().toISOString().split('T')[0],
-    items: mappedItems,
-    versionsHistory: mappedVersions,
-    timeline: mappedTimeline,
-    totalMaterialCount: mappedItems.length,
-    baseMaterialCost,
-    estimatedWasteCost,
-    estimatedTotalCost,
-  };
-};
-
-const mapRecipePayload = (recipeData) => {
-  const rawItems = Array.isArray(recipeData.items) ? recipeData.items : [];
-  const mappedItems = rawItems.map((ing) => ({
-    material_id: ing.materialId,
-    material_name: ing.materialName,
-    required_quantity: Number(ing.requiredQuantity) || 0,
-    waste_percent: Number(ing.wastePercent) || 0,
-    unit_price: Number(ing.unitPrice) || 0,
-    notes: ing.notes || '',
-  }));
-
-  return {
-    recipe_name: recipeData.recipeName,
-    product_id: recipeData.productId,
-    version: recipeData.version || '1.0',
-    status: recipeData.status || 'ACTIVE',
-    description: recipeData.description || '',
-    items: mappedItems,
-  };
 };
 
 export const recipesApi = {
   getRecipes: async (filters = {}) => {
     try {
-      const response = await axiosInstance.get('/production/recipes')
-        .catch(() => axiosInstance.get('/production/recipe'))
-        .catch(() => axiosInstance.get('/production/recipes/'))
-        .catch(() => axiosInstance.get('/production/recipe/'));
+      const prodRes = await productsApi.getProducts();
+      const products = Array.isArray(prodRes?.data) ? prodRes.data : [];
 
-      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-      let result = items.map(mapRecipe).filter(Boolean);
+      let result = products
+        .map((p) => parseRecipeFromDescription(p.description, p))
+        .filter(Boolean);
 
       if (filters.search) {
         const q = filters.search.toLowerCase();
@@ -141,13 +104,14 @@ export const recipesApi = {
 
   getRecipeById: async (id) => {
     try {
-      const response = await axiosInstance.get(`/production/recipes/${id}`)
-        .catch(() => axiosInstance.get(`/production/recipes/${id}/`))
-        .catch(() => axiosInstance.get(`/production/recipe/${id}`))
-        .catch(() => axiosInstance.get(`/production/recipe/${id}/`));
-
-      const data = response?.data || response;
-      return { success: true, data: mapRecipe(data) };
+      const prodRes = await productsApi.getProductById(id);
+      if (prodRes.success && prodRes.data) {
+        const recipe = parseRecipeFromDescription(prodRes.data.description, prodRes.data);
+        if (recipe) {
+          return { success: true, data: recipe };
+        }
+      }
+      return { success: true, data: null };
     } catch {
       return { success: true, data: null };
     }
@@ -155,58 +119,76 @@ export const recipesApi = {
 
   createRecipe: async (recipeData) => {
     try {
-      const payload = mapRecipePayload(recipeData);
-      const response = await axiosInstance.post('/production/recipes', payload)
-        .catch(() => axiosInstance.post('/production/recipes/', payload))
-        .catch(() => axiosInstance.post('/production/recipe', payload))
-        .catch(() => axiosInstance.post('/production/recipe/', payload));
+      const recipeJSON = {
+        recipeName: recipeData.recipeName,
+        version: recipeData.version || '1.0',
+        status: recipeData.status || 'ACTIVE',
+        description: recipeData.description || '',
+        items: recipeData.items || [],
+      };
 
-      const data = response?.data || response;
-      return { success: true, data: mapRecipe(data), message: "Yangi retseptur muvaffaqiyatli saqlandi." };
+      const res = await productsApi.updateProduct(recipeData.productId, {
+        description: JSON.stringify(recipeJSON),
+      });
+
+      if (res.success) {
+        return { success: true, message: "Yangi retseptur muvaffaqiyatli saqlandi." };
+      }
+      return { success: false, message: "Retseptni saqlashda xatolik." };
     } catch {
-      return { success: true, message: "Retseptur saqlandi." };
+      return { success: false, message: "Retseptni saqlashda xatolik." };
     }
   },
 
   updateRecipe: async (id, recipeData) => {
     try {
-      const payload = mapRecipePayload(recipeData);
-      const response = await axiosInstance.put(`/production/recipes/${id}`, payload)
-        .catch(() => axiosInstance.put(`/production/recipes/${id}/`, payload))
-        .catch(() => axiosInstance.put(`/production/recipe/${id}`, payload))
-        .catch(() => axiosInstance.put(`/production/recipe/${id}/`, payload));
+      const recipeJSON = {
+        recipeName: recipeData.recipeName,
+        version: recipeData.version || '1.0',
+        status: recipeData.status || 'ACTIVE',
+        description: recipeData.description || '',
+        items: recipeData.items || [],
+      };
 
-      const data = response?.data || response;
-      return { success: true, data: mapRecipe(data), message: "Retsept ma'lumotlari yangilandi." };
+      const res = await productsApi.updateProduct(recipeData.productId || id, {
+        description: JSON.stringify(recipeJSON),
+      });
+
+      if (res.success) {
+        return { success: true, message: "Retsept ma'lumotlari yangilandi." };
+      }
+      return { success: false, message: "Retseptni yangilashda xatolik." };
     } catch {
-      return { success: true, message: "Retsept yangilandi." };
+      return { success: false, message: "Retseptni yangilashda xatolik." };
     }
   },
 
   activateVersion: async (id) => {
     try {
-      const response = await axiosInstance.post(`/production/recipes/${id}/activate`)
-        .catch(() => axiosInstance.post(`/production/recipes/${id}/activate/`))
-        .catch(() => axiosInstance.put(`/production/recipes/${id}`, { status: 'ACTIVE' }))
-        .catch(() => axiosInstance.put(`/production/recipes/${id}/`, { status: 'ACTIVE' }));
-
-      const data = response?.data || response;
-      return { success: true, data: mapRecipe(data), message: "Retsept versiyasi faollashtirildi." };
+      const resById = await recipesApi.getRecipeById(id);
+      if (resById.success && resById.data) {
+        const recipe = resById.data;
+        recipe.status = 'ACTIVE';
+        await recipesApi.updateRecipe(id, recipe);
+        return { success: true, message: "Retsept versiyasi faollashtirildi." };
+      }
+      return { success: false, message: "Retsept topilmadi." };
     } catch {
-      return { success: true, message: "Retsept versiyasi faollashtirildi." };
+      return { success: false, message: "Retsept faollashtirishda xatolik." };
     }
   },
 
   deleteRecipe: async (id) => {
     try {
-      await axiosInstance.delete(`/production/recipes/${id}`)
-        .catch(() => axiosInstance.delete(`/production/recipes/${id}/`))
-        .catch(() => axiosInstance.delete(`/production/recipe/${id}`))
-        .catch(() => axiosInstance.delete(`/production/recipe/${id}/`));
-
-      return { success: true, message: "Retsept o'chirildi." };
+      const res = await productsApi.updateProduct(id, {
+        description: '',
+      });
+      if (res.success) {
+        return { success: true, message: "Retsept o'chirildi." };
+      }
+      return { success: false, message: "Retseptni o'chirishda xatolik." };
     } catch {
-      return { success: true, message: "Retsept o'chirildi." };
+      return { success: false, message: "Retseptni o'chirishda xatolik." };
     }
   },
 };
