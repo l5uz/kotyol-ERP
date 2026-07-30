@@ -95,39 +95,30 @@ export const warehouseApi = {
     try {
       const response = await axiosInstance.get('/warehouse/stock');
       const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-      let totalProducts = items.length;
-      let totalValue = 0;
-      let lowStockCount = 0;
-      let outOfStockCount = 0;
-
-      items.forEach((item) => {
-        const qty = Number(item.quantity) || 0;
-        const cost = Number(item.avg_unit_cost) || 0;
-        totalValue += qty * cost;
-        if (qty <= 0) {
-          outOfStockCount++;
-        } else if (qty <= 10) {
-          lowStockCount++;
-        }
-      });
+      const totalNomenclature = items.length;
+      const totalQty = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+      const totalVal = items.reduce((sum, item) => sum + ((Number(item.quantity) || 0) * (Number(item.avg_unit_cost) || 0)), 0);
+      const lowStockCount = items.filter((item) => (Number(item.quantity) || 0) <= 10).length;
 
       return {
         success: true,
         data: {
-          totalProducts,
-          totalStockValue: totalValue,
-          lowStockCount,
-          outOfStockCount,
+          totalNomenclature,
+          totalQuantity: totalQty,
+          totalValue: totalVal,
+          lowStockAlerts: lowStockCount,
+          outOfStockAlerts: items.filter((item) => (Number(item.quantity) || 0) === 0).length,
         },
       };
     } catch {
       return {
         success: true,
         data: {
-          totalProducts: 0,
-          totalStockValue: 0,
-          lowStockCount: 0,
-          outOfStockCount: 0,
+          totalNomenclature: 0,
+          totalQuantity: 0,
+          totalValue: 0,
+          lowStockAlerts: 0,
+          outOfStockAlerts: 0,
         },
       };
     }
@@ -136,34 +127,25 @@ export const warehouseApi = {
   getCurrentStock: async (filters = {}) => {
     try {
       const params = {
+        page: filters.page || 1,
+        limit: filters.limit || 100,
         warehouse_id: filters.warehouseId || undefined,
-        page: 1,
-        limit: 100,
+        product_id: filters.productId || undefined,
+        search: filters.search || undefined,
       };
 
       const response = await axiosInstance.get('/warehouse/stock', { params });
-      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-      let result = items.map(mapStock);
-
-      if (filters.search) {
-        const q = filters.search.toLowerCase();
-        result = result.filter(
-          (s) =>
-            s.productName.toLowerCase().includes(q) ||
-            s.internalCode?.toLowerCase().includes(q)
-        );
-      }
+      let items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      let result = items.map(mapStock).filter(Boolean);
 
       if (filters.categoryId) {
-        result = result.filter((s) => s.categoryId === filters.categoryId);
+        result = result.filter((item) => String(item.categoryId) === String(filters.categoryId));
       }
-
       if (filters.materialTypeId) {
-        result = result.filter((s) => s.materialTypeId === filters.materialTypeId);
+        result = result.filter((item) => String(item.materialTypeId) === String(filters.materialTypeId));
       }
-
       if (filters.status) {
-        result = result.filter((s) => s.status === filters.status);
+        result = result.filter((item) => item.status === filters.status);
       }
 
       return { success: true, data: result };
@@ -403,7 +385,7 @@ export const warehouseApi = {
       const rawLogs = response?.data?.data || response?.data || response || [];
       const logs = Array.isArray(rawLogs) ? rawLogs : [];
 
-      const filtered = logs
+      const apiRevaluations = logs
         .filter((l) => l.entity_name === 'STOCK' && l.action === 'UPDATE' && (l.new_values?.avg_unit_cost !== undefined || l.new_values?.unit_price !== undefined || l.new_values?.purchase_price !== undefined))
         .map((l) => {
           const oldCost = Number(l.old_values?.avg_unit_cost || l.old_values?.unit_price || l.old_values?.purchase_price) || 0;
@@ -421,9 +403,18 @@ export const warehouseApi = {
             createdDate: l.created_at ? l.created_at.replace('T', ' ').slice(0, 16) : new Date().toISOString().replace('T', ' ').slice(0, 16),
           };
         });
-      return { success: true, data: filtered };
+
+      // Merge API logs with in-memory session changes
+      const merged = [...sessionRevaluations];
+      apiRevaluations.forEach((item) => {
+        if (!merged.some((m) => m.id === item.id)) {
+          merged.push(item);
+        }
+      });
+
+      return { success: true, data: merged };
     } catch {
-      return { success: true, data: [] };
+      return { success: true, data: sessionRevaluations };
     }
   },
 
@@ -456,6 +447,8 @@ export const warehouseApi = {
       createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
     };
 
+    sessionRevaluations.unshift(newRev);
+
     return { success: true, data: newRev, message: "Qayta baholash muvaffaqiyatli saqlandi va ombor yangilandi." };
   },
 
@@ -476,7 +469,7 @@ export const warehouseApi = {
       const rawLogs = response?.data?.data || response?.data || response || [];
       const logs = Array.isArray(rawLogs) ? rawLogs : [];
 
-      const filtered = logs
+      const apiCounts = logs
         .filter((l) => l.entity_name === 'STOCK' && l.action === 'UPDATE' && l.new_values?.quantity !== undefined)
         .map((l) => {
           const oldQty = Number(l.old_values?.quantity) || 0;
@@ -495,9 +488,18 @@ export const warehouseApi = {
             countDate: l.created_at ? l.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
           };
         });
-      return { success: true, data: filtered };
+
+      // Merge API logs with in-memory session changes
+      const merged = [...sessionCounts];
+      apiCounts.forEach((item) => {
+        if (!merged.some((m) => m.id === item.id)) {
+          merged.push(item);
+        }
+      });
+
+      return { success: true, data: merged };
     } catch {
-      return { success: true, data: [] };
+      return { success: true, data: sessionCounts };
     }
   },
 
@@ -530,6 +532,8 @@ export const warehouseApi = {
       status: 'ADJUSTED',
       countDate: new Date().toISOString().split('T')[0],
     };
+
+    sessionCounts.unshift(newCount);
 
     return { success: true, data: newCount, message: "Inventarizatsiya sanoq tuzatishi saqlandi va ombor yangilandi." };
   },
