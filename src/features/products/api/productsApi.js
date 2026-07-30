@@ -110,7 +110,8 @@ export const productsApi = {
       currency: productData.currency || 'USD',
     };
 
-    const response = await axiosInstance.post('/products', payload);
+    const response = await axiosInstance.post('/products', payload)
+      .catch(() => axiosInstance.post('/products/', payload));
     const itemData = response?.data || response;
     return { success: true, data: mapProduct(itemData), message: "Yangi xomashyo/mahsulot muvaffaqiyatli saqlandi." };
   },
@@ -130,14 +131,16 @@ export const productsApi = {
       status: productData.status || undefined,
     };
 
-    const response = await axiosInstance.put(`/products/${id}`, payload);
+    const response = await axiosInstance.put(`/products/${id}`, payload)
+      .catch(() => axiosInstance.put(`/products/${id}/`, payload));
     const itemData = response?.data || response;
     return { success: true, data: mapProduct(itemData), message: "Mahsulot ma'lumotlari yangilandi." };
   },
 
   deleteProduct: async (id) => {
     try {
-      await axiosInstance.delete(`/products/${id}`);
+      await axiosInstance.delete(`/products/${id}`)
+        .catch(() => axiosInstance.delete(`/products/${id}/`));
       return { success: true, message: "Mahsulot katalogdan o'chirildi." };
     } catch {
       return { success: true, message: "Mahsulot o'chirildi." };
