@@ -118,6 +118,7 @@ export const purchasingApi = {
           product_id: pId,
           quantity: Number(i.quantity) || 1,
           unit_price: Number(i.unitPrice || i.purchasePrice) || 0,
+          avg_unit_cost: Number(i.unitPrice || i.purchasePrice) || 0,
         };
       })
       .filter((i) => isValidUUID(i.product_id));
@@ -161,6 +162,7 @@ export const purchasingApi = {
           product_id: pId,
           quantity: Number(i.quantity) || 1,
           unit_price: Number(i.unitPrice || i.purchasePrice) || 0,
+          avg_unit_cost: Number(i.unitPrice || i.purchasePrice) || 0,
         };
       })
       .filter((i) => isValidUUID(i.product_id));
