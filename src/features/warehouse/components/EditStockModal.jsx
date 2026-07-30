@@ -68,6 +68,10 @@ export const EditStockModal = ({ isOpen, onClose, onSubmit, stockItem = null }) 
     const selectedMat = materialOptions.find((m) => String(m.value) === String(formData.materialTypeId));
     const selectedWH = warehouseOptions.find((w) => String(w.value) === String(formData.warehouseId));
 
+    const units = dynamicSettingsService.getUnits() || [];
+    const foundUnit = units.find((u) => u.name === formData.unitName || u.shortName === formData.unitName);
+    const unitId = foundUnit ? foundUnit.id : (stockItem?.unitId || '');
+
     onSubmit({
       ...stockItem,
       productName: formData.productName,
@@ -80,6 +84,7 @@ export const EditStockModal = ({ isOpen, onClose, onSubmit, stockItem = null }) 
       warehouseName: selectedWH ? selectedWH.label : (stockItem?.warehouseName || 'Asosiy Ombor'),
       quantity: Number(formData.quantity) || 0,
       unitName: formData.unitName || 'dona',
+      unitId,
       purchasePrice: Number(formData.purchasePrice) || 0,
       unitPrice: Number(formData.purchasePrice) || 0,
       currentValue: (Number(formData.quantity) || 0) * (Number(formData.purchasePrice) || 0),

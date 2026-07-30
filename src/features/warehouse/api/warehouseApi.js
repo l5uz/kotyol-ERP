@@ -198,6 +198,13 @@ export const warehouseApi = {
         avg_unit_cost: Number(stockData.purchasePrice || stockData.unitPrice) || 0,
         min_quantity: Number(stockData.minQuantity) || 10,
         status: stockData.status || 'ACTIVE',
+        category_id: stockData.categoryId || null,
+        material_type_id: stockData.materialTypeId || null,
+        warehouse_id: stockData.warehouseId || null,
+        unit_id: stockData.unitId || null,
+        product_name: stockData.productName || null,
+        product_code: stockData.internalCode || null,
+        description: stockData.description || null,
       };
       await axiosInstance.put(`/warehouse/stock/${id}`, payload)
         .catch(() => axiosInstance.put(`/warehouse/stock/${id}/`, payload))
