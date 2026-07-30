@@ -85,7 +85,8 @@ export const WarehousePage = () => {
       updatedData.internalCode !== editingStock.internalCode ||
       updatedData.categoryId !== editingStock.categoryId ||
       updatedData.materialTypeId !== editingStock.materialTypeId ||
-      updatedData.unitName !== editingStock.unitName
+      updatedData.unitName !== editingStock.unitName ||
+      updatedData.purchasePrice !== editingStock.purchasePrice
     )) {
       await productsApi.updateProduct(updatedData.productId, {
         name: updatedData.productName,
@@ -93,6 +94,7 @@ export const WarehousePage = () => {
         categoryId: updatedData.categoryId,
         materialTypeId: updatedData.materialTypeId,
         unitId: updatedData.unitId,
+        purchasePrice: updatedData.purchasePrice,
       }).catch(() => null);
     }
 
