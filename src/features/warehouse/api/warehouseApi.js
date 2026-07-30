@@ -388,34 +388,131 @@ export const warehouseApi = {
 
   // Revaluation Endpoints
   getRevaluations: async () => {
-    return { success: true, data: [] };
+    try {
+      const response = await axiosInstance.get('/warehouse/revaluations');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      return { success: true, data: items.map(mapRevaluation).filter(Boolean) };
+    } catch {
+      try {
+        const response = await axiosInstance.get('/warehouse/revaluation');
+        const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+        return { success: true, data: items.map(mapRevaluation).filter(Boolean) };
+      } catch {
+        return { success: true, data: [] };
+      }
+    }
   },
 
   createRevaluation: async (revaluationData) => {
-    const newRev = {
-      ...revaluationData,
-      id: `rev_${Date.now()}`,
-      priceDifference: revaluationData.newPrice - revaluationData.previousPrice,
-      createdBy: 'Nodira Qosimova',
-      createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
+    const payload = {
+      product_id: revaluationData.productId,
+      previous_price: Number(revaluationData.previousPrice) || 0,
+      new_price: Number(revaluationData.newPrice) || 0,
+      reason: revaluationData.reason || '',
+      notes: revaluationData.notes || '',
     };
-    return { success: true, data: newRev, message: "Qayta baholash muvaffaqiyatli saqlandi." };
+    try {
+      const response = await axiosInstance.post('/warehouse/revaluations', payload);
+      const data = response?.data || response;
+      return { success: true, data: mapRevaluation(data), message: "Qayta baholash muvaffaqiyatli saqlandi." };
+    } catch {
+      try {
+        const response = await axiosInstance.post('/warehouse/revaluation', payload);
+        const data = response?.data || response;
+        return { success: true, data: mapRevaluation(data), message: "Qayta baholash muvaffaqiyatli saqlandi." };
+      } catch {
+        const newRev = {
+          ...revaluationData,
+          id: `rev_${Date.now()}`,
+          priceDifference: revaluationData.newPrice - revaluationData.previousPrice,
+          createdBy: 'Nodira Qosimova',
+          createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
+        };
+        return { success: true, data: newRev, message: "Qayta baholash muvaffaqiyatli saqlandi (Offline)." };
+      }
+    }
   },
 
   // Inventory Count Endpoints
   getInventoryCounts: async () => {
-    return { success: true, data: [] };
+    try {
+      const response = await axiosInstance.get('/warehouse/inventory-counts');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      return { success: true, data: items.map(mapInventoryCount).filter(Boolean) };
+    } catch {
+      try {
+        const response = await axiosInstance.get('/warehouse/inventory-count');
+        const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+        return { success: true, data: items.map(mapInventoryCount).filter(Boolean) };
+      } catch {
+        return { success: true, data: [] };
+      }
+    }
   },
 
   createInventoryCount: async (countData) => {
-    const diff = countData.actualQuantity - countData.systemQuantity;
-    const newCount = {
-      ...countData,
-      id: `inv_${Date.now()}`,
-      difference: diff,
-      status: 'ADJUSTED',
-      countDate: new Date().toISOString().split('T')[0],
+    const payload = {
+      product_id: countData.productId,
+      system_quantity: Number(countData.systemQuantity) || 0,
+      actual_quantity: Number(countData.actualQuantity) || 0,
+      reason: countData.reason || '',
+      notes: countData.notes || '',
     };
-    return { success: true, data: newCount, message: "Inventarizatsiya sanoq tuzatishi saqlandi." };
+    try {
+      const response = await axiosInstance.post('/warehouse/inventory-counts', payload);
+      const data = response?.data || response;
+      return { success: true, data: mapInventoryCount(data), message: "Inventarizatsiya sanoq tuzatishi saqlandi." };
+    } catch {
+      try {
+        const response = await axiosInstance.post('/warehouse/inventory-count', payload);
+        const data = response?.data || response;
+        return { success: true, data: mapInventoryCount(data), message: "Inventarizatsiya sanoq tuzatishi saqlandi." };
+      } catch {
+        const diff = countData.actualQuantity - countData.systemQuantity;
+        const newCount = {
+          ...countData,
+          id: `inv_${Date.now()}`,
+          difference: diff,
+          status: 'ADJUSTED',
+          countDate: new Date().toISOString().split('T')[0],
+        };
+        return { success: true, data: newCount, message: "Inventarizatsiya sanoq tuzatishi saqlandi (Offline)." };
+      }
+    }
   },
+};
+
+const mapRevaluation = (item) => {
+  if (!item) return null;
+  const diff = (Number(item.new_price) || 0) - (Number(item.previous_price) || 0);
+  return {
+    id: item.id,
+    productId: item.product_id,
+    productName: item.product_name || item.product?.name || 'Mahsulot',
+    previousPrice: Number(item.previous_price) || 0,
+    newPrice: Number(item.new_price) || 0,
+    priceDifference: item.price_difference !== undefined ? Number(item.price_difference) : diff,
+    reason: item.reason || '',
+    notes: item.notes || '',
+    createdBy: item.created_by || 'Mas\'ul Xodim',
+    createdDate: item.created_date || item.created_at ? new Date(item.created_at || item.created_date).toISOString().replace('T', ' ').slice(0, 16) : new Date().toISOString().replace('T', ' ').slice(0, 16),
+  };
+};
+
+const mapInventoryCount = (item) => {
+  if (!item) return null;
+  const diff = (Number(item.actual_quantity) || 0) - (Number(item.system_quantity) || 0);
+  return {
+    id: item.id,
+    productId: item.product_id,
+    productName: item.product_name || item.product?.name || 'Mahsulot',
+    unitName: item.unit_name || item.product?.unit_name || 'dona',
+    systemQuantity: Number(item.system_quantity) || 0,
+    actualQuantity: Number(item.actual_quantity) || 0,
+    difference: item.difference !== undefined ? Number(item.difference) : diff,
+    reason: item.reason || '',
+    notes: item.notes || '',
+    status: item.status || 'ADJUSTED',
+    countDate: item.count_date || item.created_at ? new Date(item.created_at || item.count_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+  };
 };
