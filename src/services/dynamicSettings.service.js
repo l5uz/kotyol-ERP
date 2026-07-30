@@ -25,6 +25,7 @@ import { dataIntegrityService } from './dataIntegrity.service';
 export const INITIAL_DYNAMIC_SETTINGS = {
   productCategories: MOCK_PRODUCT_CATEGORIES,
   units: MOCK_UNITS,
+  materialTypes: MOCK_MATERIAL_TYPES,
   customerTypes: [
     { id: 'ctype_1', name: 'Jismoniy Shaxs', status: 'ACTIVE' },
     { id: 'ctype_2', name: 'Yuridik Shaxs', status: 'ACTIVE' },
@@ -231,10 +232,12 @@ class DynamicSettingsService {
 
   // Material Types
   getMaterialTypes() {
+    const list = this.getList('materialTypes');
+    if (list && list.length > 0) return list;
     return MOCK_MATERIAL_TYPES;
   }
   getMaterialTypeOptions() {
-    return MOCK_MATERIAL_TYPES.map((m) => ({ value: m.id, label: m.name }));
+    return this.getMaterialTypes().map((m) => ({ value: m.id, label: m.name }));
   }
 
   // Measurement Units
