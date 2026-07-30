@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
@@ -312,10 +313,10 @@ export const BoilerFormModal = ({
             totalValue={costBreakdown.totalCost}
             defaultExpanded={true}
             items={[
-              { label: "Xomashyo Sarfiyati (Recipe BOM):", value: `$${costBreakdown.materialCost.toLocaleString()}` },
-              { label: "Zavod Bosqichlari Xarajatlari:", value: `$${costBreakdown.stageCost.toLocaleString()}` },
-              { label: "Usta va Ishchi Mehnati Sarfi:", value: `$${costBreakdown.laborCost.toLocaleString()}` },
-              { label: `Qo'shimcha Sex Xarajatlari (${costBreakdown.overheadRatePercent}%):`, value: `$${costBreakdown.overheadCost.toLocaleString()}` },
+              { label: "Xomashyo Sarfiyati (Recipe BOM):", value: formatCurrency(costBreakdown.materialCost) },
+              { label: "Zavod Bosqichlari Xarajatlari:", value: formatCurrency(costBreakdown.stageCost) },
+              { label: "Usta va Ishchi Mehnati Sarfi:", value: formatCurrency(costBreakdown.laborCost) },
+              { label: `Qo'shimcha Sex Xarajatlari (${costBreakdown.overheadRatePercent}%):`, value: formatCurrency(costBreakdown.overheadCost) },
             ]}
           />
         )}

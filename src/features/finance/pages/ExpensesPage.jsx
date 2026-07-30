@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { LuPlus, LuEye, LuPencil, LuTrash2, LuTrendingDown, LuLock } from 'react-icons/lu';
@@ -87,7 +88,7 @@ export const ExpensesPage = () => {
     },
     {
       header: 'Summa',
-      cell: (row) => <strong className="text-danger font-mono font-semibold fs-7">${row.amount.toLocaleString()} ({row.currency})</strong>,
+      cell: (row) => <strong className="text-danger font-mono font-semibold fs-7">{formatCurrency(row.amount)}</strong>,
     },
     {
       header: 'To\'lov Usuli',

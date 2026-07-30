@@ -183,7 +183,7 @@ export const ProductFormModal = ({
               value={formData.materialTypeId}
               onChange={(e) => setFormData({ ...formData, materialTypeId: e.target.value })}
               options={materialOptions}
-              managePath={ROUTES.PROTECTED.SETTINGS}
+              managePath={ROUTES.PROTECTED.SETTINGS_MATERIAL_TYPES}
               onAddNew={handleAddNewMaterial}
               entityTitle="Material Turi"
               required

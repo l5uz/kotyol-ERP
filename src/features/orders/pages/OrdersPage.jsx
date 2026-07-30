@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { LuPlus, LuEye, LuPencil, LuTrash2, LuClipboardList, LuPlay, LuLock } from 'react-icons/lu';
@@ -135,7 +136,7 @@ export const OrdersPage = () => {
     },
     {
       header: 'Jami Summa ($)',
-      cell: (row) => <strong className="text-primary fs-7">${(row.totalAmount || 0).toLocaleString()}</strong>,
+      cell: (row) => <strong className="text-primary fs-7">{formatCurrency(row.totalAmount || 0)}</strong>,
     },
     { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
     {

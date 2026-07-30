@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { LuChevronLeft, LuTrendingDown, LuPrinter, LuWallet } from 'react-icons/lu';
@@ -116,7 +117,7 @@ export const FinanceDetailPage = () => {
 
               <div>
                 <small className="text-muted-custom d-block">Xarajat Summasi:</small>
-                <strong className="text-danger fs-4 font-mono">${expense.amount.toLocaleString()} ({expense.currency})</strong>
+                <strong className="text-danger fs-4 font-mono">{formatCurrency(expense.amount)}</strong>
               </div>
 
               <div>

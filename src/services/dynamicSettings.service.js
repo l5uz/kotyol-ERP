@@ -172,6 +172,15 @@ class DynamicSettingsService {
     return { success: true };
   }
 
+  saveList(key, newList) {
+    const settings = this.getSettings();
+    settings[key] = newList;
+    if (key === 'categories') settings['productCategories'] = newList;
+    if (key === 'productCategories') settings['categories'] = newList;
+    this.saveSettings(settings);
+    return newList;
+  }
+
   // Currencies
   getCurrencies() {
     return MOCK_CURRENCIES;

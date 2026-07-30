@@ -18,6 +18,8 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
   const user = useAuthStore((state) => state.user);
   const currentUser = user || { name: 'Mas\'ul Xodim' };
   const [warehouseOptions, setWarehouseOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [materialOptions, setMaterialOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
   const [products, setProducts] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -25,6 +27,9 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
 
   const [formData, setFormData] = useState({
     customProductName: '',
+    internalCode: '',
+    categoryId: '',
+    materialTypeId: '',
     productId: '',
     warehouseId: '',
     movementTypeCode: 'PURCHASE',
@@ -49,6 +54,9 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
   }, [isOpen]);
 
   const loadDropdownData = async () => {
+    setCategoryOptions(dynamicSettingsService.getCategoryOptions());
+    setMaterialOptions(dynamicSettingsService.getMaterialTypeOptions());
+
     const [whRes, prodRes, empRes] = await Promise.all([
       warehouseApi.getWarehouses(),
       productsApi.getProducts(),
@@ -84,8 +92,13 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
   useEffect(() => {
     if (isOpen) {
       const defaultName = currentUser?.name || currentUser?.full_name || (employees[0]?.fullName || '');
+      const cats = dynamicSettingsService.getCategoryOptions();
+      const mats = dynamicSettingsService.getMaterialTypeOptions();
       setFormData({
         customProductName: '',
+        internalCode: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+        categoryId: cats[0]?.value || '',
+        materialTypeId: mats[0]?.value || '',
         productId: productOptions[0]?.value || '',
         warehouseId: warehouseOptions[0]?.value || '',
         movementTypeCode: 'PURCHASE',
@@ -135,10 +148,17 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
 
     const selectedMType = movementTypeOptions.find((m) => m.value === formData.movementTypeCode);
     const selectedWH = warehouseOptions.find((w) => String(w.value) === String(formData.warehouseId));
+    const selectedCat = categoryOptions.find((c) => String(c.value) === String(formData.categoryId));
+    const selectedMat = materialOptions.find((m) => String(m.value) === String(formData.materialTypeId));
 
     onSubmit({
       ...formData,
       productName: finalProductName,
+      internalCode: formData.internalCode,
+      categoryId: formData.categoryId,
+      categoryName: selectedCat ? selectedCat.label : '-',
+      materialTypeId: formData.materialTypeId,
+      materialTypeName: selectedMat ? selectedMat.label : '',
       unitName: finalUnitName || 'dona',
       movementTypeName: selectedMType ? selectedMType.label : 'Kirim',
       warehouseName: selectedWH ? selectedWH.label : 'Asosiy Ombor',
@@ -190,15 +210,46 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
         <div className="row g-3">
           {/* Mode 1: Custom Product Name Input */}
           {isNewProductMode ? (
-            <div className="col-12 col-md-8">
-              <Input
-                label="Mahsulot / Xomashyo Nomi *"
-                placeholder="Masalan: Kotyol Nasosi 25kW, Truba 50mm, Gaskat..."
-                value={formData.customProductName}
-                onChange={(e) => setFormData({ ...formData, customProductName: e.target.value })}
-                required
-              />
-            </div>
+            <>
+              <div className="col-12 col-md-8">
+                <Input
+                  label="Mahsulot / Xomashyo Nomi *"
+                  placeholder="Masalan: Kotyol Nasosi 25kW, Truba 50mm, Gaskat..."
+                  value={formData.customProductName}
+                  onChange={(e) => setFormData({ ...formData, customProductName: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="col-12 col-md-4">
+                <Input
+                  label="Ichki Kodi (SKU) *"
+                  placeholder="SKU-1001"
+                  value={formData.internalCode}
+                  onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="col-12 col-md-6">
+                <DynamicSelect
+                  label="Kategoriya"
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  options={categoryOptions}
+                  managePath={ROUTES.PROTECTED.SETTINGS_CATEGORIES}
+                  entityTitle="Kategoriya"
+                />
+              </div>
+              <div className="col-12 col-md-6">
+                <DynamicSelect
+                  label="Material Turi"
+                  value={formData.materialTypeId}
+                  onChange={(e) => setFormData({ ...formData, materialTypeId: e.target.value })}
+                  options={materialOptions}
+                  managePath={ROUTES.PROTECTED.SETTINGS_MATERIAL_TYPES}
+                  entityTitle="Material Turi"
+                />
+              </div>
+            </>
           ) : (
             /* Mode 2: Existing Product DynamicSelect */
             <div className="col-12 col-md-8">
@@ -221,7 +272,7 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
               value={formData.warehouseId}
               onChange={(e) => setFormData({ ...formData, warehouseId: e.target.value })}
               options={warehouseOptions}
-              managePath={ROUTES.PROTECTED.WAREHOUSE_LIST}
+              managePath={ROUTES.PROTECTED.SETTINGS_WAREHOUSE}
               entityKey="warehouses"
               onAddNew={handleAddNewWarehouse}
               entityTitle="Ombor"

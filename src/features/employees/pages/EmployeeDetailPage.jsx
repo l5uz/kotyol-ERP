@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card/Card';
@@ -120,7 +121,7 @@ export const EmployeeDetailPage = () => {
                 </div>
                 <div className="col-12 col-sm-6">
                   <small className="text-muted-custom d-block">Maosh Stavkasi Summasi:</small>
-                  <strong className="text-primary fs-5">${(Number(employee.salaryAmount) || 0).toFixed(2)}</strong>
+                  <strong className="text-primary fs-5">{formatCurrency(employee.salaryAmount || 0)}</strong>
                 </div>
               </div>
             </Card>

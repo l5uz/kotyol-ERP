@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -7,13 +7,15 @@ import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Modal } from '@/components/common/Modal/Modal';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
-import { MOCK_PRODUCT_CATEGORIES } from '../constants/settings.mock';
+import { settingsApi } from '../api/settingsApi';
+import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { dataIntegrityService } from '@/services/dataIntegrity.service';
 import { notifySuccess } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const CategoriesSettingsPage = () => {
-  const [categories, setCategories] = useState(MOCK_PRODUCT_CATEGORIES);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCat, setEditingCat] = useState(null);
   const [name, setName] = useState('');
@@ -22,6 +24,22 @@ export const CategoriesSettingsPage = () => {
   const [deletingCat, setDeletingCat] = useState(null);
   const [blockedReason, setBlockedReason] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    setIsLoading(true);
+    const res = await settingsApi.getCategories();
+    if (res.success && Array.isArray(res.data)) {
+      setCategories(res.data);
+      dynamicSettingsService.saveList('productCategories', res.data);
+    } else {
+      setCategories(dynamicSettingsService.getCategories() || []);
+    }
+    setIsLoading(false);
+  };
 
   const handleOpenModal = (cat = null) => {
     setEditingCat(cat);
@@ -35,26 +53,52 @@ export const CategoriesSettingsPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (!name.trim()) return;
 
+    setIsLoading(true);
     if (editingCat) {
-      setCategories((prev) =>
-        prev.map((c) => (c.id === editingCat.id ? { ...c, name, description } : c))
-      );
-      notifySuccess("Kategoriya tahrirlandi.");
-    } else {
-      const newCat = {
-        id: `cat_${Date.now()}`,
+      const res = await settingsApi.updateCategory(editingCat.id, {
         name,
         description,
-        status: 'ACTIVE',
-      };
-      setCategories((prev) => [...prev, newCat]);
-      notifySuccess("Yangi kategoriya qo'shildi.");
+        status: editingCat.status || 'ACTIVE'
+      });
+      if (res.success) {
+        notifySuccess("Kategoriya tahrirlandi.");
+        await loadCategories();
+      } else {
+        const updated = categories.map((c) =>
+          c.id === editingCat.id ? { ...c, name, description } : c
+        );
+        setCategories(updated);
+        dynamicSettingsService.saveList('productCategories', updated);
+        notifySuccess("Kategoriya tahrirlandi (Offline).");
+      }
+    } else {
+      const res = await settingsApi.createCategory({
+        name,
+        description,
+        status: 'ACTIVE'
+      });
+      if (res.success) {
+        notifySuccess("Yangi kategoriya qo'shildi.");
+        await loadCategories();
+      } else {
+        const newCat = {
+          id: `cat_${Date.now()}`,
+          name,
+          description,
+          status: 'ACTIVE',
+        };
+        const updated = [...categories, newCat];
+        setCategories(updated);
+        dynamicSettingsService.saveList('productCategories', updated);
+        notifySuccess("Yangi kategoriya qo'shildi (Offline).");
+      }
     }
 
+    setIsLoading(false);
     setIsModalOpen(false);
   };
 
@@ -69,21 +113,45 @@ export const CategoriesSettingsPage = () => {
     setIsConfirmOpen(true);
   };
 
-  const handleHardDelete = () => {
+  const handleHardDelete = async () => {
     if (deletingCat) {
-      setCategories((prev) => prev.filter((c) => c.id !== deletingCat.id));
-      notifySuccess("Kategoriya o'chirildi.");
+      setIsLoading(true);
+      const res = await settingsApi.deleteCategory(deletingCat.id);
+      if (res.success) {
+        notifySuccess("Kategoriya o'chirildi.");
+        await loadCategories();
+      } else {
+        const updated = categories.filter((c) => c.id !== deletingCat.id);
+        setCategories(updated);
+        dynamicSettingsService.saveList('productCategories', updated);
+        notifySuccess("Kategoriya o'chirildi (Offline).");
+      }
+      setIsLoading(false);
       setIsConfirmOpen(false);
       setDeletingCat(null);
     }
   };
 
-  const handleSoftDelete = () => {
+  const handleSoftDelete = async () => {
     if (deletingCat) {
-      setCategories((prev) =>
-        prev.map((c) => (c.id === deletingCat.id ? { ...c, status: 'INACTIVE' } : c))
-      );
-      notifySuccess("Kategoriya 'NOFAOL' deb belgilandi.");
+      setIsLoading(true);
+      const res = await settingsApi.updateCategory(deletingCat.id, {
+        name: deletingCat.name,
+        description: deletingCat.description || '',
+        status: 'INACTIVE'
+      });
+      if (res.success) {
+        notifySuccess("Kategoriya 'NOFAOL' deb belgilandi.");
+        await loadCategories();
+      } else {
+        const updated = categories.map((c) =>
+          c.id === deletingCat.id ? { ...c, status: 'INACTIVE' } : c
+        );
+        setCategories(updated);
+        dynamicSettingsService.saveList('productCategories', updated);
+        notifySuccess("Kategoriya 'NOFAOL' deb belgilandi (Offline).");
+      }
+      setIsLoading(false);
       setIsConfirmOpen(false);
       setDeletingCat(null);
     }
@@ -150,7 +218,15 @@ export const CategoriesSettingsPage = () => {
       />
 
       <Card title={`Kategoriyalar Ro'yxati (${categories.length} ta)`}>
-        <Table columns={columns} data={categories} />
+        {isLoading ? (
+          <div className="text-center py-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Yuklanmoqda...</span>
+            </div>
+          </div>
+        ) : (
+          <Table columns={columns} data={categories} />
+        )}
       </Card>
 
       <Modal
@@ -198,7 +274,7 @@ export const CategoriesSettingsPage = () => {
         onConfirm={handleHardDelete}
         onSoftDelete={handleSoftDelete}
         title="Kategoriyani O'chirish"
-        message={`Haqiqatan ham '${deletingCat?.name}' kategoriyasi o'chirilsinmi?`}
+        message={`Haqiqatan ham '${deletingCat?.name || ''}' kategoriyasi o'chirilsinmi?`}
         blockedReason={blockedReason}
         isDanger={true}
         confirmText="O'chirish"

@@ -2,6 +2,7 @@ export * from './pages/CompanySettingsPage';
 export * from './pages/CurrencySettingsPage';
 export * from './pages/WarehouseSettingsPage';
 export * from './pages/CategoriesSettingsPage';
+export * from './pages/MaterialTypesSettingsPage';
 export * from './pages/UnitsSettingsPage';
 export * from './pages/ExpenseTypesSettingsPage';
 export * from './pages/DefectReasonsSettingsPage';

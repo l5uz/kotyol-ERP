@@ -1,24 +1,42 @@
 import { axiosInstance } from '@/api/axiosInstance';
+import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 
 const isValidUUID = (str) =>
   typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
 const mapProduct = (item) => {
   if (!item) return null;
+
+  const categoryId = item.category_id || '';
+  const resolvedCategory = dynamicSettingsService.getItemById('productCategories', categoryId);
+  const categoryName = item.category_name || item.category?.name || resolvedCategory?.name || '-';
+
+  const materialTypeId = item.material_type_id || '';
+  const resolvedMaterial = dynamicSettingsService.getItemById('materialTypes', materialTypeId);
+  const materialTypeName = item.material_type_name || item.material_type?.name || resolvedMaterial?.name || '';
+
+  const unitId = item.unit_id || '';
+  const resolvedUnit = dynamicSettingsService.getItemById('units', unitId);
+  const unitName = item.unit_name || item.unit?.name || resolvedUnit?.name || 'dona';
+
+  const supplierId = item.supplier_id || '';
+  const resolvedSupplier = dynamicSettingsService.getItemById('suppliers', supplierId);
+  const supplierName = item.supplier_name || item.supplier?.companyName || item.supplier?.name || resolvedSupplier?.companyName || resolvedSupplier?.name || 'Ta\'minotchi';
+
   return {
     id: item.id,
     name: item.name,
     internalCode: item.code,
     barcode: item.barcode || `478000${Math.floor(1000000 + Math.random() * 9000000)}`,
     qrCode: item.qrCode || `QR-PROD-${item.id?.slice(-4)}`,
-    categoryId: item.category_id,
-    categoryName: item.category_name || 'Isitish Kotyollari',
-    materialTypeId: item.material_type_id || '',
-    materialTypeName: item.material_type_name || 'Xomashyo',
-    unitId: item.unit_id,
-    unitName: item.unit_name || 'dona',
-    supplierId: item.supplier_id || '',
-    supplierName: item.supplier_name || 'Ta\'minotchi',
+    categoryId,
+    categoryName,
+    materialTypeId,
+    materialTypeName,
+    unitId,
+    unitName,
+    supplierId,
+    supplierName,
     purchasePrice: item.unit_price || 0,
     currency: item.currency || 'USD',
     minStock: item.min_stock_level || 0,

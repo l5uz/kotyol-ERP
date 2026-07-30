@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LuCalculator, LuChevronDown, LuChevronUp, LuInfo } from 'react-icons/lu';
+import { getCurrencySymbol } from '@/utils/currency.utils';
 
 export const CalculationBreakdown = ({
   title = "Hisob-kitob Shaffofligi va Formula",
@@ -7,10 +8,15 @@ export const CalculationBreakdown = ({
   formula = "",
   totalLabel = "Jami HISOBLANGAN",
   totalValue = 0,
-  currency = "$",
+  currency = null,
   defaultExpanded = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const activeCurrency = currency || getCurrencySymbol();
+
+  const formattedValue = typeof totalValue === 'number'
+    ? (activeCurrency === '$' ? `$${totalValue.toLocaleString()}` : `${totalValue.toLocaleString()} so'm`)
+    : totalValue;
 
   return (
     <div className="card border-custom bg-body-custom rounded-3 mb-3">
@@ -24,7 +30,7 @@ export const CalculationBreakdown = ({
         </div>
         <div className="d-flex align-items-center gap-2">
           <strong className="fs-7 text-primary">
-            {currency}{typeof totalValue === 'number' ? totalValue.toLocaleString() : totalValue}
+            {formattedValue}
           </strong>
           {isExpanded ? <LuChevronUp /> : <LuChevronDown />}
         </div>
@@ -51,7 +57,7 @@ export const CalculationBreakdown = ({
 
             <div className="d-flex justify-content-between align-items-center pt-2 fw-bold text-primary fs-7">
               <span>{totalLabel}:</span>
-              <span>{currency}{typeof totalValue === 'number' ? totalValue.toLocaleString() : totalValue}</span>
+              <span>{formattedValue}</span>
             </div>
           </div>
         </div>

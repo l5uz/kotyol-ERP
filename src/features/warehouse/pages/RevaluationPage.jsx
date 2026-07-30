@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { RevaluationFormModal } from '../components/RevaluationFormModal';
 import { warehouseApi } from '../api/warehouseApi';
 import { notifySuccess } from '@/services/notification.service';
+import { formatCurrency, getCurrencySymbol } from '@/utils/currency.utils';
 
 export const RevaluationPage = () => {
   const [revaluations, setRevaluations] = useState([]);
@@ -36,18 +37,18 @@ export const RevaluationPage = () => {
   const columns = [
     { header: 'Mahsulot Nomi', accessor: 'productName' },
     {
-      header: 'Oldingi Narx ($)',
-      cell: (row) => <span>${row.previousPrice.toFixed(2)}</span>,
+      header: `Oldingi Narx (${getCurrencySymbol()})`,
+      cell: (row) => <span>{formatCurrency(row.previousPrice)}</span>,
     },
     {
-      header: 'Yangi Narx ($)',
-      cell: (row) => <strong className="text-primary">${row.newPrice.toFixed(2)}</strong>,
+      header: `Yangi Narx (${getCurrencySymbol()})`,
+      cell: (row) => <strong className="text-primary">{formatCurrency(row.newPrice)}</strong>,
     },
     {
       header: 'Farq',
       cell: (row) => (
         <span className={`fw-bold ${row.priceDifference >= 0 ? 'text-success' : 'text-danger'}`}>
-          {row.priceDifference >= 0 ? `+$${row.priceDifference.toFixed(2)}` : `-$${Math.abs(row.priceDifference).toFixed(2)}`}
+          {row.priceDifference >= 0 ? `+${formatCurrency(row.priceDifference)}` : `-${formatCurrency(Math.abs(row.priceDifference))}`}
         </span>
       ),
     },

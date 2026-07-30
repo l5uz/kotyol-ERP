@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
@@ -169,7 +170,7 @@ export const ProductionDetailPage = () => {
     },
     {
       header: 'Taxminiy Xarajat ($)',
-      cell: (row) => <span className="text-primary font-mono font-semibold">${row.cost.toFixed(2)}</span>,
+      cell: (row) => <span className="text-primary font-mono font-semibold">{formatCurrency(row.cost)}</span>,
     },
   ];
 
@@ -300,7 +301,7 @@ export const ProductionDetailPage = () => {
 
               <div className="d-flex justify-content-between fw-bold pt-2 border-top border-custom text-primary fs-6">
                 <span>Taxminiy Tannarx:</span>
-                <span>${(production.estimatedCost || 0).toLocaleString()}</span>
+                <span>{formatCurrency(production.estimatedCost || 0)}</span>
               </div>
             </div>
           </Card>

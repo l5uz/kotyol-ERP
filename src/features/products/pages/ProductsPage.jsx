@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card/Card';
@@ -92,7 +93,7 @@ export const ProductsPage = () => {
     { header: 'Kategoriya', accessor: 'categoryName' },
     { header: 'Material Turi', cell: (row) => <span className="badge bg-info bg-opacity-10 text-info fw-semibold">{row.materialTypeName}</span> },
     { header: 'Ta\'minotchi', accessor: 'supplierName' },
-    { header: 'Xarid Narxi', cell: (row) => <span className="fw-bold text-main">${row.purchasePrice.toFixed(2)}</span> },
+    { header: 'Xarid Narxi', cell: (row) => <span className="fw-bold text-main">{formatCurrency(row.purchasePrice)}</span> },
     {
       header: 'Zaxira',
       cell: (row) => (

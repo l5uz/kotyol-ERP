@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LuPlus, LuTrash2, LuCircleAlert } from 'react-icons/lu';
 import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
-import { getCurrencySymbol } from '@/utils/currency.utils';
+import { getCurrencySymbol, formatCurrency } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const RecipeItemsTable = ({
@@ -164,7 +164,7 @@ export const RecipeItemsTable = ({
                   />
                 </td>
                 <td>
-                  <strong className="text-primary fs-7">${(Number(row.totalCost) || 0).toFixed(2)}</strong>
+                  <strong className="text-primary fs-7">{formatCurrency(row.totalCost || 0)}</strong>
                 </td>
                 <td className="text-center">
                   <button

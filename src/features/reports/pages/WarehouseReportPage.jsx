@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
@@ -61,7 +62,7 @@ export const WarehouseReportPage = () => {
     { header: 'Sarf Qilingan Miqdor', cell: (row) => <strong>{row.usedQty}</strong> },
     {
       header: 'Jami Sarf Qiymati ($)',
-      cell: (row) => <strong className="text-primary font-mono">${row.cost.toLocaleString()}</strong>,
+      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.cost)}</strong>,
     },
   ];
 
@@ -94,7 +95,7 @@ export const WarehouseReportPage = () => {
         <div className="col-12 col-md-4">
           <Card className="p-3 border-0 bg-primary bg-opacity-10 shadow-sm">
             <small className="text-primary font-semibold d-block">Jami Ombor Aktivlari Qiymati</small>
-            <strong className="text-primary fs-3 font-mono">${warehouseReport.inventoryValue.toLocaleString()}</strong>
+            <strong className="text-primary fs-3 font-mono">{formatCurrency(warehouseReport.inventoryValue)}</strong>
           </Card>
         </div>
 

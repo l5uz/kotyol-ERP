@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LuBoxes, LuBadgeDollarSign, LuTriangleAlert, LuCircleX, LuPlus, LuArrowLeftRight, LuClipboardCheck } from 'react-icons/lu';
+import { LuBoxes, LuBadgeDollarSign, LuPlus, LuClipboardCheck, LuEye, LuPencil, LuTrash2 } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { StockFilterBar } from '../components/StockFilterBar';
 import { MovementFormModal } from '../components/MovementFormModal';
 import { RevaluationFormModal } from '../components/RevaluationFormModal';
 import { InventoryCountModal } from '../components/InventoryCountModal';
+import { EditStockModal } from '../components/EditStockModal';
 import { warehouseApi } from '../api/warehouseApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { notifySuccess } from '@/services/notification.service';
+import { formatCurrency, getCurrencySymbol } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const WarehousePage = () => {
@@ -27,6 +30,9 @@ export const WarehousePage = () => {
   const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
   const [isRevaluationModalOpen, setIsRevaluationModalOpen] = useState(false);
   const [isCountModalOpen, setIsCountModalOpen] = useState(false);
+
+  const [editingStock, setEditingStock] = useState(null);
+  const [deletingStock, setDeletingStock] = useState(null);
 
   const categories = dynamicSettingsService.getCategories();
   const warehouses = dynamicSettingsService.getWarehouses();
@@ -72,7 +78,20 @@ export const WarehousePage = () => {
     loadWarehouseData();
   };
 
-  const lowStockItems = stock.filter((s) => s.quantity <= s.minQuantity);
+  const handleUpdateStock = async (updatedData) => {
+    const res = await warehouseApi.updateStock(updatedData.id, updatedData);
+    notifySuccess(res.message);
+    setEditingStock(null);
+    loadWarehouseData();
+  };
+
+  const handleConfirmDeleteStock = async () => {
+    if (!deletingStock) return;
+    const res = await warehouseApi.deleteStock(deletingStock.id);
+    notifySuccess(res.message);
+    setDeletingStock(null);
+    loadWarehouseData();
+  };
 
   const columns = [
     {
@@ -87,7 +106,15 @@ export const WarehousePage = () => {
       ),
     },
     { header: 'Kategoriya', accessor: 'categoryName' },
-    { header: 'Material Turi', cell: (row) => <span className="badge bg-info bg-opacity-10 text-info">{row.materialTypeName}</span> },
+    {
+      header: 'Material Turi',
+      cell: (row) =>
+        row.materialTypeName ? (
+          <span className="badge bg-info bg-opacity-10 text-info">{row.materialTypeName}</span>
+        ) : (
+          '-'
+        ),
+    },
     { header: 'Ombor', accessor: 'warehouseName' },
     {
       header: 'Miqdor',
@@ -101,16 +128,36 @@ export const WarehousePage = () => {
       ),
     },
     {
-      header: 'Joriy Qiymati ($)',
-      cell: (row) => <span className="fw-bold text-main">${row.currentValue.toLocaleString()}</span>,
+      header: `Joriy Qiymati (${getCurrencySymbol()})`,
+      cell: (row) => <span className="fw-bold text-main">{formatCurrency(row.currentValue)}</span>,
     },
     { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
     {
       header: 'Amal',
       cell: (row) => (
-        <Link to={`${ROUTES.PROTECTED.WAREHOUSE_STOCK}/${row.id}`} className="btn btn-sm btn-outline-primary py-1 px-2 fs-8">
-          Tafsilot
-        </Link>
+        <div className="d-flex align-items-center gap-1">
+          <Link
+            to={`${ROUTES.PROTECTED.WAREHOUSE_STOCK}/${row.id}`}
+            className="btn btn-sm btn-outline-primary py-1 px-2 fs-8"
+            title="Tafsilot"
+          >
+            <LuEye />
+          </Link>
+          <button
+            className="btn btn-sm btn-outline-warning py-1 px-2 fs-8"
+            onClick={() => setEditingStock(row)}
+            title="Tahrirlash"
+          >
+            <LuPencil />
+          </button>
+          <button
+            className="btn btn-sm btn-outline-danger py-1 px-2 fs-8"
+            onClick={() => setDeletingStock(row)}
+            title="O'chirish"
+          >
+            <LuTrash2 />
+          </button>
+        </div>
       ),
     },
   ];
@@ -119,14 +166,11 @@ export const WarehousePage = () => {
     <div className="warehouse-page animate-fade-in pb-5">
 
       <PageHeader
-        title="Omborxona va Zaxiralar Boshqaruvi"
-        subtitle="Xomashyolar, komplektatsiya qismlari va tayyor mahsulotlar zaxirasi balansi"
-        breadcrumbs={[
-          { label: 'Bosh sahifa', path: '/' },
-          { label: 'Omborxona' },
-        ]}
+        title="Ombor Zaxiralari Boshqaruvi"
+        subtitle="Xomashyo, yarim tayyor va tayyor kotyollar zaxiralarini kuzatish hamda kirim/chiqim operatsiyalari"
+        breadcrumbs={[{ label: 'Bosh sahifa', path: '/' }, { label: 'Omborxona' }]}
         actions={
-          <div className="d-flex align-items-center gap-2">
+          <div className="d-flex gap-2">
             <Button
               variant="outline-secondary"
               size="sm"
@@ -169,8 +213,8 @@ export const WarehousePage = () => {
           <div className="col-12 col-sm-6 col-xl-3">
             <div className="card-custom p-3 border-custom rounded-3 d-flex align-items-center justify-content-between">
               <div>
-                <small className="text-muted-custom d-block mb-1 fs-8">Jami Zaxira Qiymati ($)</small>
-                <h4 className="fw-bold text-main font-heading mb-0">${stats.totalStockValue.toLocaleString()}</h4>
+                <small className="text-muted-custom d-block mb-1 fs-8">Jami Zaxira Qiymati ({getCurrencySymbol()})</small>
+                <h4 className="fw-bold text-main font-heading mb-0">{formatCurrency(stats.totalStockValue)}</h4>
               </div>
               <div className="p-3 bg-success bg-opacity-10 text-success rounded-3">
                 <LuBadgeDollarSign className="fs-4" />
@@ -180,11 +224,11 @@ export const WarehousePage = () => {
           <div className="col-12 col-sm-6 col-xl-3">
             <div className="card-custom p-3 border-custom rounded-3 d-flex align-items-center justify-content-between">
               <div>
-                <small className="text-muted-custom d-block mb-1 fs-8">Kam Qolgan Pozitsiyalar</small>
+                <small className="text-muted-custom d-block mb-1 fs-8">Kam Zaxirali Mahsulotlar</small>
                 <h4 className="fw-bold text-warning font-heading mb-0">{stats.lowStockCount} ta</h4>
               </div>
               <div className="p-3 bg-warning bg-opacity-10 text-warning rounded-3">
-                <LuTriangleAlert className="fs-4" />
+                <LuBoxes className="fs-4" />
               </div>
             </div>
           </div>
@@ -195,26 +239,9 @@ export const WarehousePage = () => {
                 <h4 className="fw-bold text-danger font-heading mb-0">{stats.outOfStockCount} ta</h4>
               </div>
               <div className="p-3 bg-danger bg-opacity-10 text-danger rounded-3">
-                <LuCircleX className="fs-4" />
+                <LuBoxes className="fs-4" />
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Low Stock Warning Cards Banner */}
-      {lowStockItems.length > 0 && (
-        <div className="p-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded-3 mb-4">
-          <div className="d-flex align-items-center gap-2 mb-2">
-            <LuTriangleAlert className="text-warning fs-5" />
-            <strong className="text-main fs-7">Diqqat! Minimal Chegaradan Kam Qolgan Zaxiralar Ogohlantirishi:</strong>
-          </div>
-          <div className="d-flex flex-wrap gap-2">
-            {lowStockItems.map((item) => (
-              <span key={item.id} className="badge bg-warning text-dark fs-8 p-2">
-                {item.productName} — Qoldi: {item.quantity} {item.unitName} (Min: {item.minQuantity})
-              </span>
-            ))}
           </div>
         </div>
       )}
@@ -258,6 +285,23 @@ export const WarehousePage = () => {
         onClose={() => setIsCountModalOpen(false)}
         onSubmit={handleSaveInventoryCount}
         products={stock}
+      />
+
+      <EditStockModal
+        isOpen={Boolean(editingStock)}
+        onClose={() => setEditingStock(null)}
+        onSubmit={handleUpdateStock}
+        stockItem={editingStock}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(deletingStock)}
+        onClose={() => setDeletingStock(null)}
+        onConfirm={handleConfirmDeleteStock}
+        title="Ombor Zaxirasini O'chirish"
+        message={`Haqiqatan ham "${deletingStock?.productName}" mahsulotini ombor zaxirasidan o'chirmoqchimisiz?`}
+        isDanger={true}
+        confirmText="O'chirish"
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -47,7 +48,7 @@ export const StageDragItem = ({ stage, index }) => {
       <div className="d-flex align-items-center gap-4">
         <div className="text-end">
           <span className="fs-8 text-muted-custom d-block">Me'yor Narxi:</span>
-          <span className="fw-bold text-main fs-7">${stage.defaultPrice.toFixed(2)}</span>
+          <span className="fw-bold text-main fs-7">{formatCurrency(stage.defaultPrice)}</span>
         </div>
         <StatusBadge status={stage.status} />
       </div>

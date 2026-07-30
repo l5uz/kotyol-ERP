@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LuX, LuSettings2, LuExternalLink, LuUsers, LuBoxes, LuFileText, LuHistory, LuPlay, LuPause, LuCircleCheck } from 'react-icons/lu';
@@ -19,7 +20,7 @@ export const ProductionCardDrawer = ({ order, isOpen, onClose, onStartBatch }) =
     },
     {
       header: 'Taxminiy Xarajat ($)',
-      cell: (row) => <span className="text-primary font-mono font-semibold">${row.cost.toFixed(2)}</span>,
+      cell: (row) => <span className="text-primary font-mono font-semibold">{formatCurrency(row.cost)}</span>,
     },
   ];
 

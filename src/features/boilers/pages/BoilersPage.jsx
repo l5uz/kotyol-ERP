@@ -1,3 +1,4 @@
+import { formatCurrency, getCurrencySymbol } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { LuPlus, LuEye, LuPencil, LuTrash2, LuFlame } from 'react-icons/lu';
@@ -91,8 +92,8 @@ export const BoilersPage = () => {
     { header: 'Kafolat Turi', accessor: 'warrantyTypeName' },
     { header: 'Sug\'urta Turi', accessor: 'insuranceTypeName' },
     {
-      header: 'Taxminiy Tannarx ($)',
-      cell: (row) => <strong className="text-primary fs-7">${row.costBreakdown?.totalCost.toFixed(2) || '0.00'}</strong>,
+      header: `Taxminiy Tannarx (${getCurrencySymbol()})`,
+      cell: (row) => <strong className="text-primary fs-7">{formatCurrency(row.costBreakdown?.totalCost || 0)}</strong>,
     },
     { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
     {

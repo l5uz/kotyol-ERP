@@ -1,7 +1,7 @@
 import React from 'react';
 import { LuPlus, LuTrash2 } from 'react-icons/lu';
 import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
-import { getCurrencySymbol } from '@/utils/currency.utils';
+import { getCurrencySymbol, formatCurrency } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const PurchaseItemsTable = ({
@@ -150,7 +150,7 @@ export const PurchaseItemsTable = ({
                   />
                 </td>
                 <td>
-                  <strong className="text-primary fs-7">${(Number(row.total) || 0).toFixed(2)}</strong>
+                  <strong className="text-primary fs-7">{formatCurrency(row.total || 0)}</strong>
                 </td>
                 <td className="text-center">
                   <button

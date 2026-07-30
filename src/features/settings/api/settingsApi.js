@@ -72,8 +72,56 @@ export const settingsApi = {
   },
 
   getCategories: async () => {
-    const response = await axiosInstance.get('/master-data/product-categories');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/product-categories');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      return { success: true, data: items };
+    } catch {
+      return { success: false, data: [] };
+    }
+  },
+
+  createCategory: async (catData) => {
+    try {
+      const payload = {
+        name: catData.name,
+        description: catData.description || '',
+        status: catData.status || 'ACTIVE'
+      };
+      const response = await axiosInstance.post('/master-data/product-categories/create', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/product-categories', payload);
+      });
+      const data = response?.data || response;
+      return { success: true, data, message: "Yangi kategoriya yaratildi." };
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  },
+
+  updateCategory: async (id, catData) => {
+    try {
+      const payload = {
+        name: catData.name,
+        description: catData.description || '',
+        status: catData.status || 'ACTIVE'
+      };
+      const response = await axiosInstance.put(`/master-data/product-categories/${id}`, payload);
+      const data = response?.data || response;
+      return { success: true, data, message: "Kategoriya yangilandi." };
+    } catch (err) {
+      return { success: false, error: err };
+    }
+  },
+
+  deleteCategory: async (id) => {
+    try {
+      await axiosInstance.delete(`/master-data/product-categories/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/product-categories/${id}/delete`);
+      });
+      return { success: true, message: "Kategoriya o'chirildi." };
+    } catch (err) {
+      return { success: false, error: err };
+    }
   },
 
   getUnits: async () => {

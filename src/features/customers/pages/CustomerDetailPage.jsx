@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { LuChevronLeft, LuUsers, LuPhone, LuMail, LuMapPin, LuPlus, LuShoppingBag, LuShoppingCart, LuWrench, LuFileText } from 'react-icons/lu';
@@ -166,7 +167,7 @@ export const CustomerDetailPage = () => {
               </div>
               <div className="d-flex justify-content-between fw-bold pt-2 border-top border-custom text-primary fs-6">
                 <span>Jami Xaridlari:</span>
-                <span>${(customer.totalPurchases || 0).toLocaleString()}</span>
+                <span>{formatCurrency(customer.totalPurchases || 0)}</span>
               </div>
             </div>
           </Card>

@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { LuChevronLeft, LuFlame, LuShieldCheck, LuFileText, LuDollarSign, LuLayers } from 'react-icons/lu';
@@ -137,19 +138,19 @@ export const BoilerDetailPage = () => {
             <div className="text-start fs-7 d-flex flex-column gap-1 bg-body-custom p-3 rounded-3 border-custom">
               <div className="d-flex justify-content-between">
                 <span className="text-muted-custom">Materiallar Xarajati:</span>
-                <span>${(Number(boiler.costBreakdown?.materialCost) || 0).toFixed(2)}</span>
+                <span>{formatCurrency(boiler.costBreakdown?.materialCost || 0)}</span>
               </div>
               <div className="d-flex justify-content-between">
                 <span className="text-muted-custom">Bosqichlar Xarajati:</span>
-                <span>${(Number(boiler.costBreakdown?.stageCost) || 0).toFixed(2)}</span>
+                <span>{formatCurrency(boiler.costBreakdown?.stageCost || 0)}</span>
               </div>
               <div className="d-flex justify-content-between">
                 <span className="text-muted-custom">Mehnat Sarfi:</span>
-                <span>${(Number(boiler.costBreakdown?.laborCost) || 0).toFixed(2)}</span>
+                <span>{formatCurrency(boiler.costBreakdown?.laborCost || 0)}</span>
               </div>
               <div className="d-flex justify-content-between fw-bold pt-2 border-top border-custom text-primary fs-6">
                 <span>1 Birlik Tannarxi:</span>
-                <span>${(Number(boiler.costBreakdown?.totalCost) || 0).toFixed(2)}</span>
+                <span>{formatCurrency(boiler.costBreakdown?.totalCost || 0)}</span>
               </div>
             </div>
           </Card>
@@ -175,7 +176,7 @@ export const BoilerDetailPage = () => {
                       <strong className="fs-7 text-main">{stg.stageName}</strong>
                       <small className="text-muted-custom">({stg.description})</small>
                     </div>
-                    <strong className="fs-7 text-primary">${stg.defaultPrice}</strong>
+                    <strong className="fs-7 text-primary">{formatCurrency(stg.defaultPrice || 0)}</strong>
                   </div>
                 ))}
               </div>

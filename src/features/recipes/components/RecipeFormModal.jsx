@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
@@ -222,15 +223,15 @@ export const RecipeFormModal = ({
             </div>
             <div className="col-6 col-md-3">
               <span className="text-muted-custom d-block">Materiallar Sof Narxi:</span>
-              <strong className="text-main">${baseMaterialCost.toFixed(2)}</strong>
+              <strong className="text-main">{formatCurrency(baseMaterialCost)}</strong>
             </div>
             <div className="col-6 col-md-3">
               <span className="text-muted-custom d-block">Taxminiy Isrofo:</span>
-              <strong className="text-danger">+${estimatedWasteCost.toFixed(2)}</strong>
+              <strong className="text-danger">+{formatCurrency(estimatedWasteCost)}</strong>
             </div>
             <div className="col-6 col-md-3">
               <span className="text-muted-custom d-block fw-bold">Taxminiy Tannarx:</span>
-              <strong className="text-primary fs-5">${estimatedTotalCost.toFixed(2)}</strong>
+              <strong className="text-primary fs-5">{formatCurrency(estimatedTotalCost)}</strong>
             </div>
           </div>
         </div>

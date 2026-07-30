@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card/Card';
@@ -92,7 +93,7 @@ export const ProductDetailPage = () => {
             <div className="text-start fs-7 d-flex flex-column gap-2">
               <div>
                 <small className="text-muted-custom d-block">Xarid Stavkasi Narxi:</small>
-                <strong className="text-primary fs-5">${product.purchasePrice.toFixed(2)}</strong>
+                <strong className="text-primary fs-5">{formatCurrency(product.purchasePrice)}</strong>
               </div>
               <div>
                 <small className="text-muted-custom d-block">Mavjud Ombor Zaxirasi:</small>

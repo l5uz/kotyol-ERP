@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
@@ -21,7 +22,7 @@ export const OrderFormModal = ({
   customers = [],
   boilers = [],
 }) => {
-  const [customerOptions, setCustomerOptions] = useState(customers.map((c) => ({ value: c.id, label: c.name })));
+  const [customerOptions, setCustomerOptions] = useState(customers.map((c) => ({ value: c.id, label: c.customerName || c.name })));
   const [boilerOptions, setBoilerOptions] = useState(boilers.map((b) => ({ value: b.id, label: `${b.modelName} v${b.version}` })));
   const [customerList, setCustomerList] = useState(customers);
   const [boilerList, setBoilerList] = useState(boilers);
@@ -33,7 +34,7 @@ export const OrderFormModal = ({
   const [availabilityCheck, setAvailabilityCheck] = useState(null);
 
   useEffect(() => {
-    setCustomerOptions(customers.map((c) => ({ value: c.id, label: c.name })));
+    setCustomerOptions(customers.map((c) => ({ value: c.id, label: c.customerName || c.name })));
     setCustomerList(customers);
     setBoilerOptions(boilers.map((b) => ({ value: b.id, label: `${b.modelName} v${b.version}` })));
     setBoilerList(boilers);
@@ -264,11 +265,11 @@ export const OrderFormModal = ({
               </div>
               <div className="col-6 col-md-3">
                 <small className="text-muted-custom d-block">1 Birlik Narxi:</small>
-                <strong>${availabilityCheck.unitPrice.toFixed(2)}</strong>
+                <strong>{formatCurrency(availabilityCheck.unitPrice)}</strong>
               </div>
               <div className="col-6 col-md-3 text-end">
                 <small className="text-muted-custom d-block">Baza Summasi:</small>
-                <strong className="text-primary fs-6">${availabilityCheck.totalAmount.toFixed(2)}</strong>
+                <strong className="text-primary fs-6">{formatCurrency(availabilityCheck.totalAmount)}</strong>
               </div>
             </div>
           </div>

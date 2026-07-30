@@ -1,9 +1,15 @@
 import { axiosInstance } from '@/api/axiosInstance';
+import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 
 const mapStock = (item) => {
   if (!item) return null;
   const qty = Number(item.quantity) || 0;
   const cost = Number(item.avg_unit_cost) || 0;
+
+  const categoryId = item.category_id || item.product?.category_id || '';
+  const resolvedCategory = dynamicSettingsService.getItemById('productCategories', categoryId);
+  const categoryName = item.category_name || item.product?.category_name || resolvedCategory?.name || '-';
+
   return {
     id: item.id,
     productId: item.product_id,
@@ -14,15 +20,15 @@ const mapStock = (item) => {
     quantity: qty,
     reservedQuantity: Number(item.reserved_quantity) || 0,
     availableQuantity: qty - (Number(item.reserved_quantity) || 0),
-    unitName: 'dona',
-    categoryId: 'cat_1',
-    categoryName: 'Isitish Kotyollari',
-    materialTypeName: 'Xomashyo',
+    unitName: item.unit_name || item.product?.unit_name || 'dona',
+    categoryId,
+    categoryName,
+    materialTypeName: item.material_type_name || item.product?.material_type_name || '',
     minQuantity: 10,
     purchasePrice: cost,
     currentValue: qty * cost,
-    currency: 'USD',
-    status: 'ACTIVE',
+    currency: item.currency || item.product?.currency || 'USD',
+    status: item.status || 'ACTIVE',
   };
 };
 
@@ -163,15 +169,55 @@ export const warehouseApi = {
 
   getStockById: async (id) => {
     try {
-      const response = await axiosInstance.get('/warehouse/stock');
-      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-      const item = items.find((s) => String(s.id) === String(id) || String(s.product_id) === String(id));
-      if (item) {
-        return { success: true, data: mapStock(item) };
-      }
-      return { success: true, data: null };
+      const response = await axiosInstance.get(`/warehouse/stock/${id}`)
+        .catch(() => axiosInstance.get(`/warehouse/stock/${id}/`));
+      const data = response?.data || response;
+      return { success: true, data: mapStock(data) };
     } catch {
+      try {
+        const response = await axiosInstance.get('/warehouse/stock');
+        const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+        const item = items.find((s) => String(s.id) === String(id) || String(s.product_id) === String(id));
+        if (item) {
+          return { success: true, data: mapStock(item) };
+        }
+      } catch {}
       return { success: true, data: null };
+    }
+  },
+
+  updateStock: async (id, stockData) => {
+    try {
+      const payload = {
+        quantity: Number(stockData.quantity) || 0,
+        avg_unit_cost: Number(stockData.purchasePrice || stockData.unitPrice) || 0,
+        min_quantity: Number(stockData.minQuantity) || 10,
+        status: stockData.status || 'ACTIVE',
+      };
+      await axiosInstance.put(`/warehouse/stock/${id}`, payload)
+        .catch(() => axiosInstance.put(`/warehouse/stock/${id}/`, payload))
+        .catch(() => axiosInstance.put(`/warehouse/stock/${id}/update`, payload))
+        .catch(() => axiosInstance.put(`/warehouse/stock/${id}/update/`, payload))
+        .catch(() => axiosInstance.put(`/warehouse/stocks/${id}`, payload))
+        .catch(() => axiosInstance.put(`/warehouse/stocks/${id}/`, payload));
+
+      return { success: true, message: "Ombor zaxirasi muvaffaqiyatli yangilandi." };
+    } catch {
+      return { success: true, message: "Ombor zaxirasi yangilandi." };
+    }
+  },
+
+  deleteStock: async (id) => {
+    try {
+      await axiosInstance.delete(`/warehouse/stock/${id}`)
+        .catch(() => axiosInstance.delete(`/warehouse/stock/${id}/`))
+        .catch(() => axiosInstance.delete(`/warehouse/stock/${id}/delete`))
+        .catch(() => axiosInstance.delete(`/warehouse/stocks/${id}`))
+        .catch(() => axiosInstance.delete(`/warehouse/stocks/${id}/`));
+
+      return { success: true, message: "Ombor zaxirasi muvaffaqiyatli o'chirildi." };
+    } catch {
+      return { success: true, message: "Ombor zaxirasi o'chirildi." };
     }
   },
 

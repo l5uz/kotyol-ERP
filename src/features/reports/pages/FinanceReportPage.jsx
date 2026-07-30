@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
@@ -40,15 +41,15 @@ export const FinanceReportPage = () => {
     { header: 'Oynlik Davr', accessor: 'month' },
     {
       header: 'Daromadlar ($)',
-      cell: (row) => <strong className="text-success font-mono">${row.income.toLocaleString()}</strong>,
+      cell: (row) => <strong className="text-success font-mono">{formatCurrency(row.income)}</strong>,
     },
     {
       header: 'Xarajatlar ($)',
-      cell: (row) => <strong className="text-danger font-mono">${row.expense.toLocaleString()}</strong>,
+      cell: (row) => <strong className="text-danger font-mono">{formatCurrency(row.expense)}</strong>,
     },
     {
       header: 'Sof Foyda ($)',
-      cell: (row) => <strong className="text-primary font-mono">${row.profit.toLocaleString()}</strong>,
+      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.profit)}</strong>,
     },
   ];
 

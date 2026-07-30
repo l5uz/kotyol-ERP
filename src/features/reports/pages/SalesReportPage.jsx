@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
@@ -49,7 +50,7 @@ export const SalesReportPage = () => {
     { header: 'Buyurtmalar Soni', accessor: 'orderCount' },
     {
       header: 'Jami Harid Summasi ($)',
-      cell: (row) => <strong className="text-primary font-mono">${row.totalAmount.toLocaleString()}</strong>,
+      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.totalAmount)}</strong>,
     },
   ];
 
@@ -58,7 +59,7 @@ export const SalesReportPage = () => {
     { header: 'Sotilgan Miqdor', cell: (row) => <strong>{row.soldQuantity} dona</strong> },
     {
       header: 'Jami Tushum ($)',
-      cell: (row) => <strong className="text-success font-mono">${row.totalRevenue.toLocaleString()}</strong>,
+      cell: (row) => <strong className="text-success font-mono">{formatCurrency(row.totalRevenue)}</strong>,
     },
   ];
 

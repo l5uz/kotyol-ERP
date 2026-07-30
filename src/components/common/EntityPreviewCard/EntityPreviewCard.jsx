@@ -1,5 +1,6 @@
 import React from 'react';
 import { LuBookOpen, LuTruck, LuBoxes, LuInfo } from 'react-icons/lu';
+import { formatCurrency } from '@/utils/currency.utils';
 
 export const EntityPreviewCard = ({ type, data }) => {
   if (!data) return null;
@@ -18,7 +19,7 @@ export const EntityPreviewCard = ({ type, data }) => {
           </div>
           <div className="d-flex flex-wrap justify-content-between text-main gap-2">
             <span>Masalliqlar: <strong>{data.items ? data.items.length : 0} ta xomashyo</strong></span>
-            <span>Taxminiy Tannarx: <strong className="text-primary">${data.estimatedTotalCost ? data.estimatedTotalCost.toFixed(2) : '0.00'}</strong></span>
+            <span>Taxminiy Tannarx: <strong className="text-primary">{formatCurrency(data.estimatedTotalCost || 0)}</strong></span>
           </div>
         </div>
       );
@@ -50,7 +51,7 @@ export const EntityPreviewCard = ({ type, data }) => {
           </div>
           <div className="d-flex flex-wrap justify-content-between text-main gap-2">
             <span>Kategoriya: <strong>{data.categoryName || 'Sanoat Qismlari'}</strong></span>
-            <span>Harid Narxi: <strong>${data.purchasePrice || 0}</strong></span>
+            <span>Harid Narxi: <strong>{formatCurrency(data.purchasePrice || 0)}</strong></span>
           </div>
         </div>
       );

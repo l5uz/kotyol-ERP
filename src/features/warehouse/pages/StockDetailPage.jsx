@@ -6,6 +6,7 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Timeline } from '@/components/common/Timeline/Timeline';
 import { warehouseApi } from '../api/warehouseApi';
+import { formatCurrency } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const StockDetailPage = () => {
@@ -104,11 +105,11 @@ export const StockDetailPage = () => {
               </div>
               <div>
                 <small className="text-muted-custom d-block">Birlik Narxi Stavkasi:</small>
-                <strong className="text-main">${stockItem.unitPrice.toFixed(2)}</strong>
+                <strong className="text-main">{formatCurrency(stockItem.purchasePrice || stockItem.unitPrice)}</strong>
               </div>
               <div>
                 <small className="text-muted-custom d-block">Jami Ombor Qiymati:</small>
-                <strong className="text-primary fs-6">${stockItem.currentValue.toLocaleString()}</strong>
+                <strong className="text-primary fs-6">{formatCurrency(stockItem.currentValue)}</strong>
               </div>
             </div>
           </Card>
