@@ -391,14 +391,23 @@ export const warehouseApi = {
       console.log("PARSED REVALUATION LOGS:", logs);
 
       const apiRevaluations = logs
-        .filter((l) => l.entity_name === 'WAREHOUSE_STOCK' && (l.action === 'UPDATE_STOCK' || l.action === 'ADJUST_STOCK') && (l.new_values?.avg_unit_cost !== undefined || l.new_values?.purchase_price !== undefined))
+        .filter((l) => {
+          const name = String(l.entity_name || '').toUpperCase();
+          if (name === 'WAREHOUSE_STOCK') {
+            return (l.action === 'UPDATE_STOCK' || l.action === 'ADJUST_STOCK') && (l.new_values?.avg_unit_cost !== undefined || l.new_values?.purchase_price !== undefined);
+          }
+          if (name === 'PRODUCT') {
+            return l.action === 'UPDATE' && (l.new_values?.unit_price !== undefined || l.new_values?.price !== undefined);
+          }
+          return false;
+        })
         .map((l) => {
-          const oldCost = Number(l.old_values?.avg_unit_cost || l.old_values?.purchase_price) || 0;
-          const newCost = Number(l.new_values?.avg_unit_cost || l.new_values?.purchase_price) || 0;
+          const oldCost = Number(l.old_values?.avg_unit_cost || l.old_values?.unit_price || l.old_values?.purchase_price || l.old_values?.price) || 0;
+          const newCost = Number(l.new_values?.avg_unit_cost || l.new_values?.unit_price || l.new_values?.purchase_price || l.new_values?.price) || 0;
           return {
             id: l.id,
             productId: l.entity_id,
-            productName: l.new_values?.product_name || l.old_values?.product_name || 'Mahsulot',
+            productName: l.new_values?.product_name || l.old_values?.product_name || l.new_values?.name || l.old_values?.name || 'Mahsulot',
             previousPrice: oldCost,
             newPrice: newCost,
             priceDifference: newCost - oldCost,
