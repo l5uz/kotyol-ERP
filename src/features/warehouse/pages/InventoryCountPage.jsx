@@ -18,19 +18,30 @@ export const InventoryCountPage = () => {
   }, []);
 
   const loadCountsData = async () => {
-    const [cntRes, stockRes] = await Promise.all([
-      warehouseApi.getInventoryCounts(),
-      warehouseApi.getCurrentStock(),
-    ]);
-    if (cntRes.success) setCounts(cntRes.data);
-    if (stockRes.success) setProducts(stockRes.data);
+    try {
+      const [cntRes, stockRes] = await Promise.all([
+        warehouseApi.getInventoryCounts(),
+        warehouseApi.getCurrentStock(),
+      ]);
+      setCounts(cntRes?.data || []);
+      setProducts(stockRes?.data || []);
+    } catch (err) {
+      console.error(err);
+      setCounts([]);
+      setProducts([]);
+    }
   };
 
   const handleCreateCount = async (formData) => {
-    const res = await warehouseApi.createInventoryCount(formData);
-    notifySuccess(res.message);
-    setIsModalOpen(false);
-    loadCountsData();
+    try {
+      const res = await warehouseApi.createInventoryCount(formData);
+      notifySuccess(res?.message || "Sanoq saqlandi.");
+      setIsModalOpen(false);
+      await loadCountsData();
+    } catch (err) {
+      console.error(err);
+      setIsModalOpen(false);
+    }
   };
 
   const columns = [

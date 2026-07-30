@@ -19,19 +19,30 @@ export const RevaluationPage = () => {
   }, []);
 
   const loadRevaluationsData = async () => {
-    const [revRes, stockRes] = await Promise.all([
-      warehouseApi.getRevaluations(),
-      warehouseApi.getCurrentStock(),
-    ]);
-    if (revRes.success) setRevaluations(revRes.data);
-    if (stockRes.success) setProducts(stockRes.data);
+    try {
+      const [revRes, stockRes] = await Promise.all([
+        warehouseApi.getRevaluations(),
+        warehouseApi.getCurrentStock(),
+      ]);
+      setRevaluations(revRes?.data || []);
+      setProducts(stockRes?.data || []);
+    } catch (err) {
+      console.error(err);
+      setRevaluations([]);
+      setProducts([]);
+    }
   };
 
   const handleCreateRevaluation = async (formData) => {
-    const res = await warehouseApi.createRevaluation(formData);
-    notifySuccess(res.message);
-    setIsModalOpen(false);
-    loadRevaluationsData();
+    try {
+      const res = await warehouseApi.createRevaluation(formData);
+      notifySuccess(res?.message || "Qayta baholash saqlandi.");
+      setIsModalOpen(false);
+      await loadRevaluationsData();
+    } catch (err) {
+      console.error(err);
+      setIsModalOpen(false);
+    }
   };
 
   const columns = [
