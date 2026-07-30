@@ -67,89 +67,91 @@ export const ProductionKanbanBoard = ({
   };
 
   return (
-    <div className="d-flex gap-3 overflow-x-auto pb-4 align-items-start">
-      {dynamicStages.map((col, idx) => {
-        const colOrders = orders.filter((o) => o.status === col.code || o.stage === col.code);
-        const isCollapsed = !!collapsedColumns[col.code];
-        const totalUnits = colOrders.reduce((sum, o) => sum + (o.quantity || 0), 0);
-        const isFinalStage = idx === dynamicStages.length - 1 || col.code === 'COMPLETED';
+    <div style={{ width: '100%', maxWidth: '100%', overflowX: 'auto' }}>
+      <div className="d-flex gap-3 pb-4 align-items-start" style={{ minWidth: 'max-content' }}>
+        {dynamicStages.map((col, idx) => {
+          const colOrders = orders.filter((o) => o.status === col.code || o.stage === col.code);
+          const isCollapsed = !!collapsedColumns[col.code];
+          const totalUnits = colOrders.reduce((sum, o) => sum + (o.quantity || 0), 0);
+          const isFinalStage = idx === dynamicStages.length - 1 || col.code === 'COMPLETED';
 
-        return (
-          <div
-            key={col.code}
-            style={{ width: isCollapsed ? '72px' : '320px', minWidth: isCollapsed ? '72px' : '320px' }}
-            className="transition-all"
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, col.code)}
-          >
+          return (
             <div
-              className={`card h-100 border-custom bg-body-custom rounded-3 shadow-sm ${
-                isFinalStage ? 'border-success border-opacity-50' : ''
-              }`}
+              key={col.code}
+              style={{ width: isCollapsed ? '72px' : '320px', minWidth: isCollapsed ? '72px' : '320px' }}
+              className="transition-all"
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, col.code)}
             >
-              {/* Column Header */}
               <div
-                className={`card-header border-bottom border-custom p-3 d-flex align-items-center justify-content-between cursor-pointer ${
-                  isFinalStage ? 'bg-success bg-opacity-10' : 'bg-surface'
+                className={`card h-100 border-custom bg-body-custom rounded-3 shadow-sm ${
+                  isFinalStage ? 'border-success border-opacity-50' : ''
                 }`}
-                onClick={() => toggleColumnCollapse(col.code)}
               >
-                <div className="d-flex align-items-center gap-2 overflow-hidden">
-                  <span className="text-muted-custom fs-7">
-                    {isCollapsed ? <LuChevronRight /> : <LuChevronDown />}
-                  </span>
-                  {!isCollapsed && (
-                    <div className="text-truncate">
-                      <span className="fw-bold fs-7 font-heading text-main d-block text-truncate">
-                        {col.name} {isFinalStage && <span className="badge bg-success ms-1 fs-9">Maosh Hisoblanadi</span>}
-                      </span>
-                      <small className="text-muted-custom fs-8">Yuklama: {totalUnits} dona</small>
-                    </div>
-                  )}
-                </div>
-                <span
-                  className={`badge border-custom rounded-pill fs-8 fw-semibold px-2 ${
-                    isFinalStage ? 'bg-success text-white' : 'bg-primary bg-opacity-10 text-primary'
+                {/* Column Header */}
+                <div
+                  className={`card-header border-bottom border-custom p-3 d-flex align-items-center justify-content-between cursor-pointer ${
+                    isFinalStage ? 'bg-success bg-opacity-10' : 'bg-surface'
                   }`}
+                  onClick={() => toggleColumnCollapse(col.code)}
                 >
-                  {colOrders.length}
-                </span>
-              </div>
-
-              {/* Column Body */}
-              {!isCollapsed && (
-                <div className="card-body p-2 d-flex flex-column gap-2 min-vh-50 overflow-y-auto">
-                  {colOrders.length === 0 ? (
-                    <div className="text-center py-4 text-muted-custom fs-8 border border-dashed rounded-3 border-custom">
-                      Topshiriqlar mavjud emas
-                    </div>
-                  ) : (
-                    colOrders.map((order) => (
-                      <KanbanCard
-                        key={order.id}
-                        order={order}
-                        onClick={() => onCardClick && onCardClick(order)}
-                        onDragStart={(e) => handleDragStart(e, order.id)}
-                        stages={dynamicStages}
-                        onMoveStage={(newStage) => {
-                          if (onStageChange) onStageChange(order.id, newStage);
-                          if (newStage === 'COMPLETED') {
-                            const empName = order.assignedEmployees?.[0] || 'Usta (Ishchi)';
-                            const amount = (order.quantity || 1) * 150000;
-                            notifySuccess(
-                              `'${order.title}' topshirig'i bajarildi! Xodim (${empName}) hisobiga ${amount.toLocaleString()} UZS ish haqi qo'shildi!`
-                            );
-                          }
-                        }}
-                      />
-                    ))
-                  )}
+                  <div className="d-flex align-items-center gap-2 overflow-hidden">
+                    <span className="text-muted-custom fs-7">
+                      {isCollapsed ? <LuChevronRight /> : <LuChevronDown />}
+                    </span>
+                    {!isCollapsed && (
+                      <div className="text-truncate">
+                        <span className="fw-bold fs-7 font-heading text-main d-block text-truncate">
+                          {col.name} {isFinalStage && <span className="badge bg-success ms-1 fs-9">Maosh Hisoblanadi</span>}
+                        </span>
+                        <small className="text-muted-custom fs-8">Yuklama: {totalUnits} dona</small>
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className={`badge border-custom rounded-pill fs-8 fw-semibold px-2 ${
+                      isFinalStage ? 'bg-success text-white' : 'bg-primary bg-opacity-10 text-primary'
+                    }`}
+                  >
+                    {colOrders.length}
+                  </span>
                 </div>
-              )}
+
+                {/* Column Body */}
+                {!isCollapsed && (
+                  <div className="card-body p-2 d-flex flex-column gap-2 min-vh-50 overflow-y-auto">
+                    {colOrders.length === 0 ? (
+                      <div className="text-center py-4 text-muted-custom fs-8 border border-dashed rounded-3 border-custom">
+                        Topshiriqlar mavjud emas
+                      </div>
+                    ) : (
+                      colOrders.map((order) => (
+                        <KanbanCard
+                          key={order.id}
+                          order={order}
+                          onClick={() => onCardClick && onCardClick(order)}
+                          onDragStart={(e) => handleDragStart(e, order.id)}
+                          stages={dynamicStages}
+                          onMoveStage={(newStage) => {
+                            if (onStageChange) onStageChange(order.id, newStage);
+                            if (newStage === 'COMPLETED') {
+                              const empName = order.assignedEmployees?.[0] || 'Usta (Ishchi)';
+                              const amount = (order.quantity || 1) * 150000;
+                              notifySuccess(
+                                `'${order.title}' topshirig'i bajarildi! Xodim (${empName}) hisobiga ${amount.toLocaleString()} UZS ish haqi qo'shildi!`
+                              );
+                            }
+                          }}
+                        />
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };
