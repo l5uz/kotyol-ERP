@@ -391,18 +391,18 @@ export const warehouseApi = {
       console.log("PARSED REVALUATION LOGS:", logs);
 
       const apiRevaluations = logs
-        .filter((l) => l.entity_name === 'STOCK' && l.action === 'UPDATE' && (l.new_values?.avg_unit_cost !== undefined || l.new_values?.unit_price !== undefined || l.new_values?.purchase_price !== undefined))
+        .filter((l) => l.entity_name === 'WAREHOUSE_STOCK' && (l.action === 'UPDATE_STOCK' || l.action === 'ADJUST_STOCK') && (l.new_values?.avg_unit_cost !== undefined || l.new_values?.purchase_price !== undefined))
         .map((l) => {
-          const oldCost = Number(l.old_values?.avg_unit_cost || l.old_values?.unit_price || l.old_values?.purchase_price) || 0;
-          const newCost = Number(l.new_values?.avg_unit_cost || l.new_values?.unit_price || l.new_values?.purchase_price) || 0;
+          const oldCost = Number(l.old_values?.avg_unit_cost || l.old_values?.purchase_price) || 0;
+          const newCost = Number(l.new_values?.avg_unit_cost || l.new_values?.purchase_price) || 0;
           return {
             id: l.id,
             productId: l.entity_id,
-            productName: l.new_values?.product_name || 'Mahsulot',
+            productName: l.new_values?.product_name || l.old_values?.product_name || 'Mahsulot',
             previousPrice: oldCost,
             newPrice: newCost,
             priceDifference: newCost - oldCost,
-            reason: l.new_values?.notes || 'Qayta baholash',
+            reason: l.new_values?.notes || l.old_values?.notes || 'Qayta baholash',
             notes: l.new_values?.description || '',
             createdBy: 'Mas\'ul Xodim',
             createdDate: l.created_at ? l.created_at.replace('T', ' ').slice(0, 16) : new Date().toISOString().replace('T', ' ').slice(0, 16),
@@ -480,19 +480,19 @@ export const warehouseApi = {
       console.log("PARSED INVENTORY COUNT LOGS:", logs);
 
       const apiCounts = logs
-        .filter((l) => l.entity_name === 'STOCK' && l.action === 'UPDATE' && l.new_values?.quantity !== undefined)
+        .filter((l) => l.entity_name === 'WAREHOUSE_STOCK' && (l.action === 'ADJUST_STOCK' || l.action === 'UPDATE_STOCK') && l.new_values?.quantity !== undefined)
         .map((l) => {
           const oldQty = Number(l.old_values?.quantity) || 0;
           const newQty = Number(l.new_values?.quantity) || 0;
           return {
             id: l.id,
             productId: l.entity_id,
-            productName: l.new_values?.product_name || 'Mahsulot',
+            productName: l.new_values?.product_name || l.old_values?.product_name || 'Mahsulot',
             unitName: 'dona',
             systemQuantity: oldQty,
             actualQuantity: newQty,
             difference: newQty - oldQty,
-            reason: l.new_values?.notes || 'Sanoq',
+            reason: l.new_values?.notes || l.old_values?.notes || 'Sanoq',
             notes: l.new_values?.description || '',
             status: 'ADJUSTED',
             countDate: l.created_at ? l.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
