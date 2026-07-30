@@ -40,6 +40,9 @@ const mapStock = (item) => {
 const isValidUUID = (str) =>
   typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
+const sessionRevaluations = [];
+const sessionCounts = [];
+
 export const warehouseApi = {
   // Warehouses List Endpoints (Connected to /master-data/warehouses API)
   getWarehouses: async () => {
