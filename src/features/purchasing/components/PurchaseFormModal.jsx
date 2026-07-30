@@ -59,11 +59,12 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
         setFormData(draft);
       } else {
         const autoNumber = documentNumberingService.generateNumber('PURCHASING');
+        const autoInvoiceNumber = documentNumberingService.generateNumber('INVOICE');
         setFormData({
           purchaseNumber: autoNumber,
           supplierId: '',
           warehouseId: '',
-          invoiceNumber: '',
+          invoiceNumber: autoInvoiceNumber,
           orderDate: new Date().toISOString().split('T')[0],
           currency: 'USD',
           taxRate: 12,
@@ -218,8 +219,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
             <Input
               label="Schyot-Faktura №"
               value={formData.invoiceNumber}
-              onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
-              placeholder="Masalan: INV-2026-901"
+              readOnly
             />
           </div>
 
