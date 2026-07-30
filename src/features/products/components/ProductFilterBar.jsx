@@ -23,7 +23,7 @@ export const ProductFilterBar = ({
         <SearchInput
           value={search}
           onChange={onSearchChange}
-          placeholder="Nomi, ichki kodi yoki shtrix-kodi bo'yicha..."
+          placeholder="Nomi yoki ichki kodi bo'yicha..."
         />
       </div>
       <div className="col-12 col-sm-6 col-md-2">

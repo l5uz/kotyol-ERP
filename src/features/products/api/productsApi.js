@@ -27,7 +27,6 @@ const mapProduct = (item) => {
     id: item.id,
     name: item.name,
     internalCode: item.code,
-    barcode: item.barcode || `478000${Math.floor(1000000 + Math.random() * 9000000)}`,
     qrCode: item.qrCode || `QR-PROD-${item.id?.slice(-4)}`,
     categoryId,
     categoryName,
@@ -42,7 +41,17 @@ const mapProduct = (item) => {
     minStock: item.min_stock_level || 0,
     currentStock: item.current_stock || 0,
     status: item.status,
-    description: item.description || 'Sanoat mahsuloti xomashyosi.',
+    description: (() => {
+      let d = item.description || '';
+      if (d.trim().startsWith('{')) {
+        try {
+          return JSON.parse(d).description || 'Sanoat mahsuloti xomashyosi.';
+        } catch {
+          return 'Sanoat mahsuloti xomashyosi.';
+        }
+      }
+      return d || 'Sanoat mahsuloti xomashyosi.';
+    })(),
     image: null,
   };
 };

@@ -28,7 +28,6 @@ export const ProductFormModal = ({
   const [formData, setFormData] = useState({
     name: '',
     internalCode: '',
-    barcode: '',
     categoryId: categoryOptions[0]?.value || '',
     materialTypeId: materialOptions[0]?.value || '',
     unitId: unitOptions[0]?.value || '',
@@ -46,7 +45,6 @@ export const ProductFormModal = ({
       setFormData({
         name: product.name || '',
         internalCode: product.internalCode || '',
-        barcode: product.barcode || '',
         categoryId: product.categoryId || (categoryOptions[0]?.value || ''),
         materialTypeId: product.materialTypeId || (materialOptions[0]?.value || ''),
         unitId: product.unitId || (unitOptions[0]?.value || ''),
@@ -62,7 +60,6 @@ export const ProductFormModal = ({
       setFormData({
         name: '',
         internalCode: `SKU-MAT-${Math.floor(100 + Math.random() * 900)}`,
-        barcode: '',
         categoryId: categoryOptions[0]?.value || '',
         materialTypeId: materialOptions[0]?.value || '',
         unitId: unitOptions[0]?.value || '',
@@ -252,15 +249,7 @@ export const ProductFormModal = ({
               required
             />
           </div>
-          <div className="col-12 col-md-6">
-            <Input
-              label="Shtrix-kod"
-              placeholder="4780001234567"
-              value={formData.barcode}
-              onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-            />
-          </div>
-          <div className="col-12 col-md-6">
+          <div className="col-12 col-md-12">
             <Select
               label="Status"
               value={formData.status}

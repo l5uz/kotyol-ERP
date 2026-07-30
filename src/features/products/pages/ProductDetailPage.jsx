@@ -87,7 +87,6 @@ export const ProductDetailPage = () => {
             <div className="p-3 bg-body-custom rounded-3 border-custom text-center mb-3">
               <i className="bi bi-qr-code fs-1 text-primary d-block mb-1"></i>
               <strong className="fs-8 text-main d-block">{product.qrCode}</strong>
-              <small className="text-muted-custom fs-8">Shtrix-kod: {product.barcode}</small>
             </div>
 
             <div className="text-start fs-7 d-flex flex-column gap-2">
