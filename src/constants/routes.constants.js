@@ -78,8 +78,8 @@ export const ROUTES = {
     SUPPLIERS_DETAIL: '/suppliers/:id',
 
     // Products & Raw Materials Sub-Routes
-    PRODUCTS: '/products',
-    PRODUCTS_DETAIL: '/products/:id',
+    PRODUCTS: '/warehouse/stock',
+    PRODUCTS_DETAIL: '/warehouse/stock/:id',
 
     // Employees HR Sub-Routes
     EMPLOYEES: '/employees',

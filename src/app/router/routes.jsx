@@ -169,8 +169,8 @@ export const router = createBrowserRouter([
           // Warehouse Routes
           { path: '/warehouse', element: <Navigate to="/warehouse/list" replace /> },
           { path: '/warehouse/list', element: <WarehousesListPage /> },
-          { path: '/warehouse/stock', element: <WarehousePage /> },
-          { path: '/warehouse/stock/:id', element: <StockDetailPage /> },
+          { path: '/warehouse/stock', element: <ProductsPage /> },
+          { path: '/warehouse/stock/:id', element: <ProductDetailPage /> },
           { path: '/warehouse/movements', element: <MovementsPage /> },
           { path: '/warehouse/movements/:id', element: <MovementDetailPage /> },
           { path: '/warehouse/revaluation', element: <RevaluationPage /> },
@@ -185,8 +185,8 @@ export const router = createBrowserRouter([
           { path: '/suppliers/:id', element: <SupplierDetailPage /> },
 
           // Products & Raw Materials Routes
-          { path: '/products', element: <ProductsPage /> },
-          { path: '/products/:id', element: <ProductDetailPage /> },
+          { path: '/products', element: <Navigate to="/warehouse/stock" replace /> },
+          { path: '/products/:id', element: <Navigate to="/warehouse/stock/:id" replace /> },
 
           // Employees HR Routes
           { path: '/employees', element: <EmployeesPage /> },
