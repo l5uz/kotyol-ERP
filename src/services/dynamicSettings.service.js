@@ -1,25 +1,24 @@
 import { STORAGE_KEYS } from '@/constants/storage.constants';
-import {
-  MOCK_CURRENCIES,
-  MOCK_WAREHOUSES,
-  MOCK_PRODUCT_CATEGORIES,
-  MOCK_MATERIAL_TYPES,
-  MOCK_UNITS,
-  MOCK_EXPENSE_TYPES,
-  MOCK_DEFECT_REASONS,
-  MOCK_SERVICE_TYPES,
-  MOCK_WARRANTY_TYPES,
-  MOCK_INSURANCE_TYPES,
-  MOCK_PRODUCTION_STAGES,
-  MOCK_ROLES,
-  MOCK_MOVEMENT_TYPES,
-  MOCK_MOVEMENT_REASONS,
-  MOCK_REVALUATION_REASONS,
-  MOCK_INVENTORY_REASONS,
-} from '@/features/settings/constants/settings.mock';
 
-import { MOCK_POSITIONS, MOCK_SALARY_TYPES } from '@/features/employees/constants/employees.mock';
-import { MOCK_SUPPLIERS } from '@/features/suppliers/constants/suppliers.mock';
+const MOCK_CURRENCIES = [];
+const MOCK_WAREHOUSES = [];
+const MOCK_PRODUCT_CATEGORIES = [];
+const MOCK_MATERIAL_TYPES = [];
+const MOCK_UNITS = [];
+const MOCK_EXPENSE_TYPES = [];
+const MOCK_DEFECT_REASONS = [];
+const MOCK_SERVICE_TYPES = [];
+const MOCK_WARRANTY_TYPES = [];
+const MOCK_INSURANCE_TYPES = [];
+const MOCK_PRODUCTION_STAGES = [];
+const MOCK_ROLES = [];
+const MOCK_MOVEMENT_TYPES = [];
+const MOCK_MOVEMENT_REASONS = [];
+const MOCK_REVALUATION_REASONS = [];
+const MOCK_INVENTORY_REASONS = [];
+const MOCK_POSITIONS = [];
+const MOCK_SALARY_TYPES = [];
+const MOCK_SUPPLIERS = [];
 import { dataIntegrityService } from './dataIntegrity.service';
 
 export const MOCK_SUPPLIER_CATEGORIES = [

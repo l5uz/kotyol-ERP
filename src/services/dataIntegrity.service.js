@@ -1,12 +1,13 @@
-import { MOCK_EMPLOYEES } from '@/features/employees/constants/employees.mock';
-import { MOCK_PRODUCTS } from '@/features/products/constants/products.mock';
-import { MOCK_PURCHASES } from '@/features/purchasing/constants/purchasing.mock';
-import { MOCK_SALES } from '@/features/sales/constants/sales.mock';
-import { MOCK_ORDERS } from '@/features/orders/constants/orders.mock';
-import { MOCK_CUSTOMERS } from '@/features/customers/constants/customers.mock';
-import { MOCK_SERVICES } from '@/features/services/constants/services.mock';
-import { MOCK_EXPENSES } from '@/features/finance/constants/finance.mock';
-import { MOCK_CURRENT_STOCK, MOCK_STOCK_MOVEMENTS } from '@/features/warehouse/constants/warehouse.mock';
+const MOCK_EMPLOYEES = [];
+const MOCK_PRODUCTS = [];
+const MOCK_PURCHASES = [];
+const MOCK_SALES = [];
+const MOCK_ORDERS = [];
+const MOCK_CUSTOMERS = [];
+const MOCK_SERVICES = [];
+const MOCK_EXPENSES = [];
+const MOCK_CURRENT_STOCK = [];
+const MOCK_STOCK_MOVEMENTS = [];
 
 export const dataIntegrityService = {
   /**

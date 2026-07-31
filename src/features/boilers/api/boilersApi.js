@@ -1,4 +1,3 @@
-import { MOCK_BOILERS } from '../constants/boilers.mock';
 import { recipesApi } from '@/features/recipes/api/recipesApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { axiosInstance } from '@/api/axiosInstance';

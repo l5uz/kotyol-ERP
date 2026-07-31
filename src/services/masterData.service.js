@@ -1,8 +1,9 @@
 import { dynamicSettingsService } from './dynamicSettings.service';
-import { MOCK_PRODUCTS } from '@/features/products/constants/products.mock';
-import { MOCK_SUPPLIERS } from '@/features/suppliers/constants/suppliers.mock';
-import { MOCK_EMPLOYEES } from '@/features/employees/constants/employees.mock';
-import { MOCK_RECIPES } from '@/features/recipes/constants/recipes.mock';
+
+const MOCK_PRODUCTS = [];
+const MOCK_SUPPLIERS = [];
+const MOCK_EMPLOYEES = [];
+const MOCK_RECIPES = [];
 
 export const masterDataService = {
   // Master Entities Getters

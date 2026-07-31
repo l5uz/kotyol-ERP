@@ -1,5 +1,6 @@
-import { MOCK_PURCHASES } from '@/features/purchasing/constants/purchasing.mock';
-import { MOCK_CURRENT_STOCK, MOCK_STOCK_MOVEMENTS } from '@/features/warehouse/constants/warehouse.mock';
+const MOCK_PURCHASES = [];
+const MOCK_CURRENT_STOCK = [];
+const MOCK_STOCK_MOVEMENTS = [];
 import { masterDataService } from './masterData.service';
 
 export const transactionDataService = {
