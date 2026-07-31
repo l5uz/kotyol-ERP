@@ -7,4 +7,3 @@ export * from './components/FinanceFilterBar';
 export * from './components/ExpenseFormModal';
 export * from './components/FinanceCharts';
 export * from './api/financeApi';
-export * from './constants/finance.mock';

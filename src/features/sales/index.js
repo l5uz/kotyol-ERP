@@ -4,4 +4,3 @@ export * from './components/SalesSubNav';
 export * from './components/SalesFilterBar';
 export * from './components/SaleFormModal';
 export * from './api/salesApi';
-export * from './constants/sales.mock';

@@ -4,4 +4,3 @@ export * from './components/OrdersSubNav';
 export * from './components/OrderFilterBar';
 export * from './components/OrderFormModal';
 export * from './api/ordersApi';
-export * from './constants/orders.mock';

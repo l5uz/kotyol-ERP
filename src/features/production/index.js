@@ -6,4 +6,3 @@ export * from './components/ProductionFormModal';
 export * from './components/ProductionKanbanBoard';
 export * from './components/ProductionCardDrawer';
 export * from './api/productionApi';
-export * from './constants/production.mock';

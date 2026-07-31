@@ -9,4 +9,3 @@ export * from './components/ReportsFilterBar';
 export * from './components/ReportExportButtons';
 export * from './components/ReportChartCard';
 export * from './api/reportsApi';
-export * from './constants/reports.mock';
