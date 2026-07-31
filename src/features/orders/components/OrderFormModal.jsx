@@ -45,6 +45,7 @@ export const OrderFormModal = ({
 
   const [formData, setFormData] = useState({
     orderNumber: '',
+    orderName: '',
     orderDate: new Date().toISOString().split('T')[0],
     customerId: '',
     boilerId: '',
@@ -60,6 +61,7 @@ export const OrderFormModal = ({
     if (order) {
       setFormData({
         orderNumber: order.orderNumber || '',
+        orderName: order.orderName || '',
         orderDate: order.orderDate || new Date().toISOString().split('T')[0],
         customerId: order.customerId || (customerOptions[0]?.value || ''),
         boilerId: order.boilerId || (boilerOptions[0]?.value || ''),
@@ -82,6 +84,7 @@ export const OrderFormModal = ({
 
       setFormData({
         orderNumber: autoNum,
+        orderName: '',
         orderDate: new Date().toISOString().split('T')[0],
         customerId: firstCust ? firstCust.id : '',
         boilerId: firstBoil ? firstBoil.id : '',
@@ -178,7 +181,13 @@ export const OrderFormModal = ({
         {/* Document Auto-Number & Core Fields */}
         <div className="row g-3 mb-3">
           <div className="col-12 col-md-4">
-            <Input label="Buyurtma Hujjati №" value={formData.orderNumber} readOnly />
+            <Input
+              label="Buyurtma Nomi"
+              value={formData.orderName}
+              onChange={(e) => handleFieldChange('orderName', e.target.value)}
+              placeholder="Masalan, Toshkent Sh. Buyurtmasi"
+              required
+            />
           </div>
 
           <div className="col-12 col-md-4">

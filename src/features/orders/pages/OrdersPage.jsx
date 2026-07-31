@@ -97,11 +97,11 @@ export const OrdersPage = () => {
 
   const columns = [
     {
-      header: 'Buyurtma №',
+      header: 'Buyurtma Nomi',
       cell: (row) => (
         <div>
           <Link to={`${ROUTES.PROTECTED.ORDERS}/${row.id}`} className="fw-bold text-primary text-decoration-none fs-7">
-            {row.orderNumber}
+            {row.orderName || row.orderNumber}
           </Link>
           <small className="d-block text-muted-custom fs-8">Sana: {row.orderDate}</small>
         </div>

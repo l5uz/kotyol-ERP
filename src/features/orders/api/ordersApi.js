@@ -12,6 +12,7 @@ export const ordersApi = {
       result = result.filter(
         (o) =>
           o.orderNumber.toLowerCase().includes(q) ||
+          (o.orderName && o.orderName.toLowerCase().includes(q)) ||
           o.customerName.toLowerCase().includes(q) ||
           o.boilerModelName.toLowerCase().includes(q)
       );
