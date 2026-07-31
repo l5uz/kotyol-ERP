@@ -48,16 +48,6 @@ export const settingsApi = {
     };
   },
 
-  getCurrencies: async () => {
-    const response = await axiosInstance.get('/master-data/currencies');
-    return { success: true, data: response.data || [] };
-  },
-
-  getWarehouses: async () => {
-    const response = await axiosInstance.get('/master-data/warehouses');
-    return { success: true, data: response.data || [] };
-  },
-
   getCategories: async () => {
     try {
       const response = await axiosInstance.get('/master-data/product-categories');
@@ -217,44 +207,189 @@ export const settingsApi = {
     const response = await axiosInstance.get('/master-data/units');
     return { success: true, data: response.data || [] };
   },
+  createUnit: async (payload) => {
+    const response = await axiosInstance.post('/master-data/units', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/units/create', payload);
+    });
+    return { success: true, data: response.data };
+  },
+  updateUnit: async (id, payload) => {
+    const response = await axiosInstance.put(`/master-data/units/${id}`, payload);
+    return { success: true, data: response.data };
+  },
+  deleteUnit: async (id) => {
+    await axiosInstance.delete(`/master-data/units/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/units/${id}/delete`);
+    });
+    return { success: true };
+  },
 
   getExpenseTypes: async () => {
     const response = await axiosInstance.get('/master-data/expense-types');
     return { success: true, data: response.data || [] };
+  },
+  createExpenseType: async (payload) => {
+    const response = await axiosInstance.post('/master-data/expense-types', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/expense-types/create', payload);
+    });
+    return { success: true, data: response.data };
+  },
+  updateExpenseType: async (id, payload) => {
+    const response = await axiosInstance.put(`/master-data/expense-types/${id}`, payload);
+    return { success: true, data: response.data };
+  },
+  deleteExpenseType: async (id) => {
+    await axiosInstance.delete(`/master-data/expense-types/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/expense-types/${id}/delete`);
+    });
+    return { success: true };
   },
 
   getDefectReasons: async () => {
     const response = await axiosInstance.get('/master-data/defect-reasons');
     return { success: true, data: response.data || [] };
   },
+  createDefectReason: async (payload) => {
+    const response = await axiosInstance.post('/master-data/defect-reasons', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/defect-reasons/create', payload);
+    });
+    return { success: true, data: response.data };
+  },
+  updateDefectReason: async (id, payload) => {
+    const response = await axiosInstance.put(`/master-data/defect-reasons/${id}`, payload);
+    return { success: true, data: response.data };
+  },
+  deleteDefectReason: async (id) => {
+    await axiosInstance.delete(`/master-data/defect-reasons/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/defect-reasons/${id}/delete`);
+    });
+    return { success: true };
+  },
 
   getServiceTypes: async () => {
     const response = await axiosInstance.get('/master-data/service-types');
     return { success: true, data: response.data || [] };
+  },
+  createServiceType: async (payload) => {
+    const response = await axiosInstance.post('/master-data/service-types', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/service-types/create', payload);
+    });
+    return { success: true, data: response.data };
+  },
+  updateServiceType: async (id, payload) => {
+    const response = await axiosInstance.put(`/master-data/service-types/${id}`, payload);
+    return { success: true, data: response.data };
+  },
+  deleteServiceType: async (id) => {
+    await axiosInstance.delete(`/master-data/service-types/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/service-types/${id}/delete`);
+    });
+    return { success: true };
   },
 
   getWarrantyTypes: async () => {
     const response = await axiosInstance.get('/master-data/warranty-types');
     return { success: true, data: response.data || [] };
   },
+  createWarrantyType: async (payload) => {
+    const response = await axiosInstance.post('/master-data/warranty-types', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/warranty-types/create', payload);
+    });
+    return { success: true, data: response.data };
+  },
+  updateWarrantyType: async (id, payload) => {
+    const response = await axiosInstance.put(`/master-data/warranty-types/${id}`, payload);
+    return { success: true, data: response.data };
+  },
+  deleteWarrantyType: async (id) => {
+    await axiosInstance.delete(`/master-data/warranty-types/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/warranty-types/${id}/delete`);
+    });
+    return { success: true };
+  },
+
+  getCurrencies: async () => {
+    const response = await axiosInstance.get('/master-data/currencies');
+    return { success: true, data: response.data || [] };
+  },
+  createCurrency: async (payload) => {
+    const response = await axiosInstance.post('/master-data/currencies', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/currencies/create', payload);
+    });
+    return { success: true, data: response.data };
+  },
+  updateCurrency: async (id, payload) => {
+    const response = await axiosInstance.put(`/master-data/currencies/${id}`, payload);
+    return { success: true, data: response.data };
+  },
+  deleteCurrency: async (id) => {
+    await axiosInstance.delete(`/master-data/currencies/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/currencies/${id}/delete`);
+    });
+    return { success: true };
+  },
+
+  getWarehouses: async () => {
+    const response = await axiosInstance.get('/master-data/warehouses');
+    return { success: true, data: response.data || [] };
+  },
+  createWarehouse: async (payload) => {
+    const response = await axiosInstance.post('/master-data/warehouses', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/warehouses/create', payload);
+    });
+    return { success: true, data: response.data };
+  },
+  updateWarehouse: async (id, payload) => {
+    const response = await axiosInstance.put(`/master-data/warehouses/${id}`, payload);
+    return { success: true, data: response.data };
+  },
+  deleteWarehouse: async (id) => {
+    await axiosInstance.delete(`/master-data/warehouses/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/warehouses/${id}/delete`);
+    });
+    return { success: true };
+  },
+
+  getRoles: async () => {
+    const response = await axiosInstance.get('/master-data/roles');
+    return { success: true, data: response.data || [] };
+  },
+  createRole: async (payload) => {
+    const response = await axiosInstance.post('/master-data/roles', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/roles/create', payload);
+    });
+    return { success: true, data: response.data };
+  },
+  updateRole: async (id, payload) => {
+    const response = await axiosInstance.put(`/master-data/roles/${id}`, payload);
+    return { success: true, data: response.data };
+  },
+  deleteRole: async (id) => {
+    await axiosInstance.delete(`/master-data/roles/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/roles/${id}/delete`);
+    });
+    return { success: true };
+  },
+
+  getPermissionsMatrix: async () => {
+    const response = await axiosInstance.get('/master-data/permissions-matrix');
+    return { success: true, data: response.data || {} };
+  },
 
   getInsuranceTypes: async () => {
     const response = await axiosInstance.get('/master-data/insurance-types');
     return { success: true, data: response.data || [] };
   },
-
   createInsuranceType: async (payload) => {
     const response = await axiosInstance.post('/master-data/insurance-types', payload).catch(async () => {
       return await axiosInstance.post('/master-data/insurance-types/create', payload);
     });
     return { success: true, data: response.data };
   },
-
   updateInsuranceType: async (id, payload) => {
     const response = await axiosInstance.put(`/master-data/insurance-types/${id}`, payload);
     return { success: true, data: response.data };
   },
-
   deleteInsuranceType: async (id) => {
     await axiosInstance.delete(`/master-data/insurance-types/${id}`).catch(async () => {
       return await axiosInstance.delete(`/master-data/insurance-types/${id}/delete`);
@@ -304,15 +439,5 @@ export const settingsApi = {
   updateStagesOrder: async (stages) => {
     await new Promise((res) => setTimeout(res, 400));
     return { success: true, data: stages, message: "Texnologik bosqichlar ketma-ketligi saqlandi." };
-  },
-
-  getRoles: async () => {
-    const response = await axiosInstance.get('/master-data/roles');
-    return { success: true, data: response.data || [] };
-  },
-
-  getPermissionsMatrix: async () => {
-    const response = await axiosInstance.get('/master-data/permissions-matrix');
-    return { success: true, data: response.data || {} };
   },
 };

@@ -1,19 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/common/Card/Card';
 import { Button } from '@/components/common/Button/Button';
 import { Select } from '@/components/common/Select/Select';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { PermissionMatrixTable } from '../components/PermissionMatrixTable';
-import { MOCK_PERMISSIONS_MATRIX } from '../constants/settings.mock';
+import { settingsApi } from '../api/settingsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { notifySuccess } from '@/services/notification.service';
-import { ERP_ICONS } from '@/shared/icons';
+import { LuCheck } from 'react-icons/lu';
 
 export const PermissionsSettingsPage = () => {
   const roleOptions = dynamicSettingsService.getRoleOptions();
   const [selectedRole, setSelectedRole] = useState(roleOptions[0]?.value || 'Administrator');
-  const [matrix, setMatrix] = useState(MOCK_PERMISSIONS_MATRIX.SUPER_ADMIN);
+  const [matrix, setMatrix] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => { loadData(); }, []);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    const res = await settingsApi.getPermissionsMatrix();
+    if (res.success && res.data) {
+      const data = res.data;
+      setMatrix(data.SUPER_ADMIN || data[selectedRole] || data || {});
+    }
+    setIsLoading(false);
+  };
 
   const handleTogglePermission = (moduleKey, actionKey) => {
     setMatrix((prev) => {
@@ -51,14 +64,14 @@ export const PermissionsSettingsPage = () => {
               onChange={(e) => setSelectedRole(e.target.value)}
               options={roleOptions}
             />
-            <Button variant="primary" size="sm" icon={ERP_ICONS.CHECK} onClick={handleSave}>
+            <Button variant="primary" size="sm" icon={<LuCheck />} onClick={handleSave}>
               Saqlash
             </Button>
           </div>
         }
       />
 
-      <Card title={`'${selectedRole}' Roli uchun Modullar Huquqlari Matritsasi`}>
+      <Card title={`'${selectedRole}' Roli uchun Modullar Huquqlari Matritsasi`} isLoading={isLoading}>
         <PermissionMatrixTable matrix={matrix} onTogglePermission={handleTogglePermission} />
       </Card>
     </div>
