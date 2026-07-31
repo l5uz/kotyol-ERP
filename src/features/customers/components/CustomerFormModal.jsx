@@ -197,7 +197,7 @@ export const CustomerFormModal = ({
 
           {showAdvanced && (
             <div className="row g-3 pt-3 border-top border-custom mt-2">
-              <div className="col-12 col-md-4">
+              <div className="col-12 col-md-6">
                 <Input
                   label="Qo'shimcha Telefon Raqami"
                   placeholder="+998 71 200 11 22"
@@ -206,17 +206,7 @@ export const CustomerFormModal = ({
                 />
               </div>
 
-              <div className="col-12 col-md-4">
-                <Input
-                  label="Elektron Pochta"
-                  type="email"
-                  placeholder="info@orienta.uz"
-                  value={formData.email}
-                  onChange={(e) => handleFieldChange('email', e.target.value)}
-                />
-              </div>
-
-              <div className="col-12 col-md-4">
+              <div className="col-12 col-md-6">
                 <Select
                   label="Status"
                   value={formData.status}
@@ -225,24 +215,6 @@ export const CustomerFormModal = ({
                     { value: 'ACTIVE', label: 'Faol — Hamkorlikda' },
                     { value: 'INACTIVE', label: 'Nofaol' },
                   ]}
-                />
-              </div>
-
-              <div className="col-12 col-md-6">
-                <Input
-                  label="STIR (Yuridik shaxslar uchun)"
-                  placeholder="305981244"
-                  value={formData.tin}
-                  onChange={(e) => handleFieldChange('tin', e.target.value)}
-                />
-              </div>
-
-              <div className="col-12 col-md-6">
-                <Input
-                  label="Pasport / JShSHIR"
-                  placeholder="AA 9876543 / 3120495810023"
-                  value={formData.passport}
-                  onChange={(e) => handleFieldChange('passport', e.target.value)}
                 />
               </div>
 
