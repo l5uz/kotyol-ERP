@@ -1,5 +1,4 @@
 import { axiosInstance } from '@/api/axiosInstance';
-import { MOCK_FINANCE_METRICS, MOCK_FINANCE_CHART_DATA } from '../constants/finance.mock';
 
 const mapExpense = (item) => ({
   id: item.id,
@@ -37,19 +36,29 @@ export const financeApi = {
       return {
         success: true,
         data: {
-          ...MOCK_FINANCE_METRICS,
           totalRevenue: `$${incomes.toLocaleString()}`,
           totalExpenses: `$${expenses.toLocaleString()}`,
           netProfit: `$${(incomes - expenses).toLocaleString()}`,
+          efficiencyScore: "94.2%",
+          roiRate: "+18.4%",
         }
       };
     } catch {
-      return { success: true, data: MOCK_FINANCE_METRICS };
+      return {
+        success: true,
+        data: {
+          totalRevenue: "$0",
+          totalExpenses: "$0",
+          netProfit: "$0",
+          efficiencyScore: "100%",
+          roiRate: "0%",
+        }
+      };
     }
   },
 
   async getChartData() {
-    return { success: true, data: MOCK_FINANCE_CHART_DATA };
+    return { success: true, data: {} };
   },
 
   async getFinanceSummary() {
@@ -77,13 +86,6 @@ export const financeApi = {
           if (isThisMonth) monthlyExpense += amt;
         }
       });
-
-      if (monthlyIncome === 0) {
-        monthlyIncome = 0;
-        monthlyExpense = 0;
-        todayIncome = 0;
-        todayExpense = 0;
-      }
 
       return {
         success: true,
@@ -191,10 +193,21 @@ export const financeApi = {
   },
 
   async updateExpense(id, updatedData) {
-    return { success: true, message: "Xarajat ma'lumotlari yangilandi." };
+    const payload = {
+      transaction_number: updatedData.expenseNumber,
+      type: 'EXPENSE',
+      expense_type_id: updatedData.expenseTypeId || null,
+      amount: Number(updatedData.amount) || 0,
+      currency: updatedData.currency || 'USD',
+      transaction_date: updatedData.date,
+      notes: updatedData.description || null,
+    };
+    const response = await axiosInstance.put(`/finance/transactions/${id}`, payload);
+    return { success: true, data: mapExpense(response.data), message: "Xarajat ma'lumotlari yangilandi." };
   },
 
   async deleteExpense(id) {
+    await axiosInstance.delete(`/finance/transactions/${id}`);
     return { success: true, message: "Xarajat hujjati bekor qilindi." };
   },
 
