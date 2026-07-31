@@ -2,10 +2,37 @@ import { recipesApi } from '@/features/recipes/api/recipesApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { axiosInstance } from '@/api/axiosInstance';
 
+const mapBoiler = (item) => {
+  if (!item) return null;
+  return {
+    id: item.id,
+    modelName: item.modelName || item.name || 'Kotyol Turi',
+    internalCode: item.internalCode || item.code || '',
+    recipeId: item.recipe_id || item.recipeId || '',
+    recipeName: item.recipe_name || item.recipeName || 'Biriktirilmagan',
+    warrantyTypeId: item.warranty_type_id || item.warrantyTypeId || '',
+    warrantyTypeName: item.warranty_type_name || item.warrantyTypeName || 'Kafolatsiz',
+    warrantyDuration: item.warranty_duration || item.warrantyDuration || 12,
+    insuranceTypeId: item.insurance_type_id || item.insuranceTypeId || '',
+    insuranceTypeName: item.insurance_type_name || item.insuranceTypeName || 'Sug\'urtasiz',
+    selectedStageIds: item.selected_stage_ids || item.selectedStageIds || [],
+    costBreakdown: item.cost_breakdown || item.costBreakdown || {
+      materialCost: 0,
+      stageCost: 0,
+      laborCost: 0,
+      totalCost: Number(item.unit_price) || 0
+    },
+    status: item.status || 'ACTIVE',
+    description: item.description || item.notes || '',
+    createdDate: item.created_at || item.createdDate || '',
+    updatedDate: item.updated_at || item.updatedDate || '',
+  };
+};
+
 export const boilersApi = {
   getBoilers: async (filters = {}) => {
     const response = await axiosInstance.get('/master-data/boilers');
-    let list = response.data || [];
+    let list = (response.data || []).map(mapBoiler).filter(Boolean);
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -25,7 +52,7 @@ export const boilersApi = {
 
   getBoilerById: async (id) => {
     const response = await axiosInstance.get(`/master-data/boilers/${id}`);
-    return { success: true, data: response.data };
+    return { success: true, data: mapBoiler(response.data) };
   },
 
   calculateBoilerCost: async (recipeId, selectedStageIds = []) => {
@@ -50,7 +77,6 @@ export const boilersApi = {
   },
 
   createBoiler: async (boilerData) => {
-    // Duplicate internal code validation
     const boilersList = await boilersApi.getBoilers();
     const duplicateSKU = (boilersList.data || []).some(
       (b) => b.internalCode && b.internalCode.toLowerCase() === boilerData.internalCode.toLowerCase()
@@ -67,58 +93,48 @@ export const boilersApi = {
     }
 
     const costBreakdown = await boilersApi.calculateBoilerCost(boilerData.recipeId, boilerData.selectedStageIds);
-    const nowStr = new Date().toISOString().split('T')[0];
-    const nowTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
 
-    const newBoiler = {
-      ...boilerData,
-      id: `boil_${Date.now()}`,
-      createdDate: nowStr,
-      updatedDate: nowStr,
-      costBreakdown,
-      attachments: [],
-      timeline: [
-        {
-          id: `btl_${Date.now()}`,
-          title: 'Kotyol Modeli Yaratildi',
-          timestamp: nowTime,
-          description: 'Yangi kotyol modeli katalogga muvaffaqiyatli kiritildi.',
-        },
-      ],
+    const payload = {
+      name: boilerData.modelName,
+      code: boilerData.internalCode,
+      status: boilerData.status || 'ACTIVE',
+      type: 'FINISHED_GOOD',
+      unit_price: Number(costBreakdown.totalCost) || 0,
+      description: boilerData.description || '',
+      recipe_id: boilerData.recipeId || null,
+      warranty_type_id: boilerData.warrantyTypeId || null,
+      warranty_duration: Number(boilerData.warrantyDuration) || 12,
+      insurance_type_id: boilerData.insuranceTypeId || null,
+      selected_stage_ids: boilerData.selectedStageIds || [],
+      cost_breakdown: costBreakdown,
     };
 
-    const response = await axiosInstance.post('/master-data/boilers', newBoiler).catch(async () => {
-      return await axiosInstance.post('/master-data/boilers/create', newBoiler);
+    const response = await axiosInstance.post('/master-data/boilers', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/boilers/create', payload);
     });
-    return { success: true, data: response.data, message: "Kotyol modeli muvaffaqiyatli saqlandi." };
+    return { success: true, data: mapBoiler(response.data), message: "Kotyol modeli muvaffaqiyatli saqlandi." };
   },
 
   updateBoiler: async (id, boilerData) => {
-    const boilersList = await boilersApi.getBoilers();
-    const existing = (boilersList.data || []).find((b) => b.id === id);
-    if (!existing) return { success: false, message: "Kotyol modeli topilmadi." };
-
     const costBreakdown = await boilersApi.calculateBoilerCost(boilerData.recipeId, boilerData.selectedStageIds);
-    const nowStr = new Date().toISOString().split('T')[0];
-    const nowTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
 
-    const updatedBoiler = {
-      ...existing,
-      ...boilerData,
-      costBreakdown,
-      updatedDate: nowStr,
+    const payload = {
+      name: boilerData.modelName,
+      code: boilerData.internalCode,
+      status: boilerData.status || 'ACTIVE',
+      type: 'FINISHED_GOOD',
+      unit_price: Number(costBreakdown.totalCost) || 0,
+      description: boilerData.description || '',
+      recipe_id: boilerData.recipeId || null,
+      warranty_type_id: boilerData.warrantyTypeId || null,
+      warranty_duration: Number(boilerData.warrantyDuration) || 12,
+      insurance_type_id: boilerData.insuranceTypeId || null,
+      selected_stage_ids: boilerData.selectedStageIds || [],
+      cost_breakdown: costBreakdown,
     };
 
-    if (!updatedBoiler.timeline) updatedBoiler.timeline = [];
-    updatedBoiler.timeline.unshift({
-      id: `btl_${Date.now()}`,
-      title: "Kotyol Modeli Yangilandi",
-      timestamp: nowTime,
-      description: "Model parametri, retsepturasi yoki bosqichlari yangilandi.",
-    });
-
-    const response = await axiosInstance.put(`/master-data/boilers/${id}`, updatedBoiler);
-    return { success: true, data: response.data, message: "Kotyol modeli ma'lumotlari yangilandi." };
+    const response = await axiosInstance.put(`/master-data/boilers/${id}`, payload);
+    return { success: true, data: mapBoiler(response.data), message: "Kotyol modeli ma'lumotlari yangilandi." };
   },
 
   deleteBoiler: async (id) => {
