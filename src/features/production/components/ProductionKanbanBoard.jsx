@@ -12,20 +12,66 @@ import {
   LuArrowRight,
   LuCircleCheck,
   LuDollarSign,
+  LuSettings,
+  LuPencil,
+  LuTrash2,
+  LuPlus,
 } from 'react-icons/lu';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { notifySuccess } from '@/services/notification.service';
 
 export const ProductionKanbanBoard = ({
   orders = [],
+  stages = [],
   onCardClick,
   onStageChange,
+  onStagesUpdated,
 }) => {
   const [collapsedColumns, setCollapsedColumns] = useState({});
   const [draggedOrderId, setDraggedOrderId] = useState(null);
 
-  // Dynamic Production Stages from Settings
-  const dynamicStages = dynamicSettingsService.getProductionStages();
+  // Column management state
+  const [isAddingStage, setIsAddingStage] = useState(false);
+  const [newStageName, setNewStageName] = useState('');
+  const [newStageCode, setNewStageCode] = useState('');
+
+  const [activeDropdownColId, setActiveDropdownColId] = useState(null);
+  const [editingStageId, setEditingStageId] = useState(null);
+  const [editingStageName, setEditingStageName] = useState('');
+  const [editingStageCode, setEditingStageCode] = useState('');
+
+  const handleCreateStage = () => {
+    if (!newStageName.trim()) return;
+    const code = newStageCode.trim() || newStageName.trim().toUpperCase().replace(/[^A-Z0-9]/g, '_');
+    const allStages = dynamicSettingsService.getProductionStages() || [];
+    const newStage = {
+      name: newStageName.trim(),
+      code,
+      stageOrder: allStages.length + 1,
+      defaultPrice: 150000,
+    };
+    dynamicSettingsService.addItem('productionStages', newStage);
+    setIsAddingStage(false);
+    setNewStageName('');
+    setNewStageCode('');
+    if (onStagesUpdated) onStagesUpdated();
+  };
+
+  const handleSaveStageName = (stageId) => {
+    if (!editingStageName.trim()) return;
+    dynamicSettingsService.updateItem('productionStages', stageId, {
+      name: editingStageName.trim(),
+    });
+    setEditingStageId(null);
+    if (onStagesUpdated) onStagesUpdated();
+  };
+
+  const handleDeleteStage = (stageId) => {
+    if (window.confirm('Haqiqatan ham ushbu ishlab chiqarish bosqichini o\'chirmoqchimisiz?')) {
+      dynamicSettingsService.archiveItem('productionStages', stageId);
+      if (onStagesUpdated) onStagesUpdated();
+    }
+  };
 
   const toggleColumnCollapse = (colCode) => {
     setCollapsedColumns((prev) => ({
@@ -69,11 +115,11 @@ export const ProductionKanbanBoard = ({
   return (
     <div style={{ width: '100%', maxWidth: '100%', overflowX: 'auto' }}>
       <div className="d-flex gap-3 pb-4 align-items-start" style={{ minWidth: 'max-content' }}>
-        {dynamicStages.map((col, idx) => {
+        {stages.map((col, idx) => {
           const colOrders = orders.filter((o) => o.status === col.code || o.stage === col.code);
           const isCollapsed = !!collapsedColumns[col.code];
           const totalUnits = colOrders.reduce((sum, o) => sum + (o.quantity || 0), 0);
-          const isFinalStage = idx === dynamicStages.length - 1 || col.code === 'COMPLETED';
+          const isFinalStage = idx === stages.length - 1 || col.code === 'COMPLETED';
 
           return (
             <div
@@ -95,26 +141,92 @@ export const ProductionKanbanBoard = ({
                   }`}
                   onClick={() => toggleColumnCollapse(col.code)}
                 >
-                  <div className="d-flex align-items-center gap-2 overflow-hidden">
+                  <div className="d-flex align-items-center gap-2 overflow-hidden flex-grow-1 me-2">
                     <span className="text-muted-custom fs-7">
                       {isCollapsed ? <LuChevronRight /> : <LuChevronDown />}
                     </span>
                     {!isCollapsed && (
-                      <div className="text-truncate">
-                        <span className="fw-bold fs-7 font-heading text-main d-block text-truncate">
-                          {col.name} {isFinalStage && <span className="badge bg-success ms-1 fs-9">Maosh Hisoblanadi</span>}
-                        </span>
+                      <div className="text-truncate flex-grow-1">
+                        {editingStageId === col.id ? (
+                          <div className="d-flex align-items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm py-0 px-1 fs-7 fw-bold text-start text-main"
+                              value={editingStageName}
+                              onChange={(e) => setEditingStageName(e.target.value)}
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveStageName(col.id);
+                                if (e.key === 'Escape') setEditingStageId(null);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-success p-1 py-0 fs-8"
+                              onClick={() => handleSaveStageName(col.id)}
+                            >
+                              ✓
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="fw-bold fs-7 font-heading text-main d-block text-truncate">
+                            {col.name} {isFinalStage && <span className="badge bg-success ms-1 fs-9">Maosh Hisoblanadi</span>}
+                          </span>
+                        )}
                         <small className="text-muted-custom fs-8">Yuklama: {totalUnits} dona</small>
                       </div>
                     )}
                   </div>
-                  <span
-                    className={`badge border-custom rounded-pill fs-8 fw-semibold px-2 ${
-                      isFinalStage ? 'bg-success text-white' : 'bg-primary bg-opacity-10 text-primary'
-                    }`}
-                  >
-                    {colOrders.length}
-                  </span>
+                  <div className="d-flex align-items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <span
+                      className={`badge border-custom rounded-pill fs-8 fw-semibold px-2 ${
+                        isFinalStage ? 'bg-success text-white' : 'bg-primary bg-opacity-10 text-primary'
+                      }`}
+                    >
+                      {colOrders.length}
+                    </span>
+                    {!isCollapsed && (
+                      <div className="dropdown position-relative">
+                        <button
+                          className="btn btn-sm btn-outline-secondary p-1 border-0 dropdown-toggle no-caret"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveDropdownColId(activeDropdownColId === col.id ? null : col.id);
+                          }}
+                        >
+                          <LuSettings size={14} />
+                        </button>
+                        {activeDropdownColId === col.id && (
+                          <ul className="dropdown-menu show position-absolute end-0 mt-1 py-1 shadow-lg border-custom fs-8 bg-surface z-3" style={{ display: 'block', minWidth: '120px' }}>
+                            <li>
+                              <button
+                                className="dropdown-item py-1 px-3 d-flex align-items-center gap-2 text-main"
+                                type="button"
+                                onClick={() => {
+                                  setEditingStageId(col.id);
+                                  setEditingStageName(col.name);
+                                  setEditingStageCode(col.code);
+                                  setActiveDropdownColId(null);
+                                }}
+                              >
+                                <LuPencil size={12} className="text-primary" /> Tahrirlash
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item py-1 px-3 d-flex align-items-center gap-2 text-danger"
+                                type="button"
+                                onClick={() => handleDeleteStage(col.id)}
+                              >
+                                <LuTrash2 size={12} /> O'chirish
+                              </button>
+                            </li>
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Column Body */}
@@ -131,7 +243,7 @@ export const ProductionKanbanBoard = ({
                           order={order}
                           onClick={() => onCardClick && onCardClick(order)}
                           onDragStart={(e) => handleDragStart(e, order.id)}
-                          stages={dynamicStages}
+                          stages={stages}
                           onMoveStage={(newStage) => {
                             if (onStageChange) onStageChange(order.id, newStage);
                             if (newStage === 'COMPLETED') {
@@ -151,6 +263,64 @@ export const ProductionKanbanBoard = ({
             </div>
           );
         })}
+
+        {/* Add New Stage Column */}
+        <div style={{ width: '320px', minWidth: '320px' }} className="p-2">
+          {isAddingStage ? (
+            <div className="card p-3 border-custom bg-surface rounded-3 shadow-sm">
+              <h6 className="fs-7 fw-bold text-main mb-3">Yangi Ish Bosqichi</h6>
+              <div className="mb-2 text-start">
+                <label className="form-label fs-8 fw-medium text-main mb-1">Nomi</label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm text-start"
+                  placeholder="Masalan, Payvandlash"
+                  value={newStageName}
+                  onChange={(e) => setNewStageName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div className="mb-3 text-start">
+                <label className="form-label fs-8 fw-medium text-main mb-1">Kodi (Tanlanma)</label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm text-start"
+                  placeholder="Masalan, WELDING"
+                  value={newStageCode}
+                  onChange={(e) => setNewStageCode(e.target.value.toUpperCase())}
+                />
+              </div>
+              <div className="d-flex gap-2">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-primary flex-grow-1"
+                  onClick={handleCreateStage}
+                >
+                  Qo'shish
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => setIsAddingStage(false)}
+                >
+                  Bekor
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-outline-primary border-dashed w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 fs-7 fw-semibold"
+              onClick={() => {
+                setIsAddingStage(true);
+                setNewStageName('');
+                setNewStageCode('');
+              }}
+            >
+              <LuPlus /> Yangi Bosqich Qo'shish
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

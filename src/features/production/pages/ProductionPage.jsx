@@ -33,8 +33,12 @@ export const ProductionPage = () => {
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const stages = dynamicSettingsService.getProductionStages();
+  const [stages, setStages] = useState(dynamicSettingsService.getProductionStages());
   const orderPriorities = dynamicSettingsService.getOrderPriorities();
+
+  const handleStagesUpdated = () => {
+    setStages(dynamicSettingsService.getProductionStages());
+  };
 
   useEffect(() => {
     loadProductionData();
@@ -289,6 +293,7 @@ export const ProductionPage = () => {
           stages={stages}
           onStageChange={handleStageChange}
           canEdit={canEdit}
+          onStagesUpdated={handleStagesUpdated}
         />
       ) : (
         <Card title={`Ishlab Chiqarish Partiyalari Reyestri (${productionOrders.length} ta)`}>
