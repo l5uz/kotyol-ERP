@@ -190,12 +190,13 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
 
         {selectedSupplierObj && (
           <EntityPreviewCard
-            title={`Ta'minotchi Tafsiloti: ${selectedSupplierObj.name}`}
-            details={[
-              { label: "Mas'ul Xodim", value: selectedSupplierObj.contactPerson || '—' },
-              { label: 'Telefon', value: selectedSupplierObj.phone || '—' },
-              { label: 'Manzil', value: selectedSupplierObj.address || '—' },
-            ]}
+            type="SUPPLIER"
+            data={{
+              companyName: selectedSupplierObj.name,
+              phone: selectedSupplierObj.phone,
+              contactPerson: selectedSupplierObj.contactPerson,
+              address: selectedSupplierObj.address
+            }}
           />
         )}
 
@@ -235,11 +236,14 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
           <div className="col-12 col-md-6">
             <CalculationBreakdown
               title="Xarid Hisob-Kitob Formulalari va Soliq"
-              breakdowns={[
-                { label: 'Oraliq Summa', formula: 'Σ (Miqdor × Narx)', value: formatCurrency(financialTotals.subtotal, formData.currency) },
-                { label: `Soliq (QQS ${formData.taxRate}%)`, formula: `Oraliq Summa × ${formData.taxRate}%`, value: formatCurrency(financialTotals.taxAmount, formData.currency) },
+              formula="Jami = Oraliq Summa + QQS (12%)"
+              totalLabel="Jami Xarid Qiymati"
+              totalValue={financialTotals.totalAmount}
+              currency={formData.currency}
+              items={[
+                { label: 'Oraliq Summa', value: formatCurrency(financialTotals.subtotal, formData.currency) },
+                { label: `Soliq (QQS ${formData.taxRate}%)`, value: formatCurrency(financialTotals.taxAmount, formData.currency) },
               ]}
-              finalTotal={{ label: 'Jami Xarid Qiymati', value: formatCurrency(financialTotals.totalAmount, formData.currency) }}
             />
           </div>
 
