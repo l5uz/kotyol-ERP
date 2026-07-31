@@ -1,49 +1,51 @@
-import { MOCK_ORDERS } from '../constants/orders.mock';
+import { axiosInstance } from '@/api/axiosInstance';
 import { boilersApi } from '@/features/boilers/api/boilersApi';
-import { recipesApi } from '@/features/recipes/api/recipesApi';
+
+const mapOrder = (item) => {
+  if (!item) return null;
+  return {
+    id: item.id,
+    orderNumber: item.order_number || item.orderNumber || '',
+    orderName: item.order_name || item.orderName || '',
+    customerId: item.customer_id || item.customerId || '',
+    customerName: item.customer_name || item.customerName || 'Noma\'lum Mijoz',
+    boilerId: item.boiler_id || item.boilerId || '',
+    boilerModelName: item.boiler_model_name || item.boilerModelName || 'Sanoat Kotyoli',
+    quantity: Number(item.quantity) || 1,
+    unitPrice: Number(item.unit_price || item.unitPrice) || 0,
+    totalAmount: Number(item.total_amount || item.totalAmount) || 0,
+    priority: item.priority || 'NORMAL',
+    status: item.status || 'NEW',
+    productionStatus: item.production_status || item.productionStatus || 'PENDING',
+    paymentStatus: item.payment_status || item.paymentStatus || 'UNPAID',
+    notes: item.notes || '',
+    createdDate: item.created_at ? item.created_at.split('T')[0] : (item.createdDate || ''),
+    updatedDate: item.updated_at ? item.updated_at.split('T')[0] : (item.updatedDate || ''),
+    attachments: item.attachments || [],
+    timeline: item.timeline || [],
+  };
+};
 
 export const ordersApi = {
   getOrders: async (filters = {}) => {
-    await new Promise((res) => setTimeout(res, 250));
-    let result = [...MOCK_ORDERS];
-
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      result = result.filter(
-        (o) =>
-          o.orderNumber.toLowerCase().includes(q) ||
-          (o.orderName && o.orderName.toLowerCase().includes(q)) ||
-          o.customerName.toLowerCase().includes(q) ||
-          o.boilerModelName.toLowerCase().includes(q)
-      );
-    }
-
-    if (filters.customerId) {
-      result = result.filter((o) => o.customerId === filters.customerId);
-    }
-
-    if (filters.status) {
-      result = result.filter((o) => o.status === filters.status);
-    }
-
-    if (filters.priority) {
-      result = result.filter((o) => o.priority === filters.priority);
-    }
-
+    const params = {
+      search: filters.search || undefined,
+      status: filters.status || undefined,
+      priority: filters.priority || undefined,
+      customer_id: filters.customerId || undefined,
+    };
+    const response = await axiosInstance.get('/orders', { params });
+    const result = (response.data || []).map(mapOrder).filter(Boolean);
     return { success: true, data: result };
   },
 
   getOrderById: async (id) => {
-    await new Promise((res) => setTimeout(res, 200));
-    const order = MOCK_ORDERS.find((o) => o.id === id) || MOCK_ORDERS[0];
-    return { success: true, data: { ...order } };
+    const response = await axiosInstance.get(`/orders/${id}`);
+    return { success: true, data: mapOrder(response.data) };
   },
 
-  // Automatic Checks for Boiler Selection & Material Availability
   checkBoilerOrderAvailability: async (boilerId, quantity = 1) => {
-    await new Promise((res) => setTimeout(res, 150));
     const boilRes = await boilersApi.getBoilerById(boilerId);
-
     if (!boilRes.success || !boilRes.data) {
       return {
         recipeVersion: '1.0',
@@ -60,7 +62,6 @@ export const ordersApi = {
     const totalAmount = unitPrice * (parseFloat(quantity) || 1);
     const estimatedDays = Math.max(3, 3 + Math.ceil(quantity * 1.5));
 
-    // Simulated Stock Material Check
     const materialAvailabilityStatus = quantity > 10 ? 'PARTIALLY_AVAILABLE' : 'AVAILABLE';
     const currentStockStatus =
       materialAvailabilityStatus === 'AVAILABLE'
@@ -80,105 +81,57 @@ export const ordersApi = {
   },
 
   createOrder: async (orderData) => {
-    await new Promise((res) => setTimeout(res, 350));
-
-    // Check Boiler Status Validation
     const boilRes = await boilersApi.getBoilerById(orderData.boilerId);
     if (boilRes.success && boilRes.data.status !== 'ACTIVE') {
       return { success: false, message: "Tanlangan kotyol modeli NOFAOL! Faqat faol modellarga buyurtma berish mumkin." };
     }
 
     const checkResult = await ordersApi.checkBoilerOrderAvailability(orderData.boilerId, orderData.quantity);
-    const nowStr = new Date().toISOString().split('T')[0];
-    const nowTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
-
-    const newOrder = {
-      ...orderData,
-      id: `ord_${Date.now()}`,
-      orderNumber: orderData.orderNumber || `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      orderDate: nowStr,
-      unitPrice: checkResult.unitPrice,
-      totalAmount: checkResult.totalAmount,
-      materialAvailabilityStatus: checkResult.materialAvailabilityStatus,
-      estimatedProductionDays: checkResult.estimatedProductionDays,
-      productionStatus: 'PENDING',
-      paymentStatus: 'UNPAID',
+    const payload = {
+      order_number: orderData.orderNumber || undefined,
+      order_name: orderData.orderName || '',
+      customer_id: orderData.customerId,
+      customer_name: orderData.customerName,
+      boiler_id: orderData.boilerId,
+      boiler_model_name: orderData.boilerModelName,
+      quantity: Number(orderData.quantity) || 1,
+      unit_price: checkResult.unitPrice,
+      total_amount: checkResult.totalAmount,
+      priority: orderData.priority || 'NORMAL',
       status: orderData.isReserved ? 'RESERVED' : 'NEW',
-      createdDate: nowStr,
-      updatedDate: nowStr,
-      attachments: [],
-      timeline: [
-        {
-          id: `otl_${Date.now()}`,
-          title: 'Buyurtma Qabul Qilindi',
-          timestamp: nowTime,
-          description: 'Mijoz buyurtmasi tizimga muvaffaqiyatli kiritildi.',
-        },
-      ],
+      notes: orderData.notes || '',
     };
 
-    if (orderData.isReserved) {
-      newOrder.timeline.unshift({
-        id: `otl_res_${Date.now()}`,
-        title: 'Materiallar Rezervlandi',
-        timestamp: nowTime,
-        description: 'Xomashyolar omborda ushbu buyurtma uchun rezerv qilindi.',
-      });
-    }
-
-    MOCK_ORDERS.unshift(newOrder);
-    return { success: true, data: newOrder, message: "Buyurtma muvaffaqiyatli rasmiylashtirildi." };
+    const response = await axiosInstance.post('/orders', payload).catch(async () => {
+      return await axiosInstance.post('/orders/create', payload);
+    });
+    return { success: true, data: mapOrder(response.data), message: "Buyurtma muvaffaqiyatli rasmiylashtirildi." };
   },
 
   updateOrder: async (id, orderData) => {
-    await new Promise((res) => setTimeout(res, 300));
-    const index = MOCK_ORDERS.findIndex((o) => o.id === id);
-    if (index === -1) return { success: false, message: "Buyurtma topilmadi." };
-
-    const existing = MOCK_ORDERS[index];
-    const nowStr = new Date().toISOString().split('T')[0];
-    const nowTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
-
-    const updatedOrder = {
-      ...existing,
-      ...orderData,
-      updatedDate: nowStr,
+    const payload = {
+      order_name: orderData.orderName,
+      customer_id: orderData.customerId,
+      boiler_id: orderData.boilerId,
+      quantity: orderData.quantity ? Number(orderData.quantity) : undefined,
+      priority: orderData.priority,
+      status: orderData.status,
+      notes: orderData.notes,
     };
 
-    updatedOrder.timeline.unshift({
-      id: `otl_${Date.now()}`,
-      title: 'Buyurtma Yangilandi',
-      timestamp: nowTime,
-      description: 'Buyurtma miqdori, muddati yoki prioritet parametrlari tahrirlandi.',
-    });
-
-    MOCK_ORDERS[index] = updatedOrder;
-    return { success: true, data: updatedOrder, message: "Buyurtma ma'lumotlari yangilandi." };
+    const response = await axiosInstance.put(`/orders/${id}`, payload);
+    return { success: true, data: mapOrder(response.data), message: "Buyurtma ma'lumotlari yangilandi." };
   },
 
   startProductionOrder: async (id) => {
-    await new Promise((res) => setTimeout(res, 350));
-    const index = MOCK_ORDERS.findIndex((o) => o.id === id);
-    if (index === -1) return { success: false, message: "Buyurtma topilmadi." };
-
-    const nowTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
-    MOCK_ORDERS[index].status = 'IN_PRODUCTION';
-    MOCK_ORDERS[index].productionStatus = 'IN_PROGRESS';
-
-    MOCK_ORDERS[index].timeline.unshift({
-      id: `otl_prod_${Date.now()}`,
-      title: 'Ishlab Chiqarish Boshlandi',
-      timestamp: nowTime,
-      description: 'Buyurtma sex liniyalariga yuborildi hamda rezervlangan xomashyolar ombordan chiqarildi.',
-    });
-
+    await axiosInstance.put(`/orders/${id}/start-production`);
     return { success: true, message: "Buyurtma bo'yicha ishlab chiqarish boshlandi va sex liniyasiga topshirildi!" };
   },
 
   deleteOrder: async (id) => {
-    await new Promise((res) => setTimeout(res, 300));
-    const index = MOCK_ORDERS.findIndex((o) => o.id === id);
-    if (index !== -1) MOCK_ORDERS.splice(index, 1);
+    await axiosInstance.delete(`/orders/${id}`).catch(async () => {
+      await axiosInstance.delete(`/orders/${id}/delete`);
+    });
     return { success: true, message: "Buyurtma bekor qilindi va o'chirildi." };
   },
 };
