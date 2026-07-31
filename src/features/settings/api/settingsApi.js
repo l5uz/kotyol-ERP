@@ -255,8 +255,43 @@ export const settingsApi = {
   },
 
   getProductionStages: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: [...MOCK_PRODUCTION_STAGES] };
+    const response = await axiosInstance.get('/master-data/production-stages');
+    const data = (response.data || []).map((item) => ({
+      id: item.id,
+      name: item.name,
+      code: item.code,
+      stageOrder: item.stage_order || 1,
+      defaultPrice: item.default_price || 150000,
+    }));
+    return { success: true, data };
+  },
+  createProductionStage: async (payload) => {
+    const data = {
+      name: payload.name,
+      code: payload.code,
+      stage_order: payload.stageOrder || 1,
+      default_price: payload.defaultPrice || 150000,
+    };
+    const response = await axiosInstance.post('/master-data/production-stages', data).catch(async () => {
+      return await axiosInstance.post('/master-data/production-stages/create', data);
+    });
+    return { success: true, data: response.data };
+  },
+  updateProductionStage: async (id, payload) => {
+    const data = {
+      name: payload.name,
+      code: payload.code,
+      stage_order: payload.stageOrder,
+      default_price: payload.defaultPrice,
+    };
+    const response = await axiosInstance.put(`/master-data/production-stages/${id}`, data);
+    return { success: true, data: response.data };
+  },
+  deleteProductionStage: async (id) => {
+    await axiosInstance.delete(`/master-data/production-stages/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/production-stages/${id}/delete`);
+    });
+    return { success: true };
   },
   updateStagesOrder: async (stages) => {
     await new Promise((res) => setTimeout(res, 400));

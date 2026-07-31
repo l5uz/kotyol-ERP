@@ -17,7 +17,7 @@ import {
   LuTrash2,
   LuPlus,
 } from 'react-icons/lu';
-import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { settingsApi } from '@/features/settings/api/settingsApi';
 import { notifySuccess } from '@/services/notification.service';
 
 export const ProductionKanbanBoard = ({
@@ -40,35 +40,39 @@ export const ProductionKanbanBoard = ({
   const [editingStageName, setEditingStageName] = useState('');
   const [editingStageCode, setEditingStageCode] = useState('');
 
-  const handleCreateStage = () => {
+  const handleCreateStage = async () => {
     if (!newStageName.trim()) return;
     const code = newStageCode.trim() || newStageName.trim().toUpperCase().replace(/[^A-Z0-9]/g, '_');
-    const allStages = dynamicSettingsService.getProductionStages() || [];
     const newStage = {
       name: newStageName.trim(),
       code,
-      stageOrder: allStages.length + 1,
+      stageOrder: stages.length + 1,
       defaultPrice: 150000,
     };
-    dynamicSettingsService.addItem('productionStages', newStage);
+    await settingsApi.createProductionStage(newStage);
     setIsAddingStage(false);
     setNewStageName('');
     setNewStageCode('');
     if (onStagesUpdated) onStagesUpdated();
   };
 
-  const handleSaveStageName = (stageId) => {
+  const handleSaveStageName = async (stageId) => {
     if (!editingStageName.trim()) return;
-    dynamicSettingsService.updateItem('productionStages', stageId, {
+    const targetStage = stages.find((s) => s.id === stageId);
+    if (!targetStage) return;
+    await settingsApi.updateProductionStage(stageId, {
       name: editingStageName.trim(),
+      code: targetStage.code,
+      stageOrder: targetStage.stageOrder,
+      defaultPrice: targetStage.defaultPrice,
     });
     setEditingStageId(null);
     if (onStagesUpdated) onStagesUpdated();
   };
 
-  const handleDeleteStage = (stageId) => {
+  const handleDeleteStage = async (stageId) => {
     if (window.confirm('Haqiqatan ham ushbu ishlab chiqarish bosqichini o\'chirmoqchimisiz?')) {
-      dynamicSettingsService.archiveItem('productionStages', stageId);
+      await settingsApi.deleteProductionStage(stageId);
       if (onStagesUpdated) onStagesUpdated();
     }
   };

@@ -12,6 +12,7 @@ import { ProductionFilterBar } from '../components/ProductionFilterBar';
 import { ProductionFormModal } from '../components/ProductionFormModal';
 import { ProductionKanbanBoard } from '../components/ProductionKanbanBoard';
 import { productionApi } from '../api/productionApi';
+import { settingsApi } from '@/features/settings/api/settingsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
 import { usePermission } from '@/hooks/usePermission';
@@ -33,12 +34,17 @@ export const ProductionPage = () => {
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const [stages, setStages] = useState(dynamicSettingsService.getProductionStages());
+  const [stages, setStages] = useState([]);
   const orderPriorities = dynamicSettingsService.getOrderPriorities();
 
-  const handleStagesUpdated = () => {
-    setStages(dynamicSettingsService.getProductionStages());
+  const handleStagesUpdated = async () => {
+    const res = await settingsApi.getProductionStages();
+    if (res.success) setStages(res.data || []);
   };
+
+  useEffect(() => {
+    handleStagesUpdated();
+  }, []);
 
   useEffect(() => {
     loadProductionData();
