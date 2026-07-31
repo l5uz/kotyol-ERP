@@ -88,6 +88,14 @@ export const productionApi = {
     return { success: true, data: mapProductionOrder(response.data), message: "Ishlab chiqarish topshirig'i yangilandi." };
   },
 
+  updateProductionStage: async (id, stage) => {
+    return productionApi.updateProductionOrder(id, { status: stage });
+  },
+
+  updateProductionStatus: async (id, status) => {
+    return productionApi.updateProductionOrder(id, { status: status });
+  },
+
   startProductionBatch: async (id) => {
     await axiosInstance.put(`/production/batches/${id}`, { status: 'IN_PROGRESS' });
     return { success: true, message: "Ishlab chiqarish sexi muvaffaqiyatli ish boshladi!" };
