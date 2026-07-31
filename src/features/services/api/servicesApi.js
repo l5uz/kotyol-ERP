@@ -1,12 +1,42 @@
-import { MOCK_SERVICES } from '../constants/services.mock';
-import { documentNumberingService } from '@/services/documentNumbering.service';
 import { axiosInstance } from '@/api/axiosInstance';
 
-let servicesMemory = [...MOCK_SERVICES];
+const mapService = (item) => {
+  if (!item) return null;
+  return {
+    id: item.id,
+    serviceNumber: item.service_number || item.serviceNumber || '',
+    customerId: item.customer_id || item.customerId || '',
+    customerName: item.customer_name || item.customerName || 'Noma\'lum Mijoz',
+    boilerId: item.boiler_id || item.boilerId || '',
+    boilerModelName: item.boiler_model_name || item.boilerModelName || 'Sanoat Kotyoli',
+    serviceTypeId: item.service_type_id || item.serviceTypeId || '',
+    serviceTypeName: item.service_type_name || item.serviceTypeName || '',
+    assignedEmployeeId: item.assigned_employee_id || item.assignedEmployeeId || '',
+    assignedEmployeeName: item.assigned_employee_name || item.assignedEmployeeName || 'Biriktirilmagan',
+    serviceDate: item.service_date || item.serviceDate || '',
+    priority: item.priority || 'NORMAL',
+    status: item.status || 'NEW',
+    isUnderWarranty: item.is_under_warranty ?? item.isUnderWarranty ?? true,
+    warrantyPeriod: item.warranty_period || item.warrantyPeriod || '',
+    saleDate: item.sale_date || item.saleDate || '',
+    orderNumber: item.order_number || item.orderNumber || '',
+    productionNumber: item.production_number || item.productionNumber || '',
+    notes: item.notes || '',
+    attachments: item.attachments || [],
+    timeline: item.timeline || [],
+  };
+};
 
 export const servicesApi = {
   async getServices(params = {}) {
-    let result = [...servicesMemory];
+    const apiParams = {
+      customer_id: params.customerId || undefined,
+      service_type_id: params.serviceTypeId || undefined,
+      status: params.status || undefined,
+      priority: params.priority || undefined,
+    };
+    const response = await axiosInstance.get('/master-data/services', { params: apiParams });
+    let result = (response.data || []).map(mapService).filter(Boolean);
 
     if (params.search) {
       const q = params.search.toLowerCase();
@@ -18,74 +48,70 @@ export const servicesApi = {
       );
     }
 
-    if (params.customerId) {
-      result = result.filter((s) => s.customerId === params.customerId);
-    }
-
-    if (params.serviceTypeId) {
-      result = result.filter((s) => s.serviceTypeId === params.serviceTypeId);
-    }
-
-    if (params.status) {
-      result = result.filter((s) => s.status === params.status);
-    }
-
-    if (params.priority) {
-      result = result.filter((s) => s.priority === params.priority);
-    }
-
     return { success: true, data: result };
   },
 
   async getServiceById(id) {
-    const service = servicesMemory.find((s) => s.id === id);
-    if (!service) return { success: false, message: 'Servis hujjati topilmadi' };
-    return { success: true, data: service };
+    const response = await axiosInstance.get(`/master-data/services/${id}`);
+    return { success: true, data: mapService(response.data) };
   },
 
   async createService(serviceData) {
-    const newService = {
-      id: `srv_${Date.now()}`,
-      serviceNumber: serviceData.serviceNumber || documentNumberingService.generateNumber('SERVICE'),
-      customerId: serviceData.customerId,
-      customerName: serviceData.customerName || 'Noma\'lum Mijoz',
-      boilerId: serviceData.boilerId,
-      boilerModelName: serviceData.boilerModelName || 'Sanoat Kotyoli',
-      serviceTypeId: serviceData.serviceTypeId || 'srv_type_1',
-      serviceTypeName: serviceData.serviceTypeName || 'Zavod Kafolati Xizmati',
-      assignedEmployeeId: serviceData.assignedEmployeeId || '',
-      assignedEmployeeName: serviceData.assignedEmployeeName || 'Biriktirilmagan',
-      serviceDate: serviceData.serviceDate || new Date().toISOString().split('T')[0],
+    const payload = {
+      service_number: serviceData.serviceNumber,
+      customer_id: serviceData.customerId,
+      customer_name: serviceData.customerName,
+      boiler_id: serviceData.boilerId,
+      boiler_model_name: serviceData.boilerModelName,
+      service_type_id: serviceData.serviceTypeId,
+      service_type_name: serviceData.serviceTypeName,
+      assigned_employee_id: serviceData.assignedEmployeeId,
+      assigned_employee_name: serviceData.assignedEmployeeName,
+      service_date: serviceData.serviceDate,
       priority: serviceData.priority || 'NORMAL',
       status: serviceData.status || 'NEW',
-      isUnderWarranty: serviceData.isUnderWarranty ?? true,
-      warrantyPeriod: serviceData.warrantyPeriod || '24 oy (Zavod kafolati faol)',
-      saleDate: serviceData.saleDate || '2026-07-20',
-      orderNumber: serviceData.orderNumber || 'ORD-2026-8801',
-      productionNumber: serviceData.productionNumber || 'PRD-2026-9001',
+      is_under_warranty: serviceData.isUnderWarranty ?? true,
+      warranty_period: serviceData.warrantyPeriod,
+      sale_date: serviceData.saleDate,
+      order_number: serviceData.orderNumber,
+      production_number: serviceData.productionNumber,
       notes: serviceData.notes || '',
-      attachments: [],
-      timeline: [
-        {
-          id: `tl_${Date.now()}`,
-          title: 'Servis Arizasi Yaratildi',
-          description: `Servis ariza № ${serviceData.serviceNumber || 'Yangi'} rasmiylashtirildi.`,
-          timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
-        },
-      ],
     };
-
-    servicesMemory.unshift(newService);
-    return { success: true, data: newService, message: 'Servis arizasi muvaffaqiyatli rasmiylashtirildi!' };
+    const response = await axiosInstance.post('/master-data/services', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/services/create', payload);
+    });
+    return { success: true, data: mapService(response.data), message: 'Servis arizasi muvaffaqiyatli rasmiylashtirildi!' };
   },
 
   async updateService(id, updatedData) {
-    servicesMemory = servicesMemory.map((s) => (s.id === id ? { ...s, ...updatedData } : s));
-    return { success: true, message: 'Servis ma\'lumotlari yangilandi.' };
+    const payload = {
+      service_number: updatedData.serviceNumber,
+      customer_id: updatedData.customerId,
+      customer_name: updatedData.customerName,
+      boiler_id: updatedData.boilerId,
+      boiler_model_name: updatedData.boilerModelName,
+      service_type_id: updatedData.serviceTypeId,
+      service_type_name: updatedData.serviceTypeName,
+      assigned_employee_id: updatedData.assignedEmployeeId,
+      assigned_employee_name: updatedData.assignedEmployeeName,
+      service_date: updatedData.serviceDate,
+      priority: updatedData.priority,
+      status: updatedData.status,
+      is_under_warranty: updatedData.isUnderWarranty,
+      warranty_period: updatedData.warrantyPeriod,
+      sale_date: updatedData.saleDate,
+      order_number: updatedData.orderNumber,
+      production_number: updatedData.productionNumber,
+      notes: updatedData.notes,
+    };
+    const response = await axiosInstance.put(`/master-data/services/${id}`, payload);
+    return { success: true, data: mapService(response.data), message: 'Servis ma\'lumotlari yangilandi.' };
   },
 
   async deleteService(id) {
-    servicesMemory = servicesMemory.filter((s) => s.id !== id);
+    await axiosInstance.delete(`/master-data/services/${id}`).catch(async () => {
+      await axiosInstance.delete(`/master-data/services/${id}/delete`);
+    });
     return { success: true, message: 'Servis arizasi o\'chirildi.' };
   },
 
