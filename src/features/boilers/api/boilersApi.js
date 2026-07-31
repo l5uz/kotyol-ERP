@@ -5,25 +5,8 @@ import { axiosInstance } from '@/api/axiosInstance';
 
 export const boilersApi = {
   getBoilers: async (filters = {}) => {
-    let list = [];
-    try {
-      const response = await axiosInstance.get('/master-data/boilers');
-      if (response && response.data) {
-        list = response.data || [];
-      }
-    } catch {
-      // Local fallback
-      try {
-        const stored = localStorage.getItem('kotyol_erp_boilers');
-        if (stored) {
-          list = JSON.parse(stored);
-        } else {
-          list = [...MOCK_BOILERS];
-        }
-      } catch {
-        list = [...MOCK_BOILERS];
-      }
-    }
+    const response = await axiosInstance.get('/master-data/boilers');
+    let list = response.data || [];
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -42,20 +25,8 @@ export const boilersApi = {
   },
 
   getBoilerById: async (id) => {
-    try {
-      const response = await axiosInstance.get(`/master-data/boilers/${id}`);
-      if (response && response.data) {
-        return { success: true, data: response.data };
-      }
-    } catch {
-      // Local fallback
-      try {
-        const res = await boilersApi.getBoilers();
-        const boiler = res.data.find((b) => b.id === id);
-        if (boiler) return { success: true, data: boiler };
-      } catch {}
-    }
-    return { success: true, data: MOCK_BOILERS[0] || null };
+    const response = await axiosInstance.get(`/master-data/boilers/${id}`);
+    return { success: true, data: response.data };
   },
 
   calculateBoilerCost: async (recipeId, selectedStageIds = []) => {
@@ -117,22 +88,10 @@ export const boilersApi = {
       ],
     };
 
-    try {
-      const response = await axiosInstance.post('/master-data/boilers', newBoiler).catch(async () => {
-        return await axiosInstance.post('/master-data/boilers/create', newBoiler);
-      });
-      return { success: true, data: response.data, message: "Kotyol modeli muvaffaqiyatli saqlandi." };
-    } catch {
-      // Local fallback
-      try {
-        const currentList = boilersList.data || [];
-        const updated = [newBoiler, ...currentList];
-        localStorage.setItem('kotyol_erp_boilers', JSON.stringify(updated));
-        return { success: true, data: newBoiler, message: "Kotyol modeli muvaffaqiyatli saqlandi (Lokal)." };
-      } catch {
-        return { success: false, message: "Saqlashda xatolik yuz berdi." };
-      }
-    }
+    const response = await axiosInstance.post('/master-data/boilers', newBoiler).catch(async () => {
+      return await axiosInstance.post('/master-data/boilers/create', newBoiler);
+    });
+    return { success: true, data: response.data, message: "Kotyol modeli muvaffaqiyatli saqlandi." };
   },
 
   updateBoiler: async (id, boilerData) => {
@@ -159,37 +118,14 @@ export const boilersApi = {
       description: "Model parametri, retsepturasi yoki bosqichlari yangilandi.",
     });
 
-    try {
-      const response = await axiosInstance.put(`/master-data/boilers/${id}`, updatedBoiler);
-      return { success: true, data: response.data, message: "Kotyol modeli ma'lumotlari yangilandi." };
-    } catch {
-      // Local fallback
-      try {
-        const updatedList = (boilersList.data || []).map((b) => (b.id === id ? updatedBoiler : b));
-        localStorage.setItem('kotyol_erp_boilers', JSON.stringify(updatedList));
-        return { success: true, data: updatedBoiler, message: "Kotyol modeli ma'lumotlari yangilandi (Lokal)." };
-      } catch {
-        return { success: false, message: "Yangilashda xatolik yuz berdi." };
-      }
-    }
+    const response = await axiosInstance.put(`/master-data/boilers/${id}`, updatedBoiler);
+    return { success: true, data: response.data, message: "Kotyol modeli ma'lumotlari yangilandi." };
   },
 
   deleteBoiler: async (id) => {
-    try {
-      await axiosInstance.delete(`/master-data/boilers/${id}`).catch(async () => {
-        return await axiosInstance.delete(`/master-data/boilers/${id}/delete`);
-      });
-      return { success: true, message: "Kotyol modeli katalogdan o'chirildi." };
-    } catch {
-      // Local fallback
-      try {
-        const boilersList = await boilersApi.getBoilers();
-        const updated = (boilersList.data || []).filter((b) => b.id !== id);
-        localStorage.setItem('kotyol_erp_boilers', JSON.stringify(updated));
-        return { success: true, message: "Kotyol modeli katalogdan o'chirildi (Lokal)." };
-      } catch {
-        return { success: false, message: "O'chirishda xatolik yuz berdi." };
-      }
-    }
+    await axiosInstance.delete(`/master-data/boilers/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/boilers/${id}/delete`);
+    });
+    return { success: true, message: "Kotyol modeli katalogdan o'chirildi." };
   },
 };
