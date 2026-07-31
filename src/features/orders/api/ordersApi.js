@@ -94,7 +94,7 @@ export const ordersApi = {
     const newOrder = {
       ...orderData,
       id: `ord_${Date.now()}`,
-      orderNumber: `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      orderNumber: orderData.orderNumber || `ORD-2026-${Math.floor(1000 + Math.random() * 9000)}`,
       orderDate: nowStr,
       unitPrice: checkResult.unitPrice,
       totalAmount: checkResult.totalAmount,

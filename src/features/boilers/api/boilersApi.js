@@ -1,32 +1,61 @@
 import { MOCK_BOILERS } from '../constants/boilers.mock';
 import { recipesApi } from '@/features/recipes/api/recipesApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { axiosInstance } from '@/api/axiosInstance';
 
 export const boilersApi = {
   getBoilers: async (filters = {}) => {
-    await new Promise((res) => setTimeout(res, 250));
-    let result = [...MOCK_BOILERS];
+    let list = [];
+    try {
+      const response = await axiosInstance.get('/master-data/boilers');
+      if (response && response.data) {
+        list = response.data || [];
+      }
+    } catch {
+      // Local fallback
+      try {
+        const stored = localStorage.getItem('kotyol_erp_boilers');
+        if (stored) {
+          list = JSON.parse(stored);
+        } else {
+          list = [...MOCK_BOILERS];
+        }
+      } catch {
+        list = [...MOCK_BOILERS];
+      }
+    }
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
-      result = result.filter(
+      list = list.filter(
         (b) =>
           b.modelName.toLowerCase().includes(q) ||
-          b.internalCode.toLowerCase().includes(q)
+          (b.internalCode && b.internalCode.toLowerCase().includes(q))
       );
     }
 
     if (filters.status) {
-      result = result.filter((b) => b.status === filters.status);
+      list = list.filter((b) => b.status === filters.status);
     }
 
-    return { success: true, data: result };
+    return { success: true, data: list };
   },
 
   getBoilerById: async (id) => {
-    await new Promise((res) => setTimeout(res, 200));
-    const boiler = MOCK_BOILERS.find((b) => b.id === id) || MOCK_BOILERS[0];
-    return { success: true, data: { ...boiler } };
+    try {
+      const response = await axiosInstance.get(`/master-data/boilers/${id}`);
+      if (response && response.data) {
+        return { success: true, data: response.data };
+      }
+    } catch {
+      // Local fallback
+      try {
+        const res = await boilersApi.getBoilers();
+        const boiler = res.data.find((b) => b.id === id);
+        if (boiler) return { success: true, data: boiler };
+      } catch {}
+    }
+    return { success: true, data: MOCK_BOILERS[0] || null };
   },
 
   calculateBoilerCost: async (recipeId, selectedStageIds = []) => {
@@ -51,15 +80,15 @@ export const boilersApi = {
   },
 
   createBoiler: async (boilerData) => {
-    await new Promise((res) => setTimeout(res, 350));
-
-    // Validation: Duplicate SKU Internal Code check
-    const duplicateSKU = MOCK_BOILERS.some((b) => b.internalCode.toLowerCase() === boilerData.internalCode.toLowerCase());
+    // Duplicate internal code validation
+    const boilersList = await boilersApi.getBoilers();
+    const duplicateSKU = (boilersList.data || []).some(
+      (b) => b.internalCode && b.internalCode.toLowerCase() === boilerData.internalCode.toLowerCase()
+    );
     if (duplicateSKU) {
       return { success: false, message: `Ushbu '${boilerData.internalCode}' ichki kodi allaqachon mavjud!` };
     }
 
-    // Validation: Active Recipe check
     if (boilerData.recipeId) {
       const recRes = await recipesApi.getRecipeById(boilerData.recipeId);
       if (recRes.success && recRes.data.status !== 'ACTIVE') {
@@ -88,16 +117,29 @@ export const boilersApi = {
       ],
     };
 
-    MOCK_BOILERS.unshift(newBoiler);
-    return { success: true, data: newBoiler, message: "Kotyol modeli muvaffaqiyatli saqlandi." };
+    try {
+      const response = await axiosInstance.post('/master-data/boilers', newBoiler).catch(async () => {
+        return await axiosInstance.post('/master-data/boilers/create', newBoiler);
+      });
+      return { success: true, data: response.data, message: "Kotyol modeli muvaffaqiyatli saqlandi." };
+    } catch {
+      // Local fallback
+      try {
+        const currentList = boilersList.data || [];
+        const updated = [newBoiler, ...currentList];
+        localStorage.setItem('kotyol_erp_boilers', JSON.stringify(updated));
+        return { success: true, data: newBoiler, message: "Kotyol modeli muvaffaqiyatli saqlandi (Lokal)." };
+      } catch {
+        return { success: false, message: "Saqlashda xatolik yuz berdi." };
+      }
+    }
   },
 
   updateBoiler: async (id, boilerData) => {
-    await new Promise((res) => setTimeout(res, 350));
-    const index = MOCK_BOILERS.findIndex((b) => b.id === id);
-    if (index === -1) return { success: false, message: "Kotyol modeli topilmadi." };
+    const boilersList = await boilersApi.getBoilers();
+    const existing = (boilersList.data || []).find((b) => b.id === id);
+    if (!existing) return { success: false, message: "Kotyol modeli topilmadi." };
 
-    const existing = MOCK_BOILERS[index];
     const costBreakdown = await boilersApi.calculateBoilerCost(boilerData.recipeId, boilerData.selectedStageIds);
     const nowStr = new Date().toISOString().split('T')[0];
     const nowTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
@@ -109,6 +151,7 @@ export const boilersApi = {
       updatedDate: nowStr,
     };
 
+    if (!updatedBoiler.timeline) updatedBoiler.timeline = [];
     updatedBoiler.timeline.unshift({
       id: `btl_${Date.now()}`,
       title: "Kotyol Modeli Yangilandi",
@@ -116,14 +159,37 @@ export const boilersApi = {
       description: "Model parametri, retsepturasi yoki bosqichlari yangilandi.",
     });
 
-    MOCK_BOILERS[index] = updatedBoiler;
-    return { success: true, data: updatedBoiler, message: "Kotyol modeli ma'lumotlari yangilandi." };
+    try {
+      const response = await axiosInstance.put(`/master-data/boilers/${id}`, updatedBoiler);
+      return { success: true, data: response.data, message: "Kotyol modeli ma'lumotlari yangilandi." };
+    } catch {
+      // Local fallback
+      try {
+        const updatedList = (boilersList.data || []).map((b) => (b.id === id ? updatedBoiler : b));
+        localStorage.setItem('kotyol_erp_boilers', JSON.stringify(updatedList));
+        return { success: true, data: updatedBoiler, message: "Kotyol modeli ma'lumotlari yangilandi (Lokal)." };
+      } catch {
+        return { success: false, message: "Yangilashda xatolik yuz berdi." };
+      }
+    }
   },
 
   deleteBoiler: async (id) => {
-    await new Promise((res) => setTimeout(res, 300));
-    const index = MOCK_BOILERS.findIndex((b) => b.id === id);
-    if (index !== -1) MOCK_BOILERS.splice(index, 1);
-    return { success: true, message: "Kotyol modeli katalogdan o'chirildi." };
+    try {
+      await axiosInstance.delete(`/master-data/boilers/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/boilers/${id}/delete`);
+      });
+      return { success: true, message: "Kotyol modeli katalogdan o'chirildi." };
+    } catch {
+      // Local fallback
+      try {
+        const boilersList = await boilersApi.getBoilers();
+        const updated = (boilersList.data || []).filter((b) => b.id !== id);
+        localStorage.setItem('kotyol_erp_boilers', JSON.stringify(updated));
+        return { success: true, message: "Kotyol modeli katalogdan o'chirildi (Lokal)." };
+      } catch {
+        return { success: false, message: "O'chirishda xatolik yuz berdi." };
+      }
+    }
   },
 };
