@@ -109,7 +109,7 @@ export const salesApi = {
       boiler_id: targetProductId || null,
       product_id: targetProductId || null,
       quantity: Number(saleData.quantity) || 1,
-      unit_price: Number(saleData.salePrice) || 0,
+      unit_price: Number(saleData.unitPrice || saleData.salePrice) || 0,
       discount_amount: Number(saleData.discountAmount) || 0.0,
       tax_amount: Number(saleData.taxAmount) || 0.0,
       exchange_rate_at_creation: 1.0,
@@ -121,7 +121,23 @@ export const salesApi = {
   },
 
   async updateSale(id, updatedData) {
-    return { success: true, message: "Sotuv ma'lumotlari yangilandi." };
+    let targetCustomerId = updatedData.customerId;
+    let targetProductId = updatedData.productId || updatedData.boilerId;
+
+    const payload = {
+      invoice_number: updatedData.invoiceNumber,
+      customer_id: targetCustomerId,
+      boiler_id: targetProductId || null,
+      product_id: targetProductId || null,
+      quantity: Number(updatedData.quantity) || 1,
+      unit_price: Number(updatedData.unitPrice || updatedData.salePrice) || 0,
+      discount_amount: Number(updatedData.discountAmount) || 0.0,
+      tax_amount: Number(updatedData.taxAmount) || 0.0,
+      exchange_rate_at_creation: 1.0,
+    };
+
+    const response = await axiosInstance.put(`/sales/${id}`, payload);
+    return { success: true, data: mapSale(response.data || response), message: "Sotuv ma'lumotlari yangilandi." };
   },
 
   async deleteSale(id) {
