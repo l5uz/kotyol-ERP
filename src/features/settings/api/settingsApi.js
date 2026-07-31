@@ -1,19 +1,5 @@
 import { axiosInstance } from '@/api/axiosInstance';
-import {
-  MOCK_COMPANY_SETTINGS,
-  MOCK_CURRENCIES,
-  MOCK_WAREHOUSES,
-  MOCK_PRODUCT_CATEGORIES,
-  MOCK_UNITS,
-  MOCK_EXPENSE_TYPES,
-  MOCK_DEFECT_REASONS,
-  MOCK_SERVICE_TYPES,
-  MOCK_WARRANTY_TYPES,
-  MOCK_INSURANCE_TYPES,
-  MOCK_PRODUCTION_STAGES,
-  MOCK_ROLES,
-  MOCK_PERMISSIONS_MATRIX,
-} from '../constants/settings.mock';
+// Mock data imports removed
 
 export const settingsApi = {
   getCompany: async () => {
@@ -63,7 +49,8 @@ export const settingsApi = {
   },
 
   getCurrencies: async () => {
-    return { success: true, data: [...MOCK_CURRENCIES] };
+    const response = await axiosInstance.get('/master-data/currencies');
+    return { success: true, data: response.data || [] };
   },
 
   getWarehouses: async () => {
@@ -237,7 +224,8 @@ export const settingsApi = {
   },
 
   getDefectReasons: async () => {
-    return { success: true, data: [...MOCK_DEFECT_REASONS] };
+    const response = await axiosInstance.get('/master-data/defect-reasons');
+    return { success: true, data: response.data || [] };
   },
 
   getServiceTypes: async () => {
@@ -300,12 +288,12 @@ export const settingsApi = {
   },
 
   getRoles: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: [...MOCK_ROLES] };
+    const response = await axiosInstance.get('/master-data/roles');
+    return { success: true, data: response.data || [] };
   },
 
   getPermissionsMatrix: async () => {
-    await new Promise((res) => setTimeout(res, 300));
-    return { success: true, data: { ...MOCK_PERMISSIONS_MATRIX } };
+    const response = await axiosInstance.get('/master-data/permissions-matrix');
+    return { success: true, data: response.data || {} };
   },
 };
