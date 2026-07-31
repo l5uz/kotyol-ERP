@@ -243,6 +243,25 @@ export const settingsApi = {
     return { success: true, data: response.data || [] };
   },
 
+  createInsuranceType: async (payload) => {
+    const response = await axiosInstance.post('/master-data/insurance-types', payload).catch(async () => {
+      return await axiosInstance.post('/master-data/insurance-types/create', payload);
+    });
+    return { success: true, data: response.data };
+  },
+
+  updateInsuranceType: async (id, payload) => {
+    const response = await axiosInstance.put(`/master-data/insurance-types/${id}`, payload);
+    return { success: true, data: response.data };
+  },
+
+  deleteInsuranceType: async (id) => {
+    await axiosInstance.delete(`/master-data/insurance-types/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/insurance-types/${id}/delete`);
+    });
+    return { success: true };
+  },
+
   getProductionStages: async () => {
     const response = await axiosInstance.get('/master-data/production-stages');
     const data = (response.data || []).map((item) => ({
