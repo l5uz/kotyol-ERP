@@ -190,12 +190,8 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
 
         {selectedCustomerObj && (
           <EntityPreviewCard
-            title={`Mijoz Korxona Tafsiloti: ${selectedCustomerObj.customerName}`}
-            details={[
-              { label: 'Telefon', value: selectedCustomerObj.phone || '—' },
-              { label: 'STIR', value: selectedCustomerObj.tin || '—' },
-              { label: 'Shartnoma №', value: selectedCustomerObj.contractNumber || '—' },
-            ]}
+            type="CUSTOMER"
+            data={selectedCustomerObj}
           />
         )}
 
@@ -238,12 +234,14 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
           <div className="col-12 col-md-7">
             <CalculationBreakdown
               title="Sotuv Hisob-Kitobi va Soliq"
-              breakdowns={[
-                { label: 'Boshlang\'ich Qiymat', formula: 'Miqdor × Birlik Narxi', value: formatCurrency(subtotal) },
-                { label: 'Chegirma', formula: 'Berilgan chegirma', value: `-${formatCurrency(formData.discountAmount)}` },
-                { label: `Soliq (QQS ${formData.taxRate}%)`, formula: `(Boshlang'ich - Chegirma) × ${formData.taxRate}%`, value: formatCurrency(financialTotals.taxAmount) },
+              formula="Jami = (Oraliq - Chegirma) + QQS (12%)"
+              totalLabel="Jami Sotuv Summasi"
+              totalValue={financialTotals.totalAmount}
+              items={[
+                { label: 'Boshlang\'ich Qiymat', value: formatCurrency(subtotal) },
+                { label: 'Chegirma', value: `-${formatCurrency(formData.discountAmount)}` },
+                { label: `Soliq (QQS ${formData.taxRate}%)`, value: formatCurrency(financialTotals.taxAmount) },
               ]}
-              finalTotal={{ label: 'Jami Sotuv Summasi', value: formatCurrency(financialTotals.totalAmount) }}
             />
           </div>
 

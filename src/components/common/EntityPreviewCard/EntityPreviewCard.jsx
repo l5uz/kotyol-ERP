@@ -1,5 +1,5 @@
 import React from 'react';
-import { LuBookOpen, LuTruck, LuBoxes, LuInfo } from 'react-icons/lu';
+import { LuBookOpen, LuTruck, LuBoxes, LuInfo, LuUser } from 'react-icons/lu';
 import { formatCurrency } from '@/utils/currency.utils';
 
 export const EntityPreviewCard = ({ type, data }) => {
@@ -36,6 +36,22 @@ export const EntityPreviewCard = ({ type, data }) => {
           <div className="d-flex flex-wrap justify-content-between text-main gap-2">
             <span>Telefon: <strong>{data.phone || '+998 90 123 45 67'}</strong></span>
             <span>Mas'ul: <strong>{data.contactPerson || 'Bosh Menejer'}</strong></span>
+          </div>
+        </div>
+      );
+
+    case 'CUSTOMER':
+      return (
+        <div className="entity-preview-card p-2 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 fs-8 my-2">
+          <div className="d-flex align-items-center justify-content-between mb-1">
+            <span className="fw-bold text-primary d-flex align-items-center gap-1">
+              <LuUser /> <span>Mijoz: {data.customerName || data.name}</span>
+            </span>
+            <span className="badge bg-primary bg-opacity-25 text-primary fs-8">Faol Hamkor</span>
+          </div>
+          <div className="d-flex flex-wrap justify-content-between text-main gap-2">
+            <span>Telefon: <strong>{data.phone || '—'}</strong></span>
+            <span>STIR / Kod: <strong>{data.tin || '—'}</strong></span>
           </div>
         </div>
       );
