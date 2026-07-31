@@ -255,34 +255,15 @@ export const settingsApi = {
   },
 
   getProductionStages: async () => {
-    try {
-      const response = await axiosInstance.get('/master-data/production-stages');
-      if (response && response.data) {
-        const data = (response.data || []).map((item) => ({
-          id: item.id,
-          name: item.name,
-          code: item.code,
-          stageOrder: item.stage_order || 1,
-          defaultPrice: item.default_price || 150000,
-        }));
-        return { success: true, data };
-      }
-    } catch (err) {
-      try {
-        const stored = localStorage.getItem('kotyol_erp_production_stages');
-        if (stored) {
-          return { success: true, data: JSON.parse(stored) };
-        }
-      } catch {}
-    }
-
-    const defaultStages = [
-      { id: 'st_1', name: 'Rejalashtirilgan', code: 'SCHEDULED', stageOrder: 1, defaultPrice: 150000 },
-      { id: 'st_2', name: 'Jarayonda', code: 'IN_PROGRESS', stageOrder: 2, defaultPrice: 150000 },
-      { id: 'st_3', name: 'Sifat Nazoratida', code: 'QUALITY_CHECK', stageOrder: 3, defaultPrice: 150000 },
-      { id: 'st_4', name: 'Yakunlangan', code: 'COMPLETED', stageOrder: 4, defaultPrice: 150000 },
-    ];
-    return { success: true, data: defaultStages };
+    const response = await axiosInstance.get('/master-data/production-stages');
+    const data = (response.data || []).map((item) => ({
+      id: item.id,
+      name: item.name,
+      code: item.code,
+      stageOrder: item.stage_order || 1,
+      defaultPrice: item.default_price || 150000,
+    }));
+    return { success: true, data };
   },
   createProductionStage: async (payload) => {
     const data = {
@@ -291,24 +272,10 @@ export const settingsApi = {
       stage_order: payload.stageOrder || 1,
       default_price: payload.defaultPrice || 150000,
     };
-    try {
-      const response = await axiosInstance.post('/master-data/production-stages', data).catch(async () => {
-        return await axiosInstance.post('/master-data/production-stages/create', data);
-      });
-      return { success: true, data: response.data };
-    } catch {
-      // Local fallback
-      try {
-        const current = await settingsApi.getProductionStages();
-        const list = current.data || [];
-        const newStage = { id: `st_${Date.now()}`, ...payload };
-        const updated = [...list, newStage];
-        localStorage.setItem('kotyol_erp_production_stages', JSON.stringify(updated));
-        return { success: true, data: newStage };
-      } catch {
-        return { success: false };
-      }
-    }
+    const response = await axiosInstance.post('/master-data/production-stages', data).catch(async () => {
+      return await axiosInstance.post('/master-data/production-stages/create', data);
+    });
+    return { success: true, data: response.data };
   },
   updateProductionStage: async (id, payload) => {
     const data = {
@@ -317,40 +284,14 @@ export const settingsApi = {
       stage_order: payload.stageOrder,
       default_price: payload.defaultPrice,
     };
-    try {
-      const response = await axiosInstance.put(`/master-data/production-stages/${id}`, data);
-      return { success: true, data: response.data };
-    } catch {
-      // Local fallback
-      try {
-        const current = await settingsApi.getProductionStages();
-        const list = current.data || [];
-        const updated = list.map((item) => (item.id === id ? { ...item, ...payload } : item));
-        localStorage.setItem('kotyol_erp_production_stages', JSON.stringify(updated));
-        return { success: true };
-      } catch {
-        return { success: false };
-      }
-    }
+    const response = await axiosInstance.put(`/master-data/production-stages/${id}`, data);
+    return { success: true, data: response.data };
   },
   deleteProductionStage: async (id) => {
-    try {
-      await axiosInstance.delete(`/master-data/production-stages/${id}`).catch(async () => {
-        return await axiosInstance.delete(`/master-data/production-stages/${id}/delete`);
-      });
-      return { success: true };
-    } catch {
-      // Local fallback
-      try {
-        const current = await settingsApi.getProductionStages();
-        const list = current.data || [];
-        const updated = list.filter((item) => item.id !== id);
-        localStorage.setItem('kotyol_erp_production_stages', JSON.stringify(updated));
-        return { success: true };
-      } catch {
-        return { success: false };
-      }
-    }
+    await axiosInstance.delete(`/master-data/production-stages/${id}`).catch(async () => {
+      return await axiosInstance.delete(`/master-data/production-stages/${id}/delete`);
+    });
+    return { success: true };
   },
   updateStagesOrder: async (stages) => {
     await new Promise((res) => setTimeout(res, 400));
