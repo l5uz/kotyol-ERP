@@ -50,7 +50,7 @@ export const SalesReportPage = () => {
     { header: 'Buyurtmalar Soni', accessor: 'orderCount' },
     {
       header: 'Jami Harid Summasi ($)',
-      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.totalAmount)}</strong>,
+      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.totalAmount, 'USD')}</strong>,
     },
   ];
 
@@ -59,7 +59,7 @@ export const SalesReportPage = () => {
     { header: 'Sotilgan Miqdor', cell: (row) => <strong>{row.soldQuantity} dona</strong> },
     {
       header: 'Jami Tushum ($)',
-      cell: (row) => <strong className="text-success font-mono">{formatCurrency(row.totalRevenue)}</strong>,
+      cell: (row) => <strong className="text-success font-mono">{formatCurrency(row.totalRevenue, 'USD')}</strong>,
     },
   ];
 

@@ -7,7 +7,7 @@ import { ReportsFilterBar } from '../components/ReportsFilterBar';
 import { ReportExportButtons } from '../components/ReportExportButtons';
 import { ReportChartCard } from '../components/ReportChartCard';
 import { reportsApi } from '../api/reportsApi';
-import { dynamicSettingsService } from '@/services/dynamicSettings.service';
+import { settingsApi } from '@/features/settings/api/settingsApi';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
 import { LuTriangleAlert } from 'react-icons/lu';
 
@@ -23,12 +23,13 @@ export const WarehouseReportPage = () => {
   }, [startDate, endDate, warehouseFilter]);
 
   const loadWarehouseReport = async () => {
-    const [wRes] = await Promise.all([
+    const [wRes, whsRes] = await Promise.all([
       reportsApi.getWarehouseReport({ startDate, endDate, warehouseFilter }),
+      settingsApi.getWarehouses(),
     ]);
 
     if (wRes.success) setWarehouseReport(wRes.data);
-    setWarehouses(dynamicSettingsService.getWarehouses());
+    if (whsRes.success) setWarehouses(whsRes.data);
   };
 
   usePageAutoRefresh(loadWarehouseReport, { intervalMs: 15000 });
@@ -62,7 +63,7 @@ export const WarehouseReportPage = () => {
     { header: 'Sarf Qilingan Miqdor', cell: (row) => <strong>{row.usedQty}</strong> },
     {
       header: 'Jami Sarf Qiymati ($)',
-      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.cost)}</strong>,
+      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.cost, 'USD')}</strong>,
     },
   ];
 
@@ -95,7 +96,7 @@ export const WarehouseReportPage = () => {
         <div className="col-12 col-md-4">
           <Card className="p-3 border-0 bg-primary bg-opacity-10 shadow-sm">
             <small className="text-primary font-semibold d-block">Jami Ombor Aktivlari Qiymati</small>
-            <strong className="text-primary fs-3 font-mono">{formatCurrency(warehouseReport.inventoryValue)}</strong>
+            <strong className="text-primary fs-3 font-mono">{formatCurrency(warehouseReport.inventoryValue, 'USD')}</strong>
           </Card>
         </div>
 

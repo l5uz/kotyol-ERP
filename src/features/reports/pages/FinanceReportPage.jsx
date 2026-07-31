@@ -41,15 +41,15 @@ export const FinanceReportPage = () => {
     { header: 'Oynlik Davr', accessor: 'month' },
     {
       header: 'Daromadlar ($)',
-      cell: (row) => <strong className="text-success font-mono">{formatCurrency(row.income)}</strong>,
+      cell: (row) => <strong className="text-success font-mono">{formatCurrency(row.income, 'USD')}</strong>,
     },
     {
       header: 'Xarajatlar ($)',
-      cell: (row) => <strong className="text-danger font-mono">{formatCurrency(row.expense)}</strong>,
+      cell: (row) => <strong className="text-danger font-mono">{formatCurrency(row.expense, 'USD')}</strong>,
     },
     {
       header: 'Sof Foyda ($)',
-      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.profit)}</strong>,
+      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.profit, 'USD')}</strong>,
     },
   ];
 
