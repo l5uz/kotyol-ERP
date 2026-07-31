@@ -251,7 +251,8 @@ export const settingsApi = {
   },
 
   getInsuranceTypes: async () => {
-    return { success: true, data: [...MOCK_INSURANCE_TYPES] };
+    const response = await axiosInstance.get('/master-data/insurance-types');
+    return { success: true, data: response.data || [] };
   },
 
   getProductionStages: async () => {

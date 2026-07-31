@@ -102,7 +102,7 @@ export const productionApi = {
   },
 
   deleteProductionOrder: async (id) => {
-    // Simulated as uvicorn backend does not expose delete on production batches
-    return { success: true, message: "Ishlab chiqarish topshirig'i bekor qilindi." };
+    await axiosInstance.delete(`/production/batches/${id}`);
+    return { success: true, message: "Ishlab chiqarish topshirig'i muvaffaqiyatli o'chirildi." };
   },
 };

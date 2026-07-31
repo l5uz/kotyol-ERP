@@ -1,121 +1,60 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { productsApi } from '@/features/products/api/productsApi';
 
-const parseRecipeFromDescription = (description, product) => {
-  if (!description || !description.trim().startsWith('{')) return null;
-  try {
-    const data = JSON.parse(description);
-    if (!data.recipeName && !data.items) return null;
-
-    const rawItems = Array.isArray(data.items) ? data.items : [];
-    const mappedItems = rawItems.map((ing) => {
-      const qty = Number(ing.requiredQuantity || ing.quantity || 0) || 0;
-      const price = Number(ing.unitPrice || ing.price || 0) || 0;
-      const waste = Number(ing.wastePercent || 0);
-      const totalCost = qty * price * (1 + waste / 100);
-
-      return {
-        id: ing.id || `ing_${Date.now()}_${Math.random()}`,
-        materialId: ing.materialId,
-        materialName: ing.materialName || 'Xomashyo',
-        materialTypeName: ing.materialTypeName || '',
-        unitName: ing.unitName || 'dona',
-        requiredQuantity: qty,
-        wastePercent: waste,
-        unitPrice: price,
-        totalCost: totalCost,
-        notes: ing.notes || '',
-      };
-    });
-
-    const baseMaterialCost = mappedItems.reduce((acc, row) => acc + row.requiredQuantity * row.unitPrice, 0);
-    const estimatedWasteCost = mappedItems.reduce((acc, row) => acc + row.requiredQuantity * row.unitPrice * (row.wastePercent / 100), 0);
-    const estimatedTotalCost = baseMaterialCost + estimatedWasteCost;
+const mapRecipe = (item) => {
+  if (!item) return null;
+  const rawItems = Array.isArray(item.items) ? item.items : [];
+  const mappedItems = rawItems.map((ing) => {
+    const qty = Number(ing.required_quantity || ing.requiredQuantity || ing.quantity || 0) || 0;
+    const price = Number(ing.unit_price || ing.unitPrice || ing.price || 0) || 0;
+    const waste = Number(ing.waste_percent || ing.wastePercent || 0);
+    const totalCost = qty * price * (1 + waste / 100);
 
     return {
-      id: product.id,
-      recipeName: data.recipeName || `${product.name} Resepturasi`,
-      productId: product.id,
-      productName: product.name,
-      version: data.version || '1.0',
-      status: data.status || 'ACTIVE',
-      description: data.description || '',
-      createdDate: product.createdDate || new Date().toISOString().split('T')[0],
-      updatedDate: product.updatedDate || new Date().toISOString().split('T')[0],
-      items: mappedItems,
-      versionsHistory: [
-        {
-          version: data.version || '1.0',
-          createdDate: product.createdDate || new Date().toISOString().split('T')[0],
-          status: data.status || 'ACTIVE',
-          note: 'Saqlangan versiya',
-        }
-      ],
-      timeline: [
-        {
-          id: `rtl_${product.id}`,
-          title: `Retsept v${data.version || '1.0'} Yuklandi`,
-          timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
-          description: 'Texnologik karta bazadan yuklandi.',
-        }
-      ],
-      totalMaterialCount: mappedItems.length,
-      baseMaterialCost,
-      estimatedWasteCost,
-      estimatedTotalCost,
+      id: ing.id || `ing_${Date.now()}_${Math.random()}`,
+      materialId: ing.material_id || ing.materialId,
+      materialName: ing.material_name || ing.materialName || 'Xomashyo',
+      materialTypeName: ing.material_type_name || ing.materialTypeName || '',
+      unitName: ing.unit_name || ing.unitName || 'dona',
+      requiredQuantity: qty,
+      wastePercent: waste,
+      unitPrice: price,
+      totalCost: totalCost,
+      notes: ing.notes || '',
     };
-  } catch {
-    return null;
-  }
+  });
+
+  const baseMaterialCost = mappedItems.reduce((acc, row) => acc + row.requiredQuantity * row.unitPrice, 0);
+  const estimatedWasteCost = mappedItems.reduce((acc, row) => acc + row.requiredQuantity * row.unitPrice * (row.wastePercent / 100), 0);
+  const estimatedTotalCost = baseMaterialCost + estimatedWasteCost;
+
+  return {
+    id: item.id,
+    recipeName: item.recipe_name || item.recipeName || 'Nomsiz Retseptura',
+    productId: item.product_id || item.productId,
+    productName: item.product_name || item.productName || 'Mahsulot',
+    version: item.version || '1.0',
+    status: item.status || 'ACTIVE',
+    description: item.description || '',
+    createdDate: item.created_date || item.createdDate || new Date().toISOString().split('T')[0],
+    updatedDate: item.updated_date || item.updatedDate || new Date().toISOString().split('T')[0],
+    items: mappedItems,
+    totalMaterialCount: mappedItems.length,
+    baseMaterialCost,
+    estimatedWasteCost,
+    estimatedTotalCost,
+  };
 };
 
 export const recipesApi = {
   getRecipes: async (filters = {}) => {
     try {
-      const prodRes = await productsApi.getProducts();
-      const products = Array.isArray(prodRes?.data) ? prodRes.data : [];
-
-      let result = products
-        .map((p) => {
-          let rec = parseRecipeFromDescription(p.description, p);
-          if (!rec) {
-            if (p.type !== 'FINISHED_GOOD') return null;
-            rec = {
-              id: p.id,
-              recipeName: `${p.name} Resepturasi`,
-              productId: p.id,
-              productName: p.name,
-              version: '1.0',
-              status: 'ACTIVE',
-              description: 'Standart texnologik xarita.',
-              createdDate: p.createdDate || new Date().toISOString().split('T')[0],
-              updatedDate: p.updatedDate || new Date().toISOString().split('T')[0],
-              items: [],
-              versionsHistory: [
-                {
-                  version: '1.0',
-                  createdDate: p.createdDate || new Date().toISOString().split('T')[0],
-                  status: 'ACTIVE',
-                  note: 'Boshlang\'ich versiya',
-                }
-              ],
-              timeline: [
-                {
-                  id: `rtl_${p.id}`,
-                  title: 'Retsept Yaratildi',
-                  timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
-                  description: 'Texnologik karta yaratishga tayyor.',
-                }
-              ],
-              totalMaterialCount: 0,
-              baseMaterialCost: 0,
-              estimatedWasteCost: 0,
-              estimatedTotalCost: 0,
-            };
-          }
-          return rec;
-        })
-        .filter(Boolean);
+      const params = {
+        product_id: filters.productId || undefined,
+        status: filters.status || undefined,
+      };
+      const response = await axiosInstance.get('/products/recipes', { params });
+      let result = (response.data || []).map(mapRecipe).filter(Boolean);
 
       if (filters.search) {
         const q = filters.search.toLowerCase();
@@ -126,14 +65,6 @@ export const recipesApi = {
         );
       }
 
-      if (filters.productId) {
-        result = result.filter((r) => String(r.productId) === String(filters.productId));
-      }
-
-      if (filters.status) {
-        result = result.filter((r) => r.status === filters.status);
-      }
-
       return { success: true, data: result };
     } catch {
       return { success: true, data: [] };
@@ -142,14 +73,17 @@ export const recipesApi = {
 
   getRecipeById: async (id) => {
     try {
-      const prodRes = await productsApi.getProductById(id);
-      if (prodRes.success && prodRes.data) {
-        let recipe = parseRecipeFromDescription(prodRes.data.description, prodRes.data);
-        if (!recipe) {
+      const response = await axiosInstance.get(`/products/recipes/${id}`);
+      return { success: true, data: mapRecipe(response.data) };
+    } catch {
+      // Fallback for new empty finish goods without backend recipes yet
+      try {
+        const prodRes = await productsApi.getProductById(id);
+        if (prodRes.success && prodRes.data) {
           if (prodRes.data.type !== 'FINISHED_GOOD') {
             return { success: true, data: null };
           }
-          recipe = {
+          const defaultRecipe = {
             id: prodRes.data.id,
             recipeName: `${prodRes.data.name} Resepturasi`,
             productId: prodRes.data.id,
@@ -160,54 +94,38 @@ export const recipesApi = {
             createdDate: prodRes.data.createdDate || new Date().toISOString().split('T')[0],
             updatedDate: prodRes.data.updatedDate || new Date().toISOString().split('T')[0],
             items: [],
-            versionsHistory: [
-              {
-                version: '1.0',
-                createdDate: prodRes.data.createdDate || new Date().toISOString().split('T')[0],
-                status: 'ACTIVE',
-                note: 'Boshlang\'ich versiya',
-              }
-            ],
-            timeline: [
-              {
-                id: `rtl_${prodRes.data.id}`,
-                title: 'Retsept Yaratildi',
-                timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
-                description: 'Texnologik karta yaratishga tayyor.',
-              }
-            ],
             totalMaterialCount: 0,
             baseMaterialCost: 0,
             estimatedWasteCost: 0,
             estimatedTotalCost: 0,
           };
+          return { success: true, data: defaultRecipe };
         }
-        return { success: true, data: recipe };
-      }
-      return { success: true, data: null };
-    } catch {
+      } catch {}
       return { success: true, data: null };
     }
   },
 
   createRecipe: async (recipeData) => {
     try {
-      const recipeJSON = {
-        recipeName: recipeData.recipeName,
+      const payload = {
+        recipe_name: recipeData.recipeName,
+        product_id: recipeData.productId,
         version: recipeData.version || '1.0',
         status: recipeData.status || 'ACTIVE',
         description: recipeData.description || '',
-        items: recipeData.items || [],
+        items: (recipeData.items || []).map((ing) => ({
+          material_id: ing.materialId,
+          required_quantity: ing.requiredQuantity,
+          waste_percent: ing.wastePercent || 0,
+          unit_price: ing.unitPrice || 0,
+          notes: ing.notes || '',
+        })),
       };
-
-      const res = await productsApi.updateProduct(recipeData.productId, {
-        description: JSON.stringify(recipeJSON),
+      const response = await axiosInstance.post('/products/recipes', payload).catch(async () => {
+        return await axiosInstance.post('/products/recipes/create', payload);
       });
-
-      if (res.success) {
-        return { success: true, message: "Yangi retseptur muvaffaqiyatli saqlandi." };
-      }
-      return { success: false, message: "Retseptni saqlashda xatolik." };
+      return { success: true, data: mapRecipe(response.data), message: "Yangi retseptur muvaffaqiyatli saqlandi." };
     } catch {
       return { success: false, message: "Retseptni saqlashda xatolik." };
     }
@@ -215,22 +133,23 @@ export const recipesApi = {
 
   updateRecipe: async (id, recipeData) => {
     try {
-      const recipeJSON = {
-        recipeName: recipeData.recipeName,
+      const payload = {
+        recipe_name: recipeData.recipeName,
+        product_id: recipeData.productId || id,
         version: recipeData.version || '1.0',
         status: recipeData.status || 'ACTIVE',
         description: recipeData.description || '',
-        items: recipeData.items || [],
+        items: (recipeData.items || []).map((ing) => ({
+          id: ing.id,
+          material_id: ing.materialId,
+          required_quantity: ing.requiredQuantity,
+          waste_percent: ing.wastePercent || 0,
+          unit_price: ing.unitPrice || 0,
+          notes: ing.notes || '',
+        })),
       };
-
-      const res = await productsApi.updateProduct(recipeData.productId || id, {
-        description: JSON.stringify(recipeJSON),
-      });
-
-      if (res.success) {
-        return { success: true, message: "Retsept ma'lumotlari yangilandi." };
-      }
-      return { success: false, message: "Retseptni yangilashda xatolik." };
+      const response = await axiosInstance.put(`/products/recipes/${id}`, payload);
+      return { success: true, data: mapRecipe(response.data), message: "Retsept ma'lumotlari yangilandi." };
     } catch {
       return { success: false, message: "Retseptni yangilashda xatolik." };
     }
@@ -253,13 +172,10 @@ export const recipesApi = {
 
   deleteRecipe: async (id) => {
     try {
-      const res = await productsApi.updateProduct(id, {
-        description: '',
+      await axiosInstance.delete(`/products/recipes/${id}`).catch(async () => {
+        await axiosInstance.delete(`/products/recipes/${id}/delete`);
       });
-      if (res.success) {
-        return { success: true, message: "Retsept o'chirildi." };
-      }
-      return { success: false, message: "Retseptni o'chirishda xatolik." };
+      return { success: true, message: "Retsept o'chirildi." };
     } catch {
       return { success: false, message: "Retseptni o'chirishda xatolik." };
     }
