@@ -1,4 +1,4 @@
-export const MOCK_SYSTEM_INFO = {
+export const SYSTEM_INFO = {
   version: 'v1.0.0 Enterprise',
   appName: 'KotyoI Enterprise ERP Engine',
   environment: 'Production',
@@ -8,7 +8,7 @@ export const MOCK_SYSTEM_INFO = {
   uptime: '99.98% — 30 kun',
 };
 
-export const MOCK_NUMBERING_CONFIGS = [
+export const NUMBERING_CONFIGS = [
   { id: '1', documentType: 'Buyurtmalar', prefix: 'ORD-', suffix: '', sequenceLength: 6, resetRule: 'Haqiqiy Yillik', currentPreview: 'ORD-2026-000101' },
   { id: '2', documentType: 'Ishlab Chiqarish', prefix: 'PRD-', suffix: '', sequenceLength: 6, resetRule: 'Haqiqiy Yillik', currentPreview: 'PRD-2026-000201' },
   { id: '3', documentType: 'Sotuv Hujjatlari', prefix: 'SAL-', suffix: '', sequenceLength: 6, resetRule: 'Haqiqiy Yillik', currentPreview: 'SAL-2026-000301' },
@@ -20,10 +20,10 @@ export const MOCK_NUMBERING_CONFIGS = [
 
 export const systemApi = {
   async getSystemInfo() {
-    return { success: true, data: MOCK_SYSTEM_INFO };
+    return { success: true, data: SYSTEM_INFO };
   },
 
   async getNumberingConfigs() {
-    return { success: true, data: MOCK_NUMBERING_CONFIGS };
+    return { success: true, data: NUMBERING_CONFIGS };
   },
 };

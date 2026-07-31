@@ -81,7 +81,7 @@ export const ProductionFormModal = ({
       });
       setIsDraftRestored(false);
     } else if (isOpen) {
-      // Clear old cached mock draft
+      // Clear old cached form draft
       clearDraft(FORM_KEY);
       const firstOrder = orderOptions[0]?.value || '';
       setFormData({
