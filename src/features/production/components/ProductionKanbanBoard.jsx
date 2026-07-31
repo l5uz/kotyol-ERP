@@ -18,6 +18,7 @@ import {
   LuPlus,
 } from 'react-icons/lu';
 import { settingsApi } from '@/features/settings/api/settingsApi';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { notifySuccess } from '@/services/notification.service';
 
 export const ProductionKanbanBoard = ({
@@ -29,6 +30,10 @@ export const ProductionKanbanBoard = ({
 }) => {
   const [collapsedColumns, setCollapsedColumns] = useState({});
   const [draggedOrderId, setDraggedOrderId] = useState(null);
+
+  // Confirmation dialog state
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [stageToDeleteId, setStageToDeleteId] = useState(null);
 
   // Column management state
   const [isAddingStage, setIsAddingStage] = useState(false);
@@ -70,11 +75,17 @@ export const ProductionKanbanBoard = ({
     if (onStagesUpdated) onStagesUpdated();
   };
 
-  const handleDeleteStage = async (stageId) => {
-    if (window.confirm('Haqiqatan ham ushbu ishlab chiqarish bosqichini o\'chirmoqchimisiz?')) {
-      await settingsApi.deleteProductionStage(stageId);
-      if (onStagesUpdated) onStagesUpdated();
-    }
+  const handleDeleteStage = (stageId) => {
+    setStageToDeleteId(stageId);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDeleteStage = async () => {
+    if (!stageToDeleteId) return;
+    await settingsApi.deleteProductionStage(stageToDeleteId);
+    setIsDeleteConfirmOpen(false);
+    setStageToDeleteId(null);
+    if (onStagesUpdated) onStagesUpdated();
   };
 
   const toggleColumnCollapse = (colCode) => {
@@ -326,6 +337,20 @@ export const ProductionKanbanBoard = ({
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => {
+          setIsDeleteConfirmOpen(false);
+          setStageToDeleteId(null);
+        }}
+        onConfirm={handleConfirmDeleteStage}
+        title="Kanban Ustunini O'chirish"
+        message="Haqiqatan ham ushbu ishlab chiqarish bosqichini o'chirmoqchimisiz? Bu bosqichdagi barcha topshiriqlar avvalgi bosqichga qaytadi."
+        isDanger={true}
+        confirmText="O'chirish"
+        cancelText="Bekor qilish"
+      />
     </div>
   );
 };
