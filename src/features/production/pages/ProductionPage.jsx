@@ -215,7 +215,7 @@ export const ProductionPage = () => {
   ];
 
   return (
-    <div className="production-page animate-fade-in pb-5">
+    <div className="production-page animate-fade-in pb-5 w-100 overflow-hidden">
       <ProductionSubNav />
 
       {isReadOnly && (
