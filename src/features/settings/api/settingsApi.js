@@ -204,237 +204,401 @@ export const settingsApi = {
   },
 
   getUnits: async () => {
-    const response = await axiosInstance.get('/master-data/units');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/units');
+      return { success: true, data: response.data || [] };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createUnit: async (payload) => {
-    const response = await axiosInstance.post('/master-data/units', payload).catch(async () => {
-      return await axiosInstance.post('/master-data/units/create', payload);
-    });
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.post('/master-data/units', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/units/create', payload);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateUnit: async (id, payload) => {
-    const response = await axiosInstance.put(`/master-data/units/${id}`, payload);
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.put(`/master-data/units/${id}`, payload);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteUnit: async (id) => {
-    await axiosInstance.delete(`/master-data/units/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/units/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/units/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/units/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
 
   getExpenseTypes: async () => {
-    const response = await axiosInstance.get('/master-data/expense-types');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/expense-types');
+      return { success: true, data: response.data || [] };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createExpenseType: async (payload) => {
-    const response = await axiosInstance.post('/master-data/expense-types', payload).catch(async () => {
-      return await axiosInstance.post('/master-data/expense-types/create', payload);
-    });
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.post('/master-data/expense-types', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/expense-types/create', payload);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateExpenseType: async (id, payload) => {
-    const response = await axiosInstance.put(`/master-data/expense-types/${id}`, payload);
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.put(`/master-data/expense-types/${id}`, payload);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteExpenseType: async (id) => {
-    await axiosInstance.delete(`/master-data/expense-types/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/expense-types/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/expense-types/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/expense-types/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
 
   getDefectReasons: async () => {
-    const response = await axiosInstance.get('/master-data/defect-reasons');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/defect-reasons');
+      return { success: true, data: response.data || [] };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createDefectReason: async (payload) => {
-    const response = await axiosInstance.post('/master-data/defect-reasons', payload).catch(async () => {
-      return await axiosInstance.post('/master-data/defect-reasons/create', payload);
-    });
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.post('/master-data/defect-reasons', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/defect-reasons/create', payload);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateDefectReason: async (id, payload) => {
-    const response = await axiosInstance.put(`/master-data/defect-reasons/${id}`, payload);
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.put(`/master-data/defect-reasons/${id}`, payload);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteDefectReason: async (id) => {
-    await axiosInstance.delete(`/master-data/defect-reasons/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/defect-reasons/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/defect-reasons/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/defect-reasons/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
 
   getServiceTypes: async () => {
-    const response = await axiosInstance.get('/master-data/service-types');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/service-types');
+      return { success: true, data: response.data || [] };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createServiceType: async (payload) => {
-    const response = await axiosInstance.post('/master-data/service-types', payload).catch(async () => {
-      return await axiosInstance.post('/master-data/service-types/create', payload);
-    });
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.post('/master-data/service-types', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/service-types/create', payload);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateServiceType: async (id, payload) => {
-    const response = await axiosInstance.put(`/master-data/service-types/${id}`, payload);
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.put(`/master-data/service-types/${id}`, payload);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteServiceType: async (id) => {
-    await axiosInstance.delete(`/master-data/service-types/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/service-types/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/service-types/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/service-types/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
 
   getWarrantyTypes: async () => {
-    const response = await axiosInstance.get('/master-data/warranty-types');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/warranty-types');
+      return { success: true, data: response.data || [] };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createWarrantyType: async (payload) => {
-    const response = await axiosInstance.post('/master-data/warranty-types', payload).catch(async () => {
-      return await axiosInstance.post('/master-data/warranty-types/create', payload);
-    });
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.post('/master-data/warranty-types', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/warranty-types/create', payload);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateWarrantyType: async (id, payload) => {
-    const response = await axiosInstance.put(`/master-data/warranty-types/${id}`, payload);
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.put(`/master-data/warranty-types/${id}`, payload);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteWarrantyType: async (id) => {
-    await axiosInstance.delete(`/master-data/warranty-types/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/warranty-types/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/warranty-types/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/warranty-types/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
 
   getCurrencies: async () => {
-    const response = await axiosInstance.get('/master-data/currencies');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/currencies');
+      return { success: true, data: response.data || [] };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createCurrency: async (payload) => {
-    const response = await axiosInstance.post('/master-data/currencies', payload).catch(async () => {
-      return await axiosInstance.post('/master-data/currencies/create', payload);
-    });
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.post('/master-data/currencies', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/currencies/create', payload);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateCurrency: async (id, payload) => {
-    const response = await axiosInstance.put(`/master-data/currencies/${id}`, payload);
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.put(`/master-data/currencies/${id}`, payload);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteCurrency: async (id) => {
-    await axiosInstance.delete(`/master-data/currencies/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/currencies/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/currencies/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/currencies/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
 
   getWarehouses: async () => {
-    const response = await axiosInstance.get('/master-data/warehouses');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/warehouses');
+      return { success: true, data: response.data || [] };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createWarehouse: async (payload) => {
-    const response = await axiosInstance.post('/master-data/warehouses', payload).catch(async () => {
-      return await axiosInstance.post('/master-data/warehouses/create', payload);
-    });
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.post('/master-data/warehouses', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/warehouses/create', payload);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateWarehouse: async (id, payload) => {
-    const response = await axiosInstance.put(`/master-data/warehouses/${id}`, payload);
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.put(`/master-data/warehouses/${id}`, payload);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteWarehouse: async (id) => {
-    await axiosInstance.delete(`/master-data/warehouses/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/warehouses/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/warehouses/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/warehouses/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
 
   getRoles: async () => {
-    const response = await axiosInstance.get('/master-data/roles');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/roles');
+      return { success: true, data: response.data || [] };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createRole: async (payload) => {
-    const response = await axiosInstance.post('/master-data/roles', payload).catch(async () => {
-      return await axiosInstance.post('/master-data/roles/create', payload);
-    });
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.post('/master-data/roles', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/roles/create', payload);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateRole: async (id, payload) => {
-    const response = await axiosInstance.put(`/master-data/roles/${id}`, payload);
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.put(`/master-data/roles/${id}`, payload);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteRole: async (id) => {
-    await axiosInstance.delete(`/master-data/roles/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/roles/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/roles/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/roles/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
 
   getPermissionsMatrix: async () => {
-    const response = await axiosInstance.get('/master-data/permissions-matrix');
-    return { success: true, data: response.data || {} };
+    try {
+      const response = await axiosInstance.get('/master-data/permissions-matrix');
+      return { success: true, data: response.data || {} };
+    } catch {
+      return { success: false, data: {} };
+    }
   },
 
   getInsuranceTypes: async () => {
-    const response = await axiosInstance.get('/master-data/insurance-types');
-    return { success: true, data: response.data || [] };
+    try {
+      const response = await axiosInstance.get('/master-data/insurance-types');
+      return { success: true, data: response.data || [] };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createInsuranceType: async (payload) => {
-    const response = await axiosInstance.post('/master-data/insurance-types', payload).catch(async () => {
-      return await axiosInstance.post('/master-data/insurance-types/create', payload);
-    });
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.post('/master-data/insurance-types', payload).catch(async () => {
+        return await axiosInstance.post('/master-data/insurance-types/create', payload);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateInsuranceType: async (id, payload) => {
-    const response = await axiosInstance.put(`/master-data/insurance-types/${id}`, payload);
-    return { success: true, data: response.data };
+    try {
+      const response = await axiosInstance.put(`/master-data/insurance-types/${id}`, payload);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteInsuranceType: async (id) => {
-    await axiosInstance.delete(`/master-data/insurance-types/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/insurance-types/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/insurance-types/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/insurance-types/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
 
   getProductionStages: async () => {
-    const response = await axiosInstance.get('/master-data/production-stages');
-    const data = (response.data || []).map((item) => ({
-      id: item.id,
-      name: item.name,
-      code: item.code,
-      stageOrder: item.stage_order || 1,
-      defaultPrice: item.default_price || 150000,
-    }));
-    return { success: true, data };
+    try {
+      const response = await axiosInstance.get('/master-data/production-stages');
+      const data = (response.data || []).map((item) => ({
+        id: item.id,
+        name: item.name,
+        code: item.code,
+        stageOrder: item.stage_order || 1,
+        defaultPrice: item.default_price || 150000,
+      }));
+      return { success: true, data };
+    } catch {
+      return { success: false, data: [] };
+    }
   },
   createProductionStage: async (payload) => {
-    const data = {
-      name: payload.name,
-      code: payload.code,
-      stage_order: payload.stageOrder || 1,
-      default_price: payload.defaultPrice || 150000,
-    };
-    const response = await axiosInstance.post('/master-data/production-stages', data).catch(async () => {
-      return await axiosInstance.post('/master-data/production-stages/create', data);
-    });
-    return { success: true, data: response.data };
+    try {
+      const data = {
+        name: payload.name,
+        code: payload.code,
+        stage_order: payload.stageOrder || 1,
+        default_price: payload.defaultPrice || 150000,
+      };
+      const response = await axiosInstance.post('/master-data/production-stages', data).catch(async () => {
+        return await axiosInstance.post('/master-data/production-stages/create', data);
+      });
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   updateProductionStage: async (id, payload) => {
-    const data = {
-      name: payload.name,
-      code: payload.code,
-      stage_order: payload.stageOrder,
-      default_price: payload.defaultPrice,
-    };
-    const response = await axiosInstance.put(`/master-data/production-stages/${id}`, data);
-    return { success: true, data: response.data };
+    try {
+      const data = {
+        name: payload.name,
+        code: payload.code,
+        stage_order: payload.stageOrder,
+        default_price: payload.defaultPrice,
+      };
+      const response = await axiosInstance.put(`/master-data/production-stages/${id}`, data);
+      return { success: true, data: response.data };
+    } catch {
+      return { success: false };
+    }
   },
   deleteProductionStage: async (id) => {
-    await axiosInstance.delete(`/master-data/production-stages/${id}`).catch(async () => {
-      return await axiosInstance.delete(`/master-data/production-stages/${id}/delete`);
-    });
-    return { success: true };
+    try {
+      await axiosInstance.delete(`/master-data/production-stages/${id}`).catch(async () => {
+        return await axiosInstance.delete(`/master-data/production-stages/${id}/delete`);
+      });
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   },
   updateStagesOrder: async (stages) => {
     await new Promise((res) => setTimeout(res, 400));
