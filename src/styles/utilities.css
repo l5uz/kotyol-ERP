@@ -1,5 +1,9 @@
 /* ERP Utility Classes */
 
+.min-w-0 {
+  min-width: 0 !important;
+}
+
 .erp-glass {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
