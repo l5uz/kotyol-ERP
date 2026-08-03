@@ -1,6 +1,7 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { useAuthStore } from '@/store/useAuthStore';
+import { financeApi } from '@/features/finance/api/financeApi';
 
 const mapStock = (item) => {
   if (!item) return null;
@@ -361,6 +362,24 @@ export const warehouseApi = {
 
       const apiRes = await axiosInstance.post('/warehouse/stock', stockPayload);
       const createdStock = apiRes?.data || apiRes;
+
+      // Auto-create finance expense for defect movements
+      if (movementData.movementTypeCode === 'DEFECT' || movementData.reason?.includes('Defekt')) {
+        try {
+          const defectAmount = (Number(movementData.quantity) || 0) * (Number(movementData.unitPrice || movementData.purchasePrice) || 0);
+          if (defectAmount > 0) {
+            await financeApi.createExpense({
+              expenseNumber: `DEF-EXP-${Date.now()}`,
+              expenseTypeId: 'defect_expense',
+              amount: defectAmount,
+              date: new Date().toISOString().split('T')[0],
+              description: `Defekt chiqimi: ${movementData.productName || 'Mahsulot'} × ${movementData.quantity} — Sabab: ${movementData.reason || 'Nosozlik'}`,
+            });
+          }
+        } catch (_err) {
+          // Finance write failed silently
+        }
+      }
 
       return {
         success: true,

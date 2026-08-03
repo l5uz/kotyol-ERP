@@ -70,10 +70,11 @@ export const boilersApi = {
       return acc + (stg ? (stg.defaultPrice || 0) : 0);
     }, 0);
 
-    const laborCost = 50.0;
-    const totalCost = materialCost + stageCost + laborCost;
+    const laborCost = stageCost * 0.10;
+    const overheadCost = (materialCost + stageCost) * 0.05;
+    const totalCost = materialCost + stageCost + laborCost + overheadCost;
 
-    return { materialCost, stageCost, laborCost, totalCost };
+    return { materialCost, stageCost, laborCost, overheadCost, overheadRatePercent: 5, formula: 'Tannarx = Xomashyo + Bosqichlar + Mehnat (10%) + Sex xarajatlari (5%)', totalCost };
   },
 
   createBoiler: async (boilerData) => {

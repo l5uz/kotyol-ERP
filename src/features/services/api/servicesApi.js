@@ -1,4 +1,5 @@
 import { axiosInstance } from '@/api/axiosInstance';
+import { financeApi } from '@/features/finance/api/financeApi';
 
 const mapService = (item) => {
   if (!item) return null;
@@ -25,6 +26,7 @@ const mapService = (item) => {
     notes: item.notes || '',
     attachments: item.attachments || [],
     timeline: item.timeline || [],
+    serviceCost: Number(item.service_cost || item.serviceCost) || 0,
   };
 };
 
@@ -90,11 +92,28 @@ export const servicesApi = {
         order_number: serviceData.orderNumber || null,
         production_number: serviceData.productionNumber || null,
         notes: serviceData.notes || '',
+        service_cost: Number(serviceData.serviceCost) || 0,
       };
       const response = await axiosInstance.post('/master-data/services/create', payload).catch(async () => {
         return await axiosInstance.post('/master-data/services', payload);
       });
       const itemData = response?.data || response;
+
+      // Auto-create finance expense for service cost
+      if (serviceData.serviceCost && Number(serviceData.serviceCost) > 0) {
+        try {
+          await financeApi.createExpense({
+            expenseNumber: `SRV-EXP-${itemData.id?.slice(0, 8) || Date.now()}`,
+            expenseTypeId: 'service_expense',
+            amount: Number(serviceData.serviceCost),
+            date: serviceData.serviceDate || new Date().toISOString().split('T')[0],
+            description: `Servis xarajati: ${serviceData.serviceTypeName || 'Texnik xizmat'} — ${serviceData.customerName || 'Mijoz'}`,
+          });
+        } catch (_err) {
+          // Finance write failed silently — service itself is saved
+        }
+      }
+
       return { success: true, data: mapService(itemData), message: 'Servis arizasi muvaffaqiyatli rasmiylashtirildi!' };
     } catch (err) {
       console.error("createService error:", err);
