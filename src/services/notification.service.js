@@ -49,7 +49,7 @@ export const parseRawErrorMessage = (raw) => {
   // Fallback cleanup of python/Django representation symbols
   str = str
     .replace(/ErrorDetail\(.*?\)/g, '')
-    .replace(/[{}\[\]'"]/g, '')
+    .replace(/[{}[\]'"]/g, '')
     .replace(/code=\w+/g, '')
     .trim();
 

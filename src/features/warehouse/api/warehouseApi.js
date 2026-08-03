@@ -173,7 +173,9 @@ export const warehouseApi = {
         if (item) {
           return { success: true, data: mapStock(item) };
         }
-      } catch {}
+      } catch (_err) {
+        /* ignore */
+      }
       return { success: false, data: null, error: err };
     }
   },
@@ -276,7 +278,9 @@ export const warehouseApi = {
       try {
         const whRes = await axiosInstance.get('/master-data/warehouses');
         realWarehouses = Array.isArray(whRes?.data) ? whRes.data : Array.isArray(whRes) ? whRes : [];
-      } catch {}
+      } catch (_err) {
+        /* ignore */
+      }
 
       if (realWarehouses.length > 0) {
         const matchedWh = realWarehouses.find(
@@ -289,7 +293,9 @@ export const warehouseApi = {
       try {
         const prodRes = await axiosInstance.get('/products');
         realProducts = Array.isArray(prodRes?.data) ? prodRes.data : Array.isArray(prodRes) ? prodRes : [];
-      } catch {}
+      } catch (_err) {
+        /* ignore */
+      }
 
       if (targetProductId && realProducts.length > 0) {
         const matchedP = realProducts.find((p) => String(p.id) === String(targetProductId));
@@ -392,7 +398,9 @@ export const warehouseApi = {
       let empResponse = null;
       try {
         empResponse = await axiosInstance.get('/auth/employees').catch(() => null);
-      } catch {}
+      } catch (_err) {
+        /* ignore */
+      }
 
       const rawEmployees = empResponse?.data || empResponse || [];
       const employees = Array.isArray(rawEmployees) ? rawEmployees : [];
@@ -457,7 +465,9 @@ export const warehouseApi = {
       try {
         const stockRes = await warehouseApi.getStockById(stockId);
         if (stockRes.success) stockItem = stockRes.data;
-      } catch {}
+      } catch (_err) {
+        /* ignore */
+      }
 
       if (stockItem) {
         await warehouseApi.updateStock(stockId, {
@@ -512,7 +522,9 @@ export const warehouseApi = {
       let empResponse = null;
       try {
         empResponse = await axiosInstance.get('/auth/employees').catch(() => null);
-      } catch {}
+      } catch (_err) {
+        /* ignore */
+      }
 
       const rawEmployees = empResponse?.data || empResponse || [];
       const employees = Array.isArray(rawEmployees) ? rawEmployees : [];
@@ -570,7 +582,9 @@ export const warehouseApi = {
       try {
         const stockRes = await warehouseApi.getStockById(stockId);
         if (stockRes.success) stockItem = stockRes.data;
-      } catch {}
+      } catch (_err) {
+        /* ignore */
+      }
 
       if (stockItem) {
         await warehouseApi.updateStock(stockId, {

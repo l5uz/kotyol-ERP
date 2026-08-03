@@ -23,7 +23,9 @@ export const getActiveCurrency = () => {
       const parsed = JSON.parse(savedRaw);
       if (parsed) return String(parsed).trim().toUpperCase();
     }
-  } catch {}
+  } catch (_err) {
+    // Ignore storage parse errors
+  }
 
   return 'UZS';
 };
@@ -43,7 +45,9 @@ export const setActiveCurrency = (currencyCode) => {
       parsed.currency = clean;
       localStorage.setItem('user_profile', JSON.stringify(parsed));
     }
-  } catch {}
+  } catch (_err) {
+    // Ignore storage write errors
+  }
 
   window.dispatchEvent(new CustomEvent('currency-changed', { detail: { currency: clean } }));
 };

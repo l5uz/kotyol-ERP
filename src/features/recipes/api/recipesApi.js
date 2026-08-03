@@ -101,7 +101,9 @@ export const recipesApi = {
           };
           return { success: true, data: defaultRecipe };
         }
-      } catch {}
+      } catch (_err) {
+        /* ignore */
+      }
       return { success: true, data: null };
     }
   },

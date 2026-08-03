@@ -12,7 +12,7 @@ import { ProductFormModal } from '../components/ProductFormModal';
 import { productsApi } from '../api/productsApi';
 import { suppliersApi } from '@/features/suppliers/api/suppliersApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { ERP_ICONS } from '@/shared/icons';
 import { ROUTES } from '@/constants/routes.constants';
 import { WarehouseSubNav } from '@/features/warehouse/components/WarehouseSubNav';

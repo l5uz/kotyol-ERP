@@ -7,8 +7,8 @@ const mapCustomer = (item) => {
   if (item.address && item.address.trim().startsWith('{')) {
     try {
       extra = { ...extra, ...JSON.parse(item.address) };
-    } catch {
-      extra.address = item.address;
+    } catch (_err) {
+      /* ignore */
     }
   } else {
     extra.address = item.address || '';
@@ -118,7 +118,9 @@ export const customersApi = {
       if (item && item.address && item.address.trim().startsWith('{')) {
         try {
           currentExtra = { ...currentExtra, ...JSON.parse(item.address) };
-        } catch {}
+        } catch (_err) {
+          /* ignore */
+        }
       } else if (item) {
         currentExtra.address = item.address || '';
       }

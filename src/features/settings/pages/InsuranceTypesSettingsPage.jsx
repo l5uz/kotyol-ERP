@@ -9,7 +9,7 @@ import { Select } from '@/components/common/Select/Select';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const InsuranceTypesSettingsPage = () => {

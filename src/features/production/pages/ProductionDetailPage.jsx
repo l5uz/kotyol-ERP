@@ -152,11 +152,11 @@ export const ProductionDetailPage = () => {
             className="py-1 px-2 fs-8 d-flex align-items-center gap-1"
             onClick={() => handleCompleteOperation(row.id)}
           >
-            <LuCheckCircle2 /> Qabul qilish (+Maosh)
+            <LuCircleCheck /> Qabul qilish (+Maosh)
           </Button>
         ) : (
           <span className="text-success fs-8 d-flex align-items-center gap-1 fw-medium">
-            <LuCheckCircle2 /> Maosh O'tdi
+            <LuCircleCheck /> Maosh O'tdi
           </span>
         ),
     },

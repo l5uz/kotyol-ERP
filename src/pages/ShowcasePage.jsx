@@ -60,7 +60,7 @@ export const ShowcasePage = () => {
           </button>
           <button
             className="btn btn-warning text-dark"
-            onClick={() => addNotification({ type: 'warning', title: 'Ogohlantirish!', message: 'Iltimos, ma'lumotlarni tekshiring' })}
+            onClick={() => addNotification({ type: 'warning', title: 'Ogohlantirish!', message: "Iltimos, ma'lumotlarni tekshiring" })}
           >
             Ogohlantirish Xabari
           </button>

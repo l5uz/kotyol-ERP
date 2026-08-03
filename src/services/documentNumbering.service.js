@@ -26,7 +26,9 @@ const loadState = () => {
       // Merge with default configs to ensure new keys exist
       return { ...DEFAULT_CONFIGS, ...parsed };
     }
-  } catch {}
+  } catch (_err) {
+    // Ignore storage parse errors
+  }
   return { ...DEFAULT_CONFIGS };
 };
 
@@ -35,7 +37,9 @@ let numberingState = loadState();
 const saveState = () => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(numberingState));
-  } catch {}
+  } catch (_err) {
+    // Ignore storage write errors
+  }
 };
 
 export const documentNumberingService = {
