@@ -1,5 +1,8 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { getActiveCurrency } from '@/utils/currency.utils';
+import { warehouseApi } from '@/features/warehouse/api/warehouseApi';
+import { recipesApi } from '@/features/recipes/api/recipesApi';
+import { boilersApi } from '@/features/boilers/api/boilersApi';
 
 const isValidUUID = (str) =>
   typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -122,6 +125,38 @@ export const salesApi = {
 
       const response = await axiosInstance.post('/sales', payload);
       const itemData = response?.data || response;
+
+      // Sotilganda ombordan avtomatik ayrilish
+      try {
+        const boilerId = targetProductId;
+        if (boilerId) {
+          const boilRes = await boilersApi.getBoilerById(boilerId);
+          const recipeId = boilRes?.data?.recipeId;
+          if (recipeId) {
+            const recRes = await recipesApi.getRecipeById(recipeId);
+            if (recRes.success && recRes.data?.items?.length > 0) {
+              const qty = Number(saleData.quantity) || 1;
+              for (const ingredient of recRes.data.items) {
+                const requiredQty = (ingredient.requiredQuantity || 0) * qty;
+                if (requiredQty > 0) {
+                  await warehouseApi.createMovement({
+                    productId: ingredient.materialId,
+                    productName: ingredient.materialName,
+                    quantity: requiredQty,
+                    unitPrice: ingredient.unitPrice || 0,
+                    movementTypeCode: 'OUT',
+                    reason: `Sotuv: ${payload.invoice_number} — ${ingredient.materialName}`,
+                  }).catch(() => {});
+                }
+              }
+            }
+          }
+        }
+      } catch (_err) {
+        // Ombor ayrilishi xatolik bo'lsa ham sotuv saqlangan
+        console.warn('Ombordan avtomatik ayirishda xatolik:', _err);
+      }
+
       return { success: true, data: mapSale(itemData), message: 'Sotuv hujjati muvaffaqiyatli rasmiylashtirildi va ombordan mahsulot chiqarildi!' };
     } catch (err) {
       console.error("createSale error:", err);

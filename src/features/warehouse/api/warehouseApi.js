@@ -107,7 +107,7 @@ export const warehouseApi = {
       const totalNomenclature = items.length;
       const totalQty = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
       const totalVal = items.reduce((sum, item) => sum + ((Number(item.quantity) || 0) * (Number(item.avg_unit_cost) || 0)), 0);
-      const lowStockCount = items.filter((item) => (Number(item.quantity) || 0) <= 10).length;
+      const lowStockCount = items.filter((item) => (Number(item.quantity) || 0) <= (Number(item.min_quantity) || 10)).length;
 
       return {
         success: true,
@@ -117,6 +117,10 @@ export const warehouseApi = {
           totalValue: totalVal,
           lowStockAlerts: lowStockCount,
           outOfStockAlerts: items.filter((item) => (Number(item.quantity) || 0) === 0).length,
+          totalProducts: totalNomenclature,
+          totalStockValue: totalVal,
+          lowStockCount: lowStockCount,
+          outOfStockCount: items.filter((item) => (Number(item.quantity) || 0) === 0).length,
         },
       };
     } catch (err) {

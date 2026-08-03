@@ -253,6 +253,27 @@ export const WarehousePage = () => {
         }
       />
 
+      {/* Low Stock Alert Banner */}
+      {stock.some(item => (Number(item.quantity) || 0) <= (Number(item.minQuantity) || 10)) && (
+        <div className="alert alert-warning border-0 shadow-sm d-flex align-items-center gap-3 mb-4 p-3 rounded-3" role="alert">
+          <div className="bg-warning bg-opacity-20 text-warning p-2 rounded-2">
+            <LuBoxes className="fs-4" />
+          </div>
+          <div className="flex-grow-1">
+            <h6 className="alert-heading fw-bold mb-1 text-warning-emphasis">Diqqat! Kam qolgan mahsulotlar bor</h6>
+            <p className="mb-0 fs-7 text-muted">
+              Quyidagi mahsulotlar zaxirasi belgilangan minimal miqdordan kamayib ketgan:{' '}
+              <strong className="text-warning-emphasis">
+                {stock
+                  .filter(item => (Number(item.quantity) || 0) <= (Number(item.minQuantity) || 10))
+                  .map(item => `${item.productName} (${item.quantity} ${item.unitName})`)
+                  .join(', ')}
+              </strong>
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Stats Cards Grid */}
       {stats && (
         <div className="row g-3 mb-4">

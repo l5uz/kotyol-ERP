@@ -1,4 +1,7 @@
 import { axiosInstance } from '@/api/axiosInstance';
+import { boilersApi } from '@/features/boilers/api/boilersApi';
+import { recipesApi } from '@/features/recipes/api/recipesApi';
+import { warehouseApi } from '@/features/warehouse/api/warehouseApi';
 
 const mapProductionOrder = (item) => {
   if (!item) return null;
@@ -122,7 +125,40 @@ export const productionApi = {
 
   startProductionBatch: async (id) => {
     try {
+      const orderRes = await productionApi.getProductionOrderById(id);
+      const batchData = orderRes?.data;
+
       await axiosInstance.put(`/production/batches/${id}`, { status: 'IN_PROGRESS' });
+
+      // Automatically deduct ingredients from warehouse
+      if (batchData && batchData.boilerId) {
+        try {
+          const boilRes = await boilersApi.getBoilerById(batchData.boilerId);
+          const recipeId = boilRes?.data?.recipeId;
+          if (recipeId) {
+            const recRes = await recipesApi.getRecipeById(recipeId);
+            if (recRes.success && recRes.data?.items?.length > 0) {
+              const qty = Number(batchData.quantity) || 1;
+              for (const ingredient of recRes.data.items) {
+                const requiredQty = (ingredient.requiredQuantity || 0) * qty;
+                if (requiredQty > 0) {
+                  await warehouseApi.createMovement({
+                    productId: ingredient.materialId,
+                    productName: ingredient.materialName,
+                    quantity: requiredQty,
+                    unitPrice: ingredient.unitPrice || 0,
+                    movementTypeCode: 'OUT',
+                    reason: `Ishlab chiqarish boshlandi: Partiya №${batchData.productionNumber} — ${ingredient.materialName}`,
+                  }).catch(() => {});
+                }
+              }
+            }
+          }
+        } catch (_err) {
+          console.warn('Production start warehouse deduction failed:', _err);
+        }
+      }
+
       return { success: true, message: "Ishlab chiqarish sexi muvaffaqiyatli ish boshladi!" };
     } catch (err) {
       return { success: false, error: err, message: "Ish boshlashda xatolik yuz berdi." };

@@ -1,5 +1,7 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { boilersApi } from '@/features/boilers/api/boilersApi';
+import { warehouseApi } from '@/features/warehouse/api/warehouseApi';
+import { recipesApi } from '@/features/recipes/api/recipesApi';
 
 const mapOrder = (item) => {
   if (!item) return null;
@@ -57,28 +59,65 @@ export const ordersApi = {
   },
 
   checkBoilerOrderAvailability: async (boilerId, quantity = 1) => {
+    const qty = parseFloat(quantity) || 1;
     const boilRes = await boilersApi.getBoilerById(boilerId);
     if (!boilRes.success || !boilRes.data) {
       return {
         recipeVersion: '1.0',
         unitPrice: 100,
-        totalAmount: 100 * quantity,
+        totalAmount: 100 * qty,
         estimatedProductionDays: 5,
         materialAvailabilityStatus: 'AVAILABLE',
         currentStockStatus: 'Yetarli zaxira',
+        missingIngredients: [],
       };
     }
 
     const boiler = boilRes.data;
     const unitPrice = boiler.costBreakdown?.totalCost || 200.0;
-    const totalAmount = unitPrice * (parseFloat(quantity) || 1);
-    const estimatedDays = Math.max(3, 3 + Math.ceil(quantity * 1.5));
+    const totalAmount = unitPrice * qty;
+    const estimatedDays = Math.max(3, 3 + Math.ceil(qty * 1.5));
 
-    const materialAvailabilityStatus = quantity > 10 ? 'PARTIALLY_AVAILABLE' : 'AVAILABLE';
-    const currentStockStatus =
-      materialAvailabilityStatus === 'AVAILABLE'
-        ? 'Omborda barcha kerakli xomashyolar mavjud'
-        : 'Ba\'zi xomashyolar qisman yetarli emas (Xarid talab qilinishi mumkin)';
+    let materialAvailabilityStatus = 'AVAILABLE';
+    let currentStockStatus = 'Omborda barcha kerakli xomashyolar mavjud';
+    const missingIngredients = [];
+
+    if (boiler.recipeId) {
+      try {
+        const recRes = await recipesApi.getRecipeById(boiler.recipeId);
+        const stockRes = await warehouseApi.getCurrentStock();
+        
+        if (recRes.success && recRes.data?.items && stockRes.success) {
+          const stocks = stockRes.data || [];
+          
+          for (const ingredient of recRes.data.items) {
+            const required = (ingredient.requiredQuantity || 0) * qty;
+            const matchedStock = stocks.find(
+              (s) => String(s.productId) === String(ingredient.materialId)
+            );
+            const availableStock = matchedStock ? (matchedStock.availableQuantity || matchedStock.quantity || 0) : 0;
+            
+            if (availableStock < required) {
+              materialAvailabilityStatus = 'PARTIALLY_AVAILABLE';
+              missingIngredients.push({
+                materialId: ingredient.materialId,
+                materialName: ingredient.materialName,
+                required,
+                available: availableStock,
+                shortage: required - availableStock,
+                unitName: ingredient.unitName || 'dona',
+              });
+            }
+          }
+        }
+      } catch (_err) {
+        console.warn('Real stock availability check failed:', _err);
+      }
+    }
+
+    if (missingIngredients.length > 0) {
+      currentStockStatus = `Xomashyo yetishmovchiligi mavjud (${missingIngredients.length} turdagi xomashyo yetarli emas)`;
+    }
 
     return {
       recipeId: boiler.recipeId,
@@ -89,6 +128,7 @@ export const ordersApi = {
       estimatedProductionDays: estimatedDays,
       materialAvailabilityStatus,
       currentStockStatus,
+      missingIngredients,
     };
   },
 
