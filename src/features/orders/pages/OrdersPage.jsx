@@ -14,6 +14,8 @@ import { OrderFormModal } from '../components/OrderFormModal';
 import { ordersApi } from '../api/ordersApi';
 import { customersApi } from '@/features/customers/api/customersApi';
 import { boilersApi } from '@/features/boilers/api/boilersApi';
+import { recipesApi } from '@/features/recipes/api/recipesApi';
+import { warehouseApi } from '@/features/warehouse/api/warehouseApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
 import { usePermission } from '@/hooks/usePermission';
@@ -35,6 +37,10 @@ export const OrdersPage = () => {
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+  const [isBulkCalcOpen, setIsBulkCalcOpen] = useState(false);
+  const [bulkCalcData, setBulkCalcData] = useState([]);
 
   const statuses = dynamicSettingsService.getOrderStatuses();
   const priorities = dynamicSettingsService.getOrderPriorities();
@@ -95,7 +101,83 @@ export const OrdersPage = () => {
     }
   };
 
+  const handleCalculateBulkIngredients = async () => {
+    const selectedOrders = orders.filter((o) => selectedOrderIds.includes(o.id));
+    const stockRes = await warehouseApi.getCurrentStock();
+    const stocks = stockRes.success ? (stockRes.data || []) : [];
+    const totalIngredients = {};
+
+    for (const order of selectedOrders) {
+      if (order.boilerId) {
+        const boilRes = await boilersApi.getBoilerById(order.boilerId);
+        const recipeId = boilRes?.data?.recipeId;
+        if (recipeId) {
+          const recRes = await recipesApi.getRecipeById(recipeId);
+          if (recRes.success && recRes.data?.items) {
+            recRes.data.items.forEach((ing) => {
+              const key = ing.materialId;
+              const qty = (Number(ing.requiredQuantity) || 0) * (Number(order.quantity) || 1);
+              if (totalIngredients[key]) {
+                totalIngredients[key].requiredQty += qty;
+              } else {
+                totalIngredients[key] = {
+                  materialId: ing.materialId,
+                  materialName: ing.materialName,
+                  unitName: ing.unitName || 'dona',
+                  requiredQty: qty,
+                };
+              }
+            });
+          }
+        }
+      }
+    }
+
+    const result = Object.values(totalIngredients).map((ing) => {
+      const matchedStock = stocks.find((s) => String(s.productId) === String(ing.materialId));
+      const available = matchedStock ? (matchedStock.availableQuantity || matchedStock.quantity || 0) : 0;
+      return {
+        ...ing,
+        availableStock: available,
+        shortage: Math.max(0, ing.requiredQty - available),
+      };
+    });
+
+    setBulkCalcData(result);
+    setIsBulkCalcOpen(true);
+  };
+
   const columns = [
+    {
+      header: (
+        <input
+          type="checkbox"
+          checked={orders.length > 0 && selectedOrderIds.length === orders.length}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setSelectedOrderIds(orders.map((o) => o.id));
+            } else {
+              setSelectedOrderIds([]);
+            }
+          }}
+        />
+      ),
+      cell: (row) => (
+        <input
+          type="checkbox"
+          checked={selectedOrderIds.includes(row.id)}
+          onChange={(e) => {
+            e.stopPropagation();
+            if (e.target.checked) {
+              setSelectedOrderIds((prev) => [...prev, row.id]);
+            } else {
+              setSelectedOrderIds((prev) => prev.filter((id) => id !== row.id));
+            }
+          }}
+        />
+      ),
+      width: '40px',
+    },
     {
       header: 'Buyurtma Nomi',
       cell: (row) => (
@@ -237,6 +319,31 @@ export const OrdersPage = () => {
       />
 
       <Card title={`Buyurtmalar Reyestri (${orders.length} ta)`}>
+        {/* Sticky Bulk Action Bar */}
+        {selectedOrderIds.length > 0 && (
+          <div className="card-custom border-primary bg-primary bg-opacity-10 p-3 rounded-3 d-flex align-items-center justify-content-between mb-3 shadow-sm animate-fade-in">
+            <div className="d-flex align-items-center gap-2">
+              <span className="badge bg-primary text-white fs-7">{selectedOrderIds.length}</span>
+              <span className="text-main fw-medium fs-7">ta buyurtma tanlandi.</span>
+            </div>
+            <div className="d-flex gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleCalculateBulkIngredients()}
+              >
+                <LuClipboardList className="me-1" /> Ingredientlarni ommaviy hisoblash
+              </Button>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => setSelectedOrderIds([])}
+              >
+                Bekor qilish
+              </Button>
+            </div>
+          </div>
+        )}
         <Table columns={columns} data={orders} tableKey="orders_list" />
       </Card>
 
@@ -264,6 +371,55 @@ export const OrdersPage = () => {
           isDanger={true}
           confirmText="Bekor qilish"
           cancelText="Orqaga"
+        />
+      )}
+
+      {/* Bulk Calculation Modal */}
+      {isBulkCalcOpen && (
+        <ConfirmDialog
+          isOpen={isBulkCalcOpen}
+          onClose={() => setIsBulkCalcOpen(false)}
+          onConfirm={() => setIsBulkCalcOpen(false)}
+          title="Ommaviy Ingredientlar va Zaxira Hisoboti"
+          confirmText="Tushunarli"
+          cancelText=""
+          message={
+            <div className="text-start" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <p className="fs-7 text-muted mb-3">Tanlangan buyurtmalar uchun jami xomashyo talabi:</p>
+              <div className="table-responsive">
+                <table className="table table-sm table-bordered fs-8">
+                  <thead>
+                    <tr className="table-light">
+                      <th>Masalliq / Xomashyo</th>
+                      <th className="text-center">Jami Kerak</th>
+                      <th className="text-center">Omborda Mavjud</th>
+                      <th className="text-center">Yetishmovchilik</th>
+                      <th className="text-center">Holat</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bulkCalcData.map((row) => (
+                      <tr key={row.materialId}>
+                        <td>{row.materialName}</td>
+                        <td className="text-center">{row.requiredQty.toLocaleString()} {row.unitName}</td>
+                        <td className="text-center">{row.availableStock.toLocaleString()} {row.unitName}</td>
+                        <td className="text-center text-danger font-monospace">
+                          {row.shortage > 0 ? `${row.shortage.toLocaleString()} ${row.unitName}` : '-'}
+                        </td>
+                        <td className="text-center">
+                          {row.shortage > 0 ? (
+                            <span className="badge bg-danger bg-opacity-10 text-danger">Kamchilik</span>
+                          ) : (
+                            <span className="badge bg-success bg-opacity-10 text-success">Yetarli</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
         />
       )}
     </div>

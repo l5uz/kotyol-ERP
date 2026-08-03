@@ -12,6 +12,7 @@ import { ProductionFilterBar } from '../components/ProductionFilterBar';
 import { ProductionFormModal } from '../components/ProductionFormModal';
 import { ProductionKanbanBoard } from '../components/ProductionKanbanBoard';
 import { productionApi } from '../api/productionApi';
+import { employeesApi } from '@/features/employees/api/employeesApi';
 import { settingsApi } from '@/features/settings/api/settingsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
@@ -35,6 +36,7 @@ export const ProductionPage = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const [stages, setStages] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const orderPriorities = dynamicSettingsService.getOrderPriorities();
 
   const handleStagesUpdated = async () => {
@@ -42,8 +44,14 @@ export const ProductionPage = () => {
     if (res.success) setStages(res.data || []);
   };
 
+  const loadEmployees = async () => {
+    const res = await employeesApi.getEmployees();
+    if (res.success) setEmployees(res.data || []);
+  };
+
   useEffect(() => {
     handleStagesUpdated();
+    loadEmployees();
   }, []);
 
   useEffect(() => {
@@ -297,7 +305,12 @@ export const ProductionPage = () => {
         <ProductionKanbanBoard
           orders={productionOrders}
           stages={stages}
+          employees={employees}
           onStageChange={handleStageChange}
+          onCardClick={(order) => {
+            setEditingOrder(order);
+            setIsModalOpen(true);
+          }}
           canEdit={canEdit}
           onStagesUpdated={handleStagesUpdated}
         />
@@ -317,6 +330,7 @@ export const ProductionPage = () => {
           onSubmit={handleCreateOrUpdate}
           productionOrder={editingOrder}
           stages={stages}
+          employees={employees}
         />
       )}
 

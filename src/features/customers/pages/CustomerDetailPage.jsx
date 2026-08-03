@@ -9,12 +9,17 @@ import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Timeline } from '@/components/common/Timeline/Timeline';
 import { CustomersSubNav } from '../components/CustomersSubNav';
 import { customersApi } from '../api/customersApi';
+import { salesApi } from '@/features/sales/api/salesApi';
+import { servicesApi } from '@/features/services/api/servicesApi';
+import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { notifySuccess } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const CustomerDetailPage = () => {
   const { id } = useParams();
   const [customer, setCustomer] = useState(null);
+  const [sales, setSales] = useState([]);
+  const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -24,8 +29,23 @@ export const CustomerDetailPage = () => {
 
   const loadCustomerDetails = async () => {
     setIsLoading(true);
-    const res = await customersApi.getCustomerById(id);
-    if (res.success) setCustomer(res.data);
+    const [custRes, salesRes, srvRes] = await Promise.all([
+      customersApi.getCustomerById(id),
+      salesApi.getSales().catch(() => ({ success: false, data: [] })),
+      servicesApi.getServices().catch(() => ({ success: false, data: [] })),
+    ]);
+    
+    if (custRes.success) setCustomer(custRes.data);
+    
+    if (salesRes.success) {
+      const filteredSales = (salesRes.data || []).filter((s) => String(s.customerId) === String(id));
+      setSales(filteredSales);
+    }
+    
+    if (srvRes.success) {
+      const filteredServices = (srvRes.data || []).filter((s) => String(s.customerId) === String(id));
+      setServices(filteredServices);
+    }
     setIsLoading(false);
   };
 
@@ -56,6 +76,38 @@ export const CustomerDetailPage = () => {
         <button className="btn btn-sm btn-outline-primary py-0 px-2 fs-8">Yuklab Olish</button>
       ),
     },
+  ];
+
+  const salesColumns = [
+    {
+      header: 'Hujjat №',
+      cell: (row) => (
+        <Link to={`${ROUTES.PROTECTED.SALES}/${row.id}`} className="fw-bold text-primary text-decoration-none">
+          {row.invoiceNumber}
+        </Link>
+      ),
+    },
+    { header: 'Kotyol Modeli', accessor: 'boilerModelName' },
+    { header: 'Miqdor', cell: (row) => `${row.quantity} dona` },
+    { header: 'Jami Summa', cell: (row) => formatCurrency(row.totalAmount) },
+    { header: 'Sana', accessor: 'saleDate' },
+    { header: 'Status', cell: (row) => <StatusBadge status={row.paymentStatus} /> },
+  ];
+
+  const serviceColumns = [
+    {
+      header: 'Servis №',
+      cell: (row) => (
+        <Link to={`${ROUTES.PROTECTED.SERVICES}/${row.id}`} className="fw-bold text-primary text-decoration-none">
+          {row.serviceNumber}
+        </Link>
+      ),
+    },
+    { header: 'Kotyol Modeli', accessor: 'boilerModelName' },
+    { header: 'Xizmat Turi', accessor: 'serviceTypeName' },
+    { header: 'Usta', accessor: 'assignedEmployeeName' },
+    { header: 'Sana', accessor: 'serviceDate' },
+    { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
   ];
 
   const timelineItems = (customer.timeline || []).map((tl) => ({
@@ -223,20 +275,28 @@ export const CustomerDetailPage = () => {
             )}
 
             {activeTab === 'purchases' && (
-              <Card title="Mijoz Xaridlar va Buyurtmalar Tarixi">
-                <div className="p-4 text-center text-muted-custom fs-7">
-                  <LuShoppingCart className="fs-1 d-block mx-auto mb-2 text-primary opacity-50" />
-                  Ushbu mijoz bo'yicha sotuvlar va buyurtmalar tarixi kelgusi Sales & Orders modullarida integratsiya qilinadi.
-                </div>
+              <Card title={`Mijoz Xaridlar va Buyurtmalar Tarixi (${sales.length} ta)`}>
+                {sales.length > 0 ? (
+                  <Table columns={salesColumns} data={sales} tableKey="customer_sales_list" />
+                ) : (
+                  <div className="p-4 text-center text-muted-custom fs-7">
+                    <LuShoppingCart className="fs-1 d-block mx-auto mb-2 text-primary opacity-50" />
+                    Ushbu mijoz bo'yicha hech qanday sotuv shartnomalari topilmadi.
+                  </div>
+                )}
               </Card>
             )}
 
             {activeTab === 'warranty' && (
-              <Card title="Kafolat Muddatlari va Servis Jurnali">
-                <div className="p-4 text-center text-muted-custom fs-7">
-                  <LuWrench className="fs-1 d-block mx-auto mb-2 text-info opacity-50" />
-                  Mijoz uskunalari kafolati va texnik servis xizmatlari jurnali kelgusi Warranty & Service modullarida ko'rinadi.
-                </div>
+              <Card title={`Kafolat Muddatlari va Servis Jurnali (${services.length} ta)`}>
+                {services.length > 0 ? (
+                  <Table columns={serviceColumns} data={services} tableKey="customer_services_list" />
+                ) : (
+                  <div className="p-4 text-center text-muted-custom fs-7">
+                    <LuWrench className="fs-1 d-block mx-auto mb-2 text-info opacity-50" />
+                    Ushbu mijozga tegishli servis arizalari yoki texnik profilaktika tarixi mavjud emas.
+                  </div>
+                )}
               </Card>
             )}
           </div>

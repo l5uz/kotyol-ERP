@@ -609,6 +609,8 @@ export const warehouseApi = {
         /* ignore */
       }
 
+      const diff = Number(countData.actualQuantity) - Number(countData.systemQuantity);
+
       if (stockItem) {
         await warehouseApi.updateStock(stockId, {
           ...stockItem,
@@ -616,10 +618,27 @@ export const warehouseApi = {
         }).catch(() => null);
       }
 
+      // Generate automatic stock movement if difference !== 0
+      if (diff !== 0) {
+        try {
+          const typeCode = diff > 0 ? 'IN' : 'OUT';
+          const absQty = Math.abs(diff);
+          await warehouseApi.createMovement({
+            productId: stockItem?.productId || countData.productId,
+            productName: stockItem?.productName || countData.productName,
+            quantity: absQty,
+            unitPrice: stockItem?.purchasePrice || 0,
+            movementTypeCode: typeCode,
+            reason: `Inventarizatsiya farqi (${diff > 0 ? '+' : ''}${diff}): ${countData.reason || 'Moslashtirish'}`,
+          });
+        } catch (_movErr) {
+          console.warn('Inventory count auto-movement creation failed:', _movErr);
+        }
+      }
+
       const currentUser = useAuthStore.getState().user;
       const currentUserName = currentUser?.fullName || currentUser?.full_name || currentUser?.username || 'Mas\'ul Xodim';
 
-      const diff = Number(countData.actualQuantity) - Number(countData.systemQuantity);
       const newCount = {
         id: `inv_${Date.now()}`,
         productId: stockItem?.productId || countData.productId,
@@ -637,7 +656,7 @@ export const warehouseApi = {
 
       sessionCounts.unshift(newCount);
 
-      return { success: true, data: newCount, message: "Inventarizatsiya sanoq tuzatishi saqlandi va ombor yangilandi." };
+      return { success: true, data: newCount, message: "Inventarizatsiya sanoq tuzatishi saqlandi, ombor yangilandi va avtomatik harakat kiritildi." };
     } catch (err) {
       console.error("createInventoryCount error:", err);
       return { success: false, error: err, message: "Inventarizatsiyada xatolik yuz berdi." };

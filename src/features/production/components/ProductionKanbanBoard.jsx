@@ -18,12 +18,14 @@ import {
   LuPlus,
 } from 'react-icons/lu';
 import { settingsApi } from '@/features/settings/api/settingsApi';
+import { productionApi } from '@/features/production/api/productionApi';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { notifySuccess } from '@/services/notification.service';
 
 export const ProductionKanbanBoard = ({
   orders = [],
   stages = [],
+  employees = [],
   onCardClick,
   onStageChange,
   onStagesUpdated,
@@ -259,6 +261,8 @@ export const ProductionKanbanBoard = ({
                           onClick={() => onCardClick && onCardClick(order)}
                           onDragStart={(e) => handleDragStart(e, order.id)}
                           stages={stages}
+                          employees={employees}
+                          onStagesUpdated={onStagesUpdated}
                           onMoveStage={(newStage) => {
                             if (onStageChange) onStageChange(order.id, newStage);
                             if (newStage === 'COMPLETED') {
@@ -355,7 +359,7 @@ export const ProductionKanbanBoard = ({
   );
 };
 
-const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage }) => {
+const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, employees = [], onStagesUpdated }) => {
   const [showStageMenu, setShowStageMenu] = useState(false);
 
   const currentStageIndex = stages.findIndex((s) => s.code === order.status || s.code === order.stage);
@@ -441,11 +445,36 @@ const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage }) =
 
       {/* Footer Info */}
       <div className="d-flex align-items-center justify-content-between pt-2 border-top border-custom fs-8">
-        <div className="d-flex align-items-center gap-1 text-muted-custom">
-          <LuUsers className="text-info" />
-          <span>{order.assignedEmployees?.[0] || '1 usta'}</span>
+        <div className="d-flex align-items-center gap-1 text-muted-custom flex-grow-1 me-2" onClick={(e) => e.stopPropagation()}>
+          <LuUsers className="text-info flex-shrink-0" />
+          <select
+            className="form-select form-select-sm py-0 px-1 fs-8 text-main border-0 bg-transparent"
+            style={{ minWidth: '100px', cursor: 'pointer', outline: 'none', boxShadow: 'none' }}
+            value={order.assignedEmployees?.[0] || ''}
+            onChange={async (e) => {
+              const val = e.target.value;
+              if (val) {
+                await productionApi.updateProductionOrder(order.id, {
+                  ...order,
+                  assignedEmployees: [val],
+                });
+                notifySuccess(`Topshiriq xodimga biriktirildi: ${val}`);
+                if (onStagesUpdated) onStagesUpdated();
+              }
+            }}
+          >
+            <option value="" disabled>{order.assignedEmployees?.[0] || 'Usta biriktirish'}</option>
+            {employees.map((emp) => {
+              const fullName = `${emp.firstName || emp.full_name?.split(' ')[0]} ${emp.lastName || ''}`;
+              return (
+                <option key={emp.id} value={fullName}>
+                  {fullName}
+                </option>
+              );
+            })}
+          </select>
         </div>
-        <div className="d-flex align-items-center gap-1 text-muted-custom">
+        <div className="d-flex align-items-center gap-1 text-muted-custom flex-shrink-0">
           <LuClock className="text-warning" />
           <span>v{order.version || 1}</span>
         </div>
