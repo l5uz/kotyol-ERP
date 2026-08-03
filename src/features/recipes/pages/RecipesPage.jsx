@@ -180,7 +180,7 @@ export const RecipesPage = () => {
       />
 
       <Card title={`Mavjud Texnologik Retseptlar (${recipes.length} ta)`}>
-        <Table columns={columns} data={recipes} />
+        <Table columns={columns} data={recipes} tableKey="recipes_list" />
       </Card>
 
       <RecipeFormModal

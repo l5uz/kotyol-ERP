@@ -15,6 +15,7 @@
 | **Bildirishnomalar Markazi (`features/notifications`)** | `Bajarildi` | Navbar Bildirishnoma qo'ng'iroqchasi, unread badge hamda o'ng yon panel (`NotificationDrawer`). |
 | **Global Faoliyatlar Jurnali (`features/activities`)** | `Bajarildi` | Barcha modullardagi hodisalar va harakatlar audit jurnali sahifasi (`/activities`). |
 | **Yagona Qayta Ishlatiluvchi Filtr Sistemasi (`FilterBar`)** | `Bajarildi` | Barcha modullarda bir xil ko'rinish va xatti-harakatga ega universal filtrlar va localStorage da saqlash. |
+| **Dinamik Sahifalash va Page Size Filtri (`docs/pagination_and_filters.md`)** | `Bajarildi` | Barcha modullar jadvallarida 10, 25, 50, 100, 200 ta yozuvlarni tanlash va sahifalash filtri. |
 | **Hisobotlar Moduli (`features/reports`)** | `Bajarildi` | Barcha biznes yo'nalishlari (Umumiy, Sotuv, Ombor, Ishlab chiqarish, Moliya, Servis) bo'yicha read-only tahlil, Recharts va Excel/PDF/Print eksport. |
 | **Boshqaruv Moliyasi (`Manager-Centric Finance`)** | `Bajarildi` | Rahbarlar uchun soddalashtirilgan Daromad, Xarajat, Sof Foyda va Kutilayotgan to'lovlar tahlili. |
 | **Moliya va G'azna Moduli (`features/finance`)** | `Bajarildi` | Daromadlar, operatsion xarajatlar, 6 ta asosiy ko'rsatkich kartalari hamda Recharts grafiklar tahlili (`/finance`). |

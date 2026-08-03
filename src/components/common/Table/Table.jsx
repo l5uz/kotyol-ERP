@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LuSlidersHorizontal, LuEye, LuEyeOff } from 'react-icons/lu';
 import { Skeleton } from '../Skeleton/Skeleton';
 import { EmptyState } from '../EmptyState/EmptyState';
+import { Pagination } from '../Pagination/Pagination';
 import { useUserPreferencesStore } from '@/store/useUserPreferencesStore';
+import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '@/constants/app.constants';
 
 export const Table = ({
   columns = [],
@@ -12,9 +14,28 @@ export const Table = ({
   emptyDescription = "Hozircha ko'rsatish uchun yozuvlar mavjud emas.",
   onRowClick,
   tableKey = null,
+  enablePagination = true,
+  defaultPageSize = DEFAULT_PAGE_SIZE,
+  pageSizeOptions = PAGE_SIZE_OPTIONS,
+  // Controlled pagination props (optional for server-side pagination)
+  currentPage: externalPage,
+  totalPages: externalTotalPages,
+  pageSize: externalPageSize,
+  totalItems: externalTotalItems,
+  onPageChange: externalOnPageChange,
+  onPageSizeChange: externalOnPageSizeChange,
 }) => {
   const { tableColumns, setTableColumns } = useUserPreferencesStore();
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
+
+  // Internal Pagination State (for client-side pagination)
+  const [internalPage, setInternalPage] = useState(1);
+  const [internalPageSize, setInternalPageSize] = useState(defaultPageSize);
+
+  // Reset internal page to 1 whenever input data length or content changes (e.g., search/filter)
+  useEffect(() => {
+    setInternalPage(1);
+  }, [data.length, data]);
 
   const hiddenColumns = tableKey ? tableColumns[tableKey] || [] : [];
 
@@ -28,6 +49,37 @@ export const Table = ({
   };
 
   const visibleColumns = columns.filter((col) => !hiddenColumns.includes(col.header));
+
+  // Determine pagination values (controlled vs uncontrolled)
+  const isControlled = externalOnPageChange !== undefined;
+  const currentPage = isControlled ? externalPage : internalPage;
+  const pageSize = isControlled ? (externalPageSize || defaultPageSize) : internalPageSize;
+  const totalItems = isControlled ? (externalTotalItems || data.length) : data.length;
+  const totalPages = isControlled
+    ? (externalTotalPages || Math.max(1, Math.ceil(totalItems / pageSize)))
+    : Math.max(1, Math.ceil(totalItems / pageSize));
+
+  const handlePageChange = (newPage) => {
+    if (isControlled) {
+      externalOnPageChange(newPage);
+    } else {
+      setInternalPage(newPage);
+    }
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    if (isControlled && externalOnPageSizeChange) {
+      externalOnPageSizeChange(newSize);
+    } else {
+      setInternalPageSize(newSize);
+      setInternalPage(1);
+    }
+  };
+
+  // Slice data for client-side pagination
+  const displayedData = enablePagination && !isControlled
+    ? data.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    : data;
 
   if (isLoading) {
     return (
@@ -54,10 +106,6 @@ export const Table = ({
         </table>
       </div>
     );
-  }
-
-  if (!data || data.length === 0) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} />;
   }
 
   return (
@@ -121,23 +169,42 @@ export const Table = ({
               ))}
             </tr>
           </thead>
-          <tbody>
-            {data.map((row, rowIdx) => (
-              <tr
-                key={row.id ? `${row.id}-${rowIdx}` : `row-${rowIdx}`}
-                onClick={() => onRowClick && onRowClick(row)}
-                style={{ cursor: onRowClick ? 'pointer' : 'default' }}
-              >
-                {visibleColumns.map((col, colIdx) => (
-                  <td key={colIdx}>
-                    {col.cell ? col.cell(row, rowIdx) : row[col.accessor]}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
+          {displayedData && displayedData.length > 0 && (
+            <tbody>
+              {displayedData.map((row, rowIdx) => (
+                <tr
+                  key={row.id ? `${row.id}-${rowIdx}` : `row-${rowIdx}`}
+                  onClick={() => onRowClick && onRowClick(row)}
+                  style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+                >
+                  {visibleColumns.map((col, colIdx) => (
+                    <td key={colIdx}>
+                      {col.cell ? col.cell(row, rowIdx) : row[col.accessor]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          )}
         </table>
+
+        {(!data || data.length === 0) && (
+          <EmptyState title={emptyTitle} description={emptyDescription} />
+        )}
       </div>
+
+      {/* Built-in Smart Pagination */}
+      {enablePagination && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          pageSizeOptions={pageSizeOptions}
+        />
+      )}
     </div>
   );
 };

@@ -56,10 +56,18 @@ export const ProductsPage = () => {
   const handleSaveProduct = async (formData) => {
     if (editingProduct) {
       const res = await productsApi.updateProduct(editingProduct.id, formData);
-      notifySuccess(res.message);
+      if (res.success) {
+        notifySuccess(res.message);
+      } else {
+        notifyError(res.message || "Mahsulotni tahrirlashda xatolik yuz berdi.");
+      }
     } else {
       const res = await productsApi.createProduct(formData);
-      notifySuccess(res.message);
+      if (res.success) {
+        notifySuccess(res.message);
+      } else {
+        notifyError(res.message || "Mahsulot yaratishda xatolik yuz berdi.");
+      }
     }
     setIsModalOpen(false);
     setEditingProduct(null);
@@ -69,7 +77,11 @@ export const ProductsPage = () => {
   const handleDelete = async () => {
     if (deletingProduct) {
       const res = await productsApi.deleteProduct(deletingProduct.id);
-      notifySuccess(res.message);
+      if (res.success) {
+        notifySuccess(res.message);
+      } else {
+        notifyError(res.message || "Mahsulotni o'chirishda xatolik yuz berdi.");
+      }
       setIsConfirmOpen(false);
       setDeletingProduct(null);
       loadProducts();

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { tokenService } from '@/api/tokenService';
 import { authApi } from '@/features/auth/api/authApi';
+import { setActiveCurrency } from '@/utils/currency.utils';
 
 const getStoredUser = () => {
   try {
@@ -34,6 +35,9 @@ export const useAuthStore = create((set, get) => ({
       const response = await authApi.login({ username, password, rememberMe });
       tokenService.setTokens(response.accessToken, response.refreshToken);
       localStorage.setItem('user_profile', JSON.stringify(response.user));
+      if (response.user?.currency) {
+        setActiveCurrency(response.user.currency);
+      }
 
       set({
         isAuthenticated: true,

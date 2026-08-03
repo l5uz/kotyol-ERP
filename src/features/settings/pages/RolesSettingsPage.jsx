@@ -8,7 +8,7 @@ import { Input } from '@/components/common/Input/Input';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const RolesSettingsPage = () => {
@@ -45,9 +45,11 @@ export const RolesSettingsPage = () => {
     if (editingItem) {
       const res = await settingsApi.updateRole(editingItem.id, payload);
       if (res.success) { notifySuccess("Rol tahrirlandi."); await loadData(); }
+      else { notifyError("Rolni tahrirlashda xatolik yuz berdi."); }
     } else {
       const res = await settingsApi.createRole(payload);
       if (res.success) { notifySuccess("Yangi rol yaratildi."); await loadData(); }
+      else { notifyError("Rol yaratishda xatolik yuz berdi."); }
     }
     setIsModalOpen(false);
     setIsLoading(false);
@@ -58,6 +60,7 @@ export const RolesSettingsPage = () => {
     setIsLoading(true);
     const res = await settingsApi.deleteRole(deletingItem.id);
     if (res.success) { notifySuccess("Rol o'chirildi."); await loadData(); }
+    else { notifyError("Rolni o'chirishda xatolik yuz berdi."); }
     setIsConfirmOpen(false);
     setDeletingItem(null);
     setIsLoading(false);

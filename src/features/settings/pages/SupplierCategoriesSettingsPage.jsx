@@ -9,7 +9,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const SupplierCategoriesSettingsPage = () => {
@@ -60,39 +60,25 @@ export const SupplierCategoriesSettingsPage = () => {
       const res = await settingsApi.updateSupplierCategory(editingCat.id, {
         name,
         description,
-        status: editingCat.status || 'ACTIVE'
+        status: editingCat.status || 'ACTIVE',
       });
       if (res.success) {
         notifySuccess("Ta'minotchi kategoriyasi tahrirlandi.");
         await loadCategories();
       } else {
-        const updated = categories.map((c) =>
-          c.id === editingCat.id ? { ...c, name, description } : c
-        );
-        setCategories(updated);
-        dynamicSettingsService.saveList('supplierCategories', updated);
-        notifySuccess("Ta'minotchi kategoriyasi tahrirlandi (Offline).");
+        notifyError("Kategoriyani tahrirlashda xatolik yuz berdi.");
       }
     } else {
       const res = await settingsApi.createSupplierCategory({
         name,
         description,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
       });
       if (res.success) {
         notifySuccess("Yangi ta'minotchi kategoriyasi qo'shildi.");
         await loadCategories();
       } else {
-        const newCat = {
-          id: `sup_cat_${Date.now()}`,
-          name,
-          description,
-          status: 'ACTIVE',
-        };
-        const updated = [...categories, newCat];
-        setCategories(updated);
-        dynamicSettingsService.saveList('supplierCategories', updated);
-        notifySuccess("Yangi ta'minotchi kategoriyasi qo'shildi (Offline).");
+        notifyError("Kategoriya yaratishda xatolik yuz berdi.");
       }
     }
 
@@ -108,10 +94,7 @@ export const SupplierCategoriesSettingsPage = () => {
         notifySuccess("Ta'minotchi kategoriyasi o'chirildi.");
         await loadCategories();
       } else {
-        const updated = categories.filter((c) => c.id !== deletingCat.id);
-        setCategories(updated);
-        dynamicSettingsService.saveList('supplierCategories', updated);
-        notifySuccess("Ta'minotchi kategoriyasi o'chirildi (Offline).");
+        notifyError("Kategoriyani o'chirishda xatolik yuz berdi.");
       }
       setIsLoading(false);
       setIsConfirmOpen(false);

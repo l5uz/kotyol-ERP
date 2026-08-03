@@ -66,6 +66,8 @@ export const InsuranceTypesSettingsPage = () => {
       if (res.success) {
         notifySuccess("Sug'urta turi tahrirlandi.");
         await loadInsuranceTypes();
+      } else {
+        notifyError("Sug'urta turini tahrirlashda xatolik yuz berdi.");
       }
     } else {
       const res = await settingsApi.createInsuranceType({
@@ -76,6 +78,8 @@ export const InsuranceTypesSettingsPage = () => {
       if (res.success) {
         notifySuccess("Yangi sug'urta turi yaratildi.");
         await loadInsuranceTypes();
+      } else {
+        notifyError("Sug'urta turi yaratishda xatolik yuz berdi.");
       }
     }
     setIsModalOpen(false);
@@ -94,6 +98,8 @@ export const InsuranceTypesSettingsPage = () => {
     if (res.success) {
       notifySuccess("Sug'urta turi o'chirildi.");
       await loadInsuranceTypes();
+    } else {
+      notifyError("Sug'urta turini o'chirishda xatolik yuz berdi.");
     }
     setIsConfirmOpen(false);
     setDeletingItem(null);

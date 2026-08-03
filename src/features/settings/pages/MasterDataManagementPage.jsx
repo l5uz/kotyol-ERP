@@ -149,11 +149,11 @@ export const MasterDataManagementPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveModal = (formData) => {
+  const handleSaveModal = async (formData) => {
     if (editingItem) {
-      updateItem(editingItem.id || editingItem.code, formData);
+      await updateItem(editingItem.id || editingItem.code, formData);
     } else {
-      createItem(formData);
+      await createItem(formData);
     }
   };
 

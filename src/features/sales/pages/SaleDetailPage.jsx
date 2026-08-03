@@ -103,19 +103,19 @@ export const SaleDetailPage = () => {
             <div className="bg-body-custom p-3 rounded-3 border-custom">
               <div className="d-flex justify-content-between mb-1 fs-7">
                 <span className="text-muted-custom">Subtotal (Birlik × Miqdor):</span>
-                <span>{formatCurrency(sale.subtotal, 'USD')}</span>
+                <span>{formatCurrency(sale.subtotal)}</span>
               </div>
               <div className="d-flex justify-content-between mb-1 fs-7">
                 <span>Chegirma:</span>
-                <span className="text-danger">-{formatCurrency(sale.discountAmount, 'USD')}</span>
+                <span className="text-danger">-{formatCurrency(sale.discountAmount)}</span>
               </div>
               <div className="d-flex justify-content-between mb-1 fs-7">
                 <span>Soliq (QQS 12%):</span>
-                <span>+{formatCurrency(sale.taxAmount, 'USD')}</span>
+                <span>+{formatCurrency(sale.taxAmount)}</span>
               </div>
               <div className="d-flex justify-content-between pt-2 border-top border-custom fw-bold text-primary fs-6">
                 <span>Umumiy Sotuv Summasi:</span>
-                <span>{formatCurrency(sale.totalAmount, 'USD')}</span>
+                <span>{formatCurrency(sale.totalAmount)}</span>
               </div>
             </div>
           </Card>

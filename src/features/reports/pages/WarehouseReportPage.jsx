@@ -62,8 +62,8 @@ export const WarehouseReportPage = () => {
     { header: 'Material Nomi', accessor: 'name' },
     { header: 'Sarf Qilingan Miqdor', cell: (row) => <strong>{row.usedQty}</strong> },
     {
-      header: 'Jami Sarf Qiymati ($)',
-      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.cost, 'USD')}</strong>,
+      header: 'Jami Sarf Qiymati',
+      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.cost)}</strong>,
     },
   ];
 
@@ -96,7 +96,7 @@ export const WarehouseReportPage = () => {
         <div className="col-12 col-md-4">
           <Card className="p-3 border-0 bg-primary bg-opacity-10 shadow-sm">
             <small className="text-primary font-semibold d-block">Jami Ombor Aktivlari Qiymati</small>
-            <strong className="text-primary fs-3 font-mono">{formatCurrency(warehouseReport.inventoryValue, 'USD')}</strong>
+            <strong className="text-primary fs-3 font-mono">{formatCurrency(warehouseReport.inventoryValue)}</strong>
           </Card>
         </div>
 

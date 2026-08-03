@@ -506,3 +506,12 @@ textarea.form-control {
 .modal-body .form-group {
   margin-bottom: 0.85rem !important;
 }
+
+/* FIXED SIDEBAR & MAIN CONTENT LAYOUT */
+@media (min-width: 768px) {
+  .dashboard-main-content {
+    margin-left: 80px !important;
+    width: calc(100vw - 80px) !important;
+    max-width: calc(100vw - 80px) !important;
+  }
+}

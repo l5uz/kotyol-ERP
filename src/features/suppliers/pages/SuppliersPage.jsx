@@ -10,6 +10,7 @@ import { SupplierFormModal } from '../components/SupplierFormModal';
 import { suppliersApi } from '../api/suppliersApi';
 import { usePermission } from '@/hooks/usePermission';
 import { ROUTES } from '@/constants/routes.constants';
+import { notifyError, notifySuccess } from '@/services/notification.service';
 
 export const SuppliersPage = () => {
   const navigate = useNavigate();
@@ -58,7 +59,12 @@ export const SuppliersPage = () => {
 
   const handleDeleteSupplier = async () => {
     if (!deleteId) return;
-    await suppliersApi.deleteSupplier(deleteId);
+    const res = await suppliersApi.deleteSupplier(deleteId);
+    if (res.success) {
+      notifySuccess(res.message || "Ta'minotchi o'chirildi.");
+    } else {
+      notifyError(res.message || "Ta'minotchini o'chirishda xatolik.");
+    }
     setIsConfirmOpen(false);
     setDeleteId(null);
     loadSuppliersData();

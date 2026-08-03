@@ -11,6 +11,8 @@ import { useFormDraftStore } from '@/store/useFormDraftStore';
 import { ROUTES } from '@/constants/routes.constants';
 import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck } from 'react-icons/lu';
 
+import { getActiveCurrency } from '@/utils/currency.utils';
+
 export const ExpenseFormModal = ({
   isOpen,
   onClose,
@@ -30,7 +32,7 @@ export const ExpenseFormModal = ({
     expenseNumber: '',
     expenseTypeId: expenseTypeOptions[0]?.value || '',
     amount: 1000,
-    currency: 'USD',
+    currency: getActiveCurrency(),
     paymentMethod: 'Bank O\'tkazmasi',
     date: new Date().toISOString().split('T')[0],
     description: '',
@@ -42,7 +44,7 @@ export const ExpenseFormModal = ({
         expenseNumber: expenseRecord.expenseNumber || '',
         expenseTypeId: expenseRecord.expenseTypeId || (expenseTypeOptions[0]?.value || ''),
         amount: expenseRecord.amount || 1000,
-        currency: expenseRecord.currency || 'USD',
+        currency: expenseRecord.currency || getActiveCurrency(),
         paymentMethod: expenseRecord.paymentMethod || 'Bank O\'tkazmasi',
         date: expenseRecord.date || new Date().toISOString().split('T')[0],
         description: expenseRecord.description || '',
@@ -58,7 +60,7 @@ export const ExpenseFormModal = ({
           expenseNumber: documentNumberingService.generateNumber('FINANCE'),
           expenseTypeId: expenseTypeOptions[0]?.value || '',
           amount: 1000,
-          currency: 'USD',
+          currency: getActiveCurrency(),
           paymentMethod: 'Bank O\'tkazmasi',
           date: new Date().toISOString().split('T')[0],
           description: '',

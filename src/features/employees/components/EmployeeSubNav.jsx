@@ -6,7 +6,6 @@ const HR_NAV_ITEMS = [
   { label: 'Xodimlar Ro\'yxati', path: ROUTES.PROTECTED.EMPLOYEES, icon: 'bi-people', end: true },
   { label: 'Lavozimlar Boshqaruvi', path: ROUTES.PROTECTED.EMPLOYEES_POSITIONS, icon: 'bi-briefcase' },
   { label: 'Oylik Turlari', path: ROUTES.PROTECTED.EMPLOYEES_SALARY_TYPES, icon: 'bi-wallet2' },
-  { label: 'Ish Faolligi (Activity)', path: ROUTES.PROTECTED.EMPLOYEES_ACTIVITY, icon: 'bi-activity' },
 ];
 
 export const EmployeeSubNav = () => {

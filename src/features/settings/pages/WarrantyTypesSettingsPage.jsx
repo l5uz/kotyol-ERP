@@ -8,7 +8,7 @@ import { Input } from '@/components/common/Input/Input';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const WarrantyTypesSettingsPage = () => {
@@ -47,9 +47,11 @@ export const WarrantyTypesSettingsPage = () => {
     if (editingItem) {
       const res = await settingsApi.updateWarrantyType(editingItem.id, payload);
       if (res.success) { notifySuccess("Kafolat turi tahrirlandi."); await loadData(); }
+      else { notifyError("Kafolat turini tahrirlashda xatolik yuz berdi."); }
     } else {
       const res = await settingsApi.createWarrantyType(payload);
       if (res.success) { notifySuccess("Kafolat turi yaratildi."); await loadData(); }
+      else { notifyError("Kafolat turi yaratishda xatolik yuz berdi."); }
     }
     setIsModalOpen(false);
     setIsLoading(false);
@@ -60,6 +62,7 @@ export const WarrantyTypesSettingsPage = () => {
     setIsLoading(true);
     const res = await settingsApi.deleteWarrantyType(deletingItem.id);
     if (res.success) { notifySuccess("Kafolat turi o'chirildi."); await loadData(); }
+    else { notifyError("Kafolat turini o'chirishda xatolik yuz berdi."); }
     setIsConfirmOpen(false);
     setDeletingItem(null);
     setIsLoading(false);

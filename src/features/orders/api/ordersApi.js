@@ -5,10 +5,10 @@ const mapOrder = (item) => {
   if (!item) return null;
   return {
     id: item.id,
-    orderNumber: item.order_number || item.orderNumber || '',
+    orderNumber: item.order_number || item.orderNumber || `ORD-${item.id?.slice(0, 8)}`,
     orderName: item.order_name || item.orderName || '',
     customerId: item.customer_id || item.customerId || '',
-    customerName: item.customer_name || item.customerName || 'Noma\'lum Mijoz',
+    customerName: item.customer_name || item.customerName || 'Mijoz',
     boilerId: item.boiler_id || item.boilerId || '',
     boilerModelName: item.boiler_model_name || item.boilerModelName || 'Sanoat Kotyoli',
     quantity: Number(item.quantity) || 1,
@@ -28,20 +28,32 @@ const mapOrder = (item) => {
 
 export const ordersApi = {
   getOrders: async (filters = {}) => {
-    const params = {
-      search: filters.search || undefined,
-      status: filters.status || undefined,
-      priority: filters.priority || undefined,
-      customer_id: filters.customerId || undefined,
-    };
-    const response = await axiosInstance.get('/orders', { params });
-    const result = (response.data || []).map(mapOrder).filter(Boolean);
-    return { success: true, data: result };
+    try {
+      const params = {
+        search: filters.search || undefined,
+        status: filters.status || undefined,
+        priority: filters.priority || undefined,
+        customer_id: filters.customerId || undefined,
+      };
+      const response = await axiosInstance.get('/orders', { params });
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      const result = items.map(mapOrder).filter(Boolean);
+      return { success: true, data: result };
+    } catch (err) {
+      console.error("getOrders error:", err);
+      return { success: false, data: [], error: err };
+    }
   },
 
   getOrderById: async (id) => {
-    const response = await axiosInstance.get(`/orders/${id}`);
-    return { success: true, data: mapOrder(response.data) };
+    try {
+      const response = await axiosInstance.get(`/orders/${id}`);
+      const itemData = response?.data || response;
+      return { success: true, data: mapOrder(itemData) };
+    } catch (err) {
+      console.error("getOrderById error:", err);
+      return { success: false, data: null, error: err };
+    }
   },
 
   checkBoilerOrderAvailability: async (boilerId, quantity = 1) => {
@@ -81,57 +93,77 @@ export const ordersApi = {
   },
 
   createOrder: async (orderData) => {
-    const boilRes = await boilersApi.getBoilerById(orderData.boilerId);
-    if (boilRes.success && boilRes.data.status !== 'ACTIVE') {
-      return { success: false, message: "Tanlangan kotyol modeli NOFAOL! Faqat faol modellarga buyurtma berish mumkin." };
+    try {
+      const boilRes = await boilersApi.getBoilerById(orderData.boilerId);
+      if (boilRes.success && boilRes.data && boilRes.data.status !== 'ACTIVE') {
+        return { success: false, message: "Tanlangan kotyol modeli NOFAOL! Faqat faol modellarga buyurtma berish mumkin." };
+      }
+
+      const checkResult = await ordersApi.checkBoilerOrderAvailability(orderData.boilerId, orderData.quantity);
+      const payload = {
+        order_number: orderData.orderNumber || undefined,
+        order_name: orderData.orderName || '',
+        customer_id: orderData.customerId,
+        customer_name: orderData.customerName,
+        boiler_id: orderData.boilerId,
+        boiler_model_name: orderData.boilerModelName,
+        quantity: Number(orderData.quantity) || 1,
+        unit_price: checkResult.unitPrice,
+        total_amount: checkResult.totalAmount,
+        priority: orderData.priority || 'NORMAL',
+        status: orderData.isReserved ? 'RESERVED' : 'NEW',
+        notes: orderData.notes || '',
+      };
+
+      const response = await axiosInstance.post('/orders', payload).catch(async () => {
+        return await axiosInstance.post('/orders/create', payload);
+      });
+      const itemData = response?.data || response;
+      return { success: true, data: mapOrder(itemData), message: "Buyurtma muvaffaqiyatli rasmiylashtirildi." };
+    } catch (err) {
+      console.error("createOrder error:", err);
+      return { success: false, error: err, message: "Buyurtma saqlashda xatolik yuz berdi." };
     }
-
-    const checkResult = await ordersApi.checkBoilerOrderAvailability(orderData.boilerId, orderData.quantity);
-    const payload = {
-      order_number: orderData.orderNumber || undefined,
-      order_name: orderData.orderName || '',
-      customer_id: orderData.customerId,
-      customer_name: orderData.customerName,
-      boiler_id: orderData.boilerId,
-      boiler_model_name: orderData.boilerModelName,
-      quantity: Number(orderData.quantity) || 1,
-      unit_price: checkResult.unitPrice,
-      total_amount: checkResult.totalAmount,
-      priority: orderData.priority || 'NORMAL',
-      status: orderData.isReserved ? 'RESERVED' : 'NEW',
-      notes: orderData.notes || '',
-    };
-
-    const response = await axiosInstance.post('/orders', payload).catch(async () => {
-      return await axiosInstance.post('/orders/create', payload);
-    });
-    return { success: true, data: mapOrder(response.data), message: "Buyurtma muvaffaqiyatli rasmiylashtirildi." };
   },
 
   updateOrder: async (id, orderData) => {
-    const payload = {
-      order_name: orderData.orderName,
-      customer_id: orderData.customerId,
-      boiler_id: orderData.boilerId,
-      quantity: orderData.quantity ? Number(orderData.quantity) : undefined,
-      priority: orderData.priority,
-      status: orderData.status,
-      notes: orderData.notes,
-    };
+    try {
+      const payload = {
+        order_name: orderData.orderName,
+        customer_id: orderData.customerId,
+        boiler_id: orderData.boilerId,
+        quantity: orderData.quantity ? Number(orderData.quantity) : undefined,
+        priority: orderData.priority,
+        status: orderData.status,
+        notes: orderData.notes,
+      };
 
-    const response = await axiosInstance.put(`/orders/${id}`, payload);
-    return { success: true, data: mapOrder(response.data), message: "Buyurtma ma'lumotlari yangilandi." };
+      const response = await axiosInstance.put(`/orders/${id}`, payload);
+      const itemData = response?.data || response;
+      return { success: true, data: mapOrder(itemData), message: "Buyurtma ma'lumotlari yangilandi." };
+    } catch (err) {
+      console.error("updateOrder error:", err);
+      return { success: false, error: err, message: "Buyurtmani yangilashda xatolik yuz berdi." };
+    }
   },
 
   startProductionOrder: async (id) => {
-    await axiosInstance.put(`/orders/${id}/start-production`);
-    return { success: true, message: "Buyurtma bo'yicha ishlab chiqarish boshlandi va sex liniyasiga topshirildi!" };
+    try {
+      await axiosInstance.put(`/orders/${id}/start-production`);
+      return { success: true, message: "Buyurtma bo'yicha ishlab chiqarish boshlandi va sex liniyasiga topshirildi!" };
+    } catch (err) {
+      return { success: false, error: err, message: "Ishlab chiqarishni boshlashda xatolik yuz berdi." };
+    }
   },
 
   deleteOrder: async (id) => {
-    await axiosInstance.delete(`/orders/${id}`).catch(async () => {
-      await axiosInstance.delete(`/orders/${id}/delete`);
-    });
-    return { success: true, message: "Buyurtma bekor qilindi va o'chirildi." };
+    try {
+      await axiosInstance.delete(`/orders/${id}`).catch(async () => {
+        await axiosInstance.delete(`/orders/${id}/delete`);
+      });
+      return { success: true, message: "Buyurtma bekor qilindi va o'chirildi." };
+    } catch (err) {
+      return { success: false, error: err, message: "Buyurtmani bekor qilishda xatolik yuz berdi." };
+    }
   },
 };

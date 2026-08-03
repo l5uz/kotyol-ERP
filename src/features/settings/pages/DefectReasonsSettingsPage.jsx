@@ -9,7 +9,7 @@ import { Select } from '@/components/common/Select/Select';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const DefectReasonsSettingsPage = () => {
@@ -48,9 +48,11 @@ export const DefectReasonsSettingsPage = () => {
     if (editingItem) {
       const res = await settingsApi.updateDefectReason(editingItem.id, payload);
       if (res.success) { notifySuccess("Defekt sababi tahrirlandi."); await loadData(); }
+      else { notifyError("Defekt sababini tahrirlashda xatolik yuz berdi."); }
     } else {
       const res = await settingsApi.createDefectReason(payload);
       if (res.success) { notifySuccess("Defekt sababi yaratildi."); await loadData(); }
+      else { notifyError("Defekt sababini yaratishda xatolik yuz berdi."); }
     }
     setIsModalOpen(false);
     setIsLoading(false);
@@ -61,6 +63,7 @@ export const DefectReasonsSettingsPage = () => {
     setIsLoading(true);
     const res = await settingsApi.deleteDefectReason(deletingItem.id);
     if (res.success) { notifySuccess("Defekt sababi o'chirildi."); await loadData(); }
+    else { notifyError("Defekt sababini o'chirishda xatolik yuz berdi."); }
     setIsConfirmOpen(false);
     setDeletingItem(null);
     setIsLoading(false);

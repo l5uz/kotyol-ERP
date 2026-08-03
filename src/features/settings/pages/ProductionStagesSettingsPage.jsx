@@ -21,7 +21,7 @@ import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { StageDragItem } from '../components/StageDragItem';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus } from 'react-icons/lu';
 
 export const ProductionStagesSettingsPage = () => {
@@ -70,6 +70,8 @@ export const ProductionStagesSettingsPage = () => {
     if (res.success) {
       notifySuccess("Yangi texnologik bosqich qo'shildi.");
       await loadStages();
+    } else {
+      notifyError("Texnologik bosqich yaratishda xatolik yuz berdi.");
     }
     setIsModalOpen(false);
     setIsLoading(false);

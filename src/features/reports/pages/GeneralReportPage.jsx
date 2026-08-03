@@ -56,7 +56,7 @@ export const GeneralReportPage = () => {
         <div className="col-12 col-md-3">
           <Card className="p-3 border-0 bg-primary bg-opacity-10 shadow-sm">
             <small className="text-primary font-semibold d-block">Jami Sotuvlar Summasi</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.totalSalesAmount, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.totalSalesAmount)}</strong>
             <small className="text-muted-custom fs-8">Davr bo'yicha jami</small>
           </Card>
         </div>
@@ -64,7 +64,7 @@ export const GeneralReportPage = () => {
         <div className="col-12 col-md-3">
           <Card className="p-3 border-0 bg-success bg-opacity-10 shadow-sm">
             <small className="text-success font-semibold d-block">Sof Foyda</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.netProfit, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.netProfit)}</strong>
             <small className="text-muted-custom fs-8">Marja o'rtacha 24%</small>
           </Card>
         </div>
@@ -80,7 +80,7 @@ export const GeneralReportPage = () => {
         <div className="col-12 col-md-3">
           <Card className="p-3 border-0 bg-warning bg-opacity-10 shadow-sm">
             <small className="text-warning text-dark font-semibold d-block">Ombor Zaxirasi Qiymati</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.warehouseStockValue, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.warehouseStockValue)}</strong>
             <small className="text-muted-custom fs-8">Xomashyo va tayyor mahsulot</small>
           </Card>
         </div>
@@ -88,7 +88,7 @@ export const GeneralReportPage = () => {
         <div className="col-12 col-md-3">
           <Card className="p-3 border-0 bg-secondary bg-opacity-10 shadow-sm">
             <small className="text-secondary font-semibold d-block">Jami Xaridlar Summasi</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.totalPurchasingAmount, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.totalPurchasingAmount)}</strong>
             <small className="text-muted-custom fs-8">Ta'minot xarajatlari</small>
           </Card>
         </div>
@@ -96,7 +96,7 @@ export const GeneralReportPage = () => {
         <div className="col-12 col-md-3">
           <Card className="p-3 border-0 bg-danger bg-opacity-10 shadow-sm">
             <small className="text-danger font-semibold d-block">Operatsion Xarajatlar</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.operationalExpenses, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.operationalExpenses)}</strong>
             <small className="text-muted-custom fs-8">Maosh, ijara va kommunal</small>
           </Card>
         </div>
@@ -104,7 +104,7 @@ export const GeneralReportPage = () => {
         <div className="col-12 col-md-3">
           <Card className="p-3 border-0 bg-primary bg-opacity-10 shadow-sm">
             <small className="text-primary font-semibold d-block">Mijozlar Qarzi</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.customerReceivables, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(cards.customerReceivables)}</strong>
             <small className="text-muted-custom fs-8">Kutilayotgan tushum</small>
           </Card>
         </div>

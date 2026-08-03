@@ -49,8 +49,8 @@ export const SalesReportPage = () => {
     { header: 'Mijoz Korxona Nomi', accessor: 'name' },
     { header: 'Buyurtmalar Soni', accessor: 'orderCount' },
     {
-      header: 'Jami Harid Summasi ($)',
-      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.totalAmount, 'USD')}</strong>,
+      header: 'Jami Harid Summasi',
+      cell: (row) => <strong className="text-primary font-mono">{formatCurrency(row.totalAmount)}</strong>,
     },
   ];
 
@@ -58,8 +58,8 @@ export const SalesReportPage = () => {
     { header: 'Kotyol Modeli Nomi', accessor: 'name' },
     { header: 'Sotilgan Miqdor', cell: (row) => <strong>{row.soldQuantity} dona</strong> },
     {
-      header: 'Jami Tushum ($)',
-      cell: (row) => <strong className="text-success font-mono">{formatCurrency(row.totalRevenue, 'USD')}</strong>,
+      header: 'Jami Tushum',
+      cell: (row) => <strong className="text-success font-mono">{formatCurrency(row.totalRevenue)}</strong>,
     },
   ];
 

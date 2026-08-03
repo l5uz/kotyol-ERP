@@ -8,7 +8,7 @@ import { Input } from '@/components/common/Input/Input';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const CurrencySettingsPage = () => {
@@ -49,9 +49,11 @@ export const CurrencySettingsPage = () => {
     if (editingItem) {
       const res = await settingsApi.updateCurrency(editingItem.id, payload);
       if (res.success) { notifySuccess("Valyuta tahrirlandi."); await loadData(); }
+      else { notifyError("Valyutani tahrirlashda xatolik yuz berdi."); }
     } else {
       const res = await settingsApi.createCurrency(payload);
       if (res.success) { notifySuccess("Yangi valyuta qo'shildi."); await loadData(); }
+      else { notifyError("Valyuta yaratishda xatolik yuz berdi."); }
     }
     setIsModalOpen(false);
     setIsLoading(false);
@@ -68,6 +70,7 @@ export const CurrencySettingsPage = () => {
     setIsLoading(true);
     const res = await settingsApi.deleteCurrency(deletingItem.id);
     if (res.success) { notifySuccess("Valyuta o'chirildi."); await loadData(); }
+    else { notifyError("Valyutani o'chirishda xatolik yuz berdi."); }
     setIsConfirmOpen(false);
     setDeletingItem(null);
     setIsLoading(false);

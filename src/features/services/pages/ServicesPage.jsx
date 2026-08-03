@@ -10,6 +10,7 @@ import { ServiceFormModal } from '../components/ServiceFormModal';
 import { servicesApi } from '../api/servicesApi';
 import { usePermission } from '@/hooks/usePermission';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
 
 export const ServicesPage = () => {
@@ -23,6 +24,8 @@ export const ServicesPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
 
   const [customers, setCustomers] = useState([]);
+  const [boilers, setBoilers] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [serviceTypes, setServiceTypes] = useState([]);
   const [serviceStatuses, setServiceStatuses] = useState([]);
 
@@ -36,7 +39,7 @@ export const ServicesPage = () => {
   }, [search, customerFilter, serviceTypeFilter, statusFilter]);
 
   const loadServicesData = async () => {
-    const [srvRes, custRes, stRes, statRes] = await Promise.all([
+    const [srvRes, custRes, boilRes, empRes, stRes, statRes] = await Promise.all([
       servicesApi.getServices({
         search,
         customerId: customerFilter,
@@ -44,12 +47,16 @@ export const ServicesPage = () => {
         status: statusFilter,
       }),
       servicesApi.getCustomersList(),
+      servicesApi.getBoilersList(),
+      servicesApi.getEmployeesList(),
       servicesApi.getServiceTypes(),
       servicesApi.getServiceStatuses(),
     ]);
 
     if (srvRes.success) setServices(srvRes.data);
     if (custRes.success) setCustomers(custRes.data);
+    if (boilRes.success) setBoilers(boilRes.data);
+    if (empRes.success) setEmployees(empRes.data);
     if (stRes.success) setServiceTypes(stRes.data);
     if (statRes.success) setServiceStatuses(statRes.data);
   };
@@ -73,9 +80,31 @@ export const ServicesPage = () => {
     setIsConfirmOpen(true);
   };
 
+  const handleSaveService = async (formData) => {
+    let res;
+    if (selectedService?.id) {
+      res = await servicesApi.updateService(selectedService.id, formData);
+    } else {
+      res = await servicesApi.createService(formData);
+    }
+
+    if (res.success) {
+      notifySuccess(res.message || "Servis arizasi saqlandi.");
+      setIsModalOpen(false);
+      loadServicesData();
+    } else {
+      notifyError(res.message || "Servis arizasini saqlashda xatolik.");
+    }
+  };
+
   const handleDeleteService = async () => {
     if (!deleteId) return;
-    await servicesApi.deleteService(deleteId);
+    const res = await servicesApi.deleteService(deleteId);
+    if (res.success) {
+      notifySuccess(res.message || "Servis arizasi o'chirildi.");
+    } else {
+      notifyError(res.message || "Servis arizasini o'chirishda xatolik.");
+    }
     setIsConfirmOpen(false);
     setDeleteId(null);
     loadServicesData();
@@ -120,7 +149,7 @@ export const ServicesPage = () => {
               : 'bg-secondary'
           } fs-8`}
         >
-          {row.statusName}
+          {row.statusName || row.status}
         </span>
       ),
     },
@@ -198,8 +227,11 @@ export const ServicesPage = () => {
       <ServiceFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        service={selectedService}
-        onSave={loadServicesData}
+        serviceRecord={selectedService}
+        onSubmit={handleSaveService}
+        customers={customers}
+        boilers={boilers}
+        employees={employees}
       />
 
       <ConfirmDialog

@@ -8,17 +8,19 @@ import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { ERP_ICONS } from '@/shared/icons';
+import { getActiveCurrency } from '@/utils/currency.utils';
 
 export const CompanySettingsPage = () => {
+
   const [formData, setFormData] = useState({
     name: 'Kotyol Manufacturing',
     phone: '+998 (90) 123-45-67',
     website: 'https://kotyol.uz',
     address: 'Toshkent sh., Chilonzor tumani, 5-daha',
     description: 'Yuqori sifatli isitish kotyollari ishlab chiqarish zavodi.',
-    currency: 'USD',
+    currency: getActiveCurrency(),
     timezone: 'Asia/Tashkent (UTC+5)',
     dateFormat: 'YYYY-MM-DD',
   });
@@ -46,9 +48,11 @@ export const CompanySettingsPage = () => {
         setFormData(res.data);
         setIsEditing(false);
         notifySuccess("Kompaniya rekvizitlari va sozlamalari saqlandi.");
+      } else {
+        notifyError("Kompaniya sozlamalarini saqlashda xatolik yuz berdi.");
       }
     } catch {
-      // fallback
+      notifyError("Kompaniya sozlamalarini saqlashda xatolik yuz berdi.");
     } finally {
       setIsLoading(false);
     }

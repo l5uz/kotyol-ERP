@@ -9,7 +9,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const MaterialTypesSettingsPage = () => {
@@ -66,12 +66,7 @@ export const MaterialTypesSettingsPage = () => {
         notifySuccess("Material turi tahrirlandi.");
         await loadMaterialTypes();
       } else {
-        const updated = materialTypes.map((m) =>
-          m.id === editingMat.id ? { ...m, name, description } : m
-        );
-        setMaterialTypes(updated);
-        dynamicSettingsService.saveList('materialTypes', updated);
-        notifySuccess("Material turi tahrirlandi (Offline).");
+        notifyError("Material turini tahrirlashda xatolik yuz berdi.");
       }
     } else {
       const res = await settingsApi.createMaterialType({
@@ -83,16 +78,7 @@ export const MaterialTypesSettingsPage = () => {
         notifySuccess("Yangi material turi qo'shildi.");
         await loadMaterialTypes();
       } else {
-        const newMat = {
-          id: `mat_${Date.now()}`,
-          name,
-          description,
-          status: 'ACTIVE',
-        };
-        const updated = [...materialTypes, newMat];
-        setMaterialTypes(updated);
-        dynamicSettingsService.saveList('materialTypes', updated);
-        notifySuccess("Yangi material turi qo'shildi (Offline).");
+        notifyError("Material turi yaratishda xatolik yuz berdi.");
       }
     }
 
@@ -108,10 +94,7 @@ export const MaterialTypesSettingsPage = () => {
         notifySuccess("Material turi o'chirildi.");
         await loadMaterialTypes();
       } else {
-        const updated = materialTypes.filter((m) => m.id !== deletingMat.id);
-        setMaterialTypes(updated);
-        dynamicSettingsService.saveList('materialTypes', updated);
-        notifySuccess("Material turi o'chirildi (Offline).");
+        notifyError("Material turini o'chirishda xatolik yuz berdi.");
       }
       setIsLoading(false);
       setIsConfirmOpen(false);

@@ -1,16 +1,13 @@
-const MOCK_PURCHASES = [];
-const MOCK_CURRENT_STOCK = [];
-const MOCK_STOCK_MOVEMENTS = [];
 import { masterDataService } from './masterData.service';
 
 export const transactionDataService = {
   // Purchases Transactions
-  getPurchases: () => MOCK_PURCHASES,
-  getPurchaseById: (id) => MOCK_PURCHASES.find((p) => p.id === id) || null,
+  getPurchases: () => [],
+  getPurchaseById: () => null,
 
   // Warehouse Movements & Stock Balances
-  getCurrentStock: () => MOCK_CURRENT_STOCK,
-  getStockMovements: () => MOCK_STOCK_MOVEMENTS,
+  getCurrentStock: () => [],
+  getStockMovements: () => [],
 
   /**
    * Generates a historical snapshot of a Master Data entity at transaction time

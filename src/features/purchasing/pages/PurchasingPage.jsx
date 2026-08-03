@@ -13,6 +13,7 @@ import { formatCurrency } from '@/utils/currency.utils';
 import { usePermission } from '@/hooks/usePermission';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
 import { ROUTES } from '@/constants/routes.constants';
+import { notifyError, notifySuccess } from '@/services/notification.service';
 
 export const PurchasingPage = () => {
   const navigate = useNavigate();
@@ -67,7 +68,12 @@ export const PurchasingPage = () => {
 
   const handleDeletePurchase = async () => {
     if (!deleteId) return;
-    await purchasingApi.deletePurchase(deleteId);
+    const res = await purchasingApi.deletePurchase(deleteId);
+    if (res.success) {
+      notifySuccess(res.message || "Xarid hujjati o'chirildi.");
+    } else {
+      notifyError(res.message || "Xarid hujjatini o'chirishda xatolik.");
+    }
     setIsConfirmOpen(false);
     setDeleteId(null);
     loadPurchasesData();
@@ -75,7 +81,12 @@ export const PurchasingPage = () => {
 
   const handleReceiveStock = async (e, id) => {
     e.stopPropagation();
-    await purchasingApi.receiveStock(id);
+    const res = await purchasingApi.receiveStock(id);
+    if (res.success) {
+      notifySuccess(res.message || 'Omborga kirim qilindi.');
+    } else {
+      notifyError(res.message || 'Omborga kirim qilishda xatolik.');
+    }
     loadPurchasesData();
   };
 

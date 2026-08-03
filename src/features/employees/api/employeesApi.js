@@ -1,5 +1,4 @@
 import { axiosInstance } from '@/api/axiosInstance';
-import { formatCurrency } from '@/utils/currency.utils';
 
 const mapEmployee = (user, positionsList = [], salaryTypesList = []) => {
   if (!user) return null;
@@ -14,7 +13,6 @@ const mapEmployee = (user, positionsList = [], salaryTypesList = []) => {
     if (matchedPos) posName = matchedPos.name;
   }
 
-  // If position name was stored directly in role field (e.g. "svarshik", "payvandchi")
   if (!posName && user.role && user.role !== 'EMPLOYEE' && user.role !== 'USER') {
     if (isOwnerUser) {
       posName = 'Tizim Egasi (Owner)';
@@ -50,7 +48,7 @@ const mapEmployee = (user, positionsList = [], salaryTypesList = []) => {
     positionName: posName,
     department: user.department || 'Boshqaruv',
     status: user.status || 'ACTIVE',
-    salaryAmount: user.salary_amount || 0,
+    salaryAmount: Number(user.salary_amount) || 0,
     salaryTypeId: user.salary_type_id || null,
     salaryTypeName: salName || '-',
     hireDate: user.hire_date || '',
@@ -109,8 +107,9 @@ export const employeesApi = {
       }
 
       return { success: true, data: result };
-    } catch {
-      return { success: true, data: [] };
+    } catch (err) {
+      console.error("getEmployees error:", err);
+      return { success: false, data: [], error: err };
     }
   },
 
@@ -120,96 +119,113 @@ export const employeesApi = {
       const items = response.data || response || [];
       const emp = (Array.isArray(items) ? items : []).find((e) => String(e.id) === String(id));
       return { success: true, data: mapEmployee(emp) };
-    } catch {
-      return { success: false, data: null };
+    } catch (err) {
+      return { success: false, data: null, error: err };
     }
   },
 
   createEmployee: async (empData) => {
-    const fName = (empData.firstName || '').trim();
-    const lName = (empData.lastName || '').trim();
-    const fullName = `${fName} ${lName}`.trim() || 'Xodim';
-    const dept = (empData.department || '').trim() || 'Boshqaruv';
+    try {
+      const fName = (empData.firstName || '').trim();
+      const lName = (empData.lastName || '').trim();
+      const fullName = `${fName} ${lName}`.trim() || 'Xodim';
+      const dept = (empData.department || '').trim() || 'Boshqaruv';
+      const roleValue = empData.positionName || empData.positionId || 'EMPLOYEE';
 
-    // Store position name inside role field if positionId/positionName provided
-    const roleValue = empData.positionName || empData.positionId || 'EMPLOYEE';
-
-    const payload = {
-      phone: empData.phone,
-      password: 'Password123!',
-      full_name: fullName,
-      role: roleValue,
-      position_id: empData.positionId || null,
-      salary_type_id: empData.salaryTypeId || null,
-      salary_amount: empData.salaryAmount || 0,
-      department: dept,
-    };
-    const response = await axiosInstance.post('/auth/employees/create', payload);
-    return { success: true, data: response.data || response, message: "Yangi xodim qo'shildi." };
+      const payload = {
+        phone: empData.phone,
+        password: 'Password123!',
+        full_name: fullName,
+        role: roleValue,
+        position_id: empData.positionId || null,
+        salary_type_id: empData.salaryTypeId || null,
+        salary_amount: empData.salaryAmount || 0,
+        department: dept,
+      };
+      const response = await axiosInstance.post('/auth/employees/create', payload);
+      return { success: true, data: response.data || response, message: "Yangi xodim qo'shildi." };
+    } catch (err) {
+      console.error("createEmployee error:", err);
+      return { success: false, error: err, message: "Xodimlarni saqlashda xatolik yuz berdi." };
+    }
   },
 
   updateEmployee: async (id, empData) => {
-    const fName = (empData.firstName || '').trim();
-    const lName = (empData.lastName || '').trim();
-    const fullName = `${fName} ${lName}`.trim() || 'Xodim';
-    const dept = (empData.department || '').trim() || 'Boshqaruv';
-    const roleValue = empData.positionName || empData.positionId || 'EMPLOYEE';
+    try {
+      const fName = (empData.firstName || '').trim();
+      const lName = (empData.lastName || '').trim();
+      const fullName = `${fName} ${lName}`.trim() || 'Xodim';
+      const dept = (empData.department || '').trim() || 'Boshqaruv';
+      const roleValue = empData.positionName || empData.positionId || 'EMPLOYEE';
 
-    const payload = {
-      phone: empData.phone,
-      full_name: fullName,
-      role: roleValue,
-      position_id: empData.positionId || null,
-      salary_type_id: empData.salaryTypeId || null,
-      salary_amount: empData.salaryAmount || 0,
-      department: dept,
-    };
-    const response = await axiosInstance.put(`/auth/employees/${id}`, payload);
-    return { success: true, data: response.data || response, message: "Xodim ma'lumotlari yangilandi." };
+      const payload = {
+        phone: empData.phone,
+        full_name: fullName,
+        role: roleValue,
+        position_id: empData.positionId || null,
+        salary_type_id: empData.salaryTypeId || null,
+        salary_amount: empData.salaryAmount || 0,
+        department: dept,
+      };
+      const response = await axiosInstance.put(`/auth/employees/${id}`, payload);
+      return { success: true, data: response.data || response, message: "Xodim ma'lumotlari yangilandi." };
+    } catch (err) {
+      console.error("updateEmployee error:", err);
+      return { success: false, error: err, message: "Xodimni yangilashda xatolik yuz berdi." };
+    }
   },
 
   deleteEmployee: async (id) => {
-    const response = await axiosInstance.delete(`/auth/employees/${id}/delete`).catch(() => null);
-    return { success: true, message: "Xodim tizimdan o'chirildi." };
+    try {
+      await axiosInstance.delete(`/auth/employees/${id}/delete`);
+      return { success: true, message: "Xodim tizimdan o'chirildi." };
+    } catch (err) {
+      return { success: false, error: err, message: "Xodimni o'chirishda xatolik yuz berdi." };
+    }
   },
 
   // Positions Endpoints
   getPositions: async () => {
-    const response = await axiosInstance.get('/auth/positions');
-    if (response && response.success !== undefined) {
-      return response;
+    try {
+      const response = await axiosInstance.get('/auth/positions');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      return { success: true, data: items };
+    } catch (err) {
+      return { success: false, data: [], error: err };
     }
-    return { success: true, data: Array.isArray(response) ? response : response?.data || [] };
   },
 
   createPosition: async (posData) => {
-    const payload = {
-      name: posData.name,
-      description: posData.description || '',
-      status: posData.status || 'ACTIVE',
-      permissions: posData.permissions || '[]',
-    };
-    const response = await axiosInstance.post('/auth/positions/create', payload);
-    if (response && response.success !== undefined) {
-      return response;
+    try {
+      const payload = {
+        name: posData.name,
+        description: posData.description || '',
+        status: posData.status || 'ACTIVE',
+        permissions: posData.permissions || '[]',
+      };
+      const response = await axiosInstance.post('/auth/positions/create', payload);
+      return { success: true, data: response?.data || response, message: "Yangi lavozim yaratildi." };
+    } catch (err) {
+      return { success: false, error: err, message: "Lavozim yaratishda xatolik yuz berdi." };
     }
-    return { success: true, data: response?.data || response };
   },
 
   updatePosition: async (id, posData) => {
-    const response = await axiosInstance.put(`/auth/positions/${id}`, posData);
-    if (response && response.success !== undefined) {
-      return response;
+    try {
+      const response = await axiosInstance.put(`/auth/positions/${id}`, posData);
+      return { success: true, data: response?.data || response, message: "Lavozim yangilandi." };
+    } catch (err) {
+      return { success: false, error: err, message: "Lavozimni yangilashda xatolik yuz berdi." };
     }
-    return { success: true, data: response?.data || response };
   },
 
   deletePosition: async (id) => {
-    const response = await axiosInstance.delete(`/auth/positions/${id}/delete`);
-    if (response && response.success !== undefined) {
-      return response;
+    try {
+      const response = await axiosInstance.delete(`/auth/positions/${id}/delete`);
+      return { success: true, message: "Lavozim o'chirildi." };
+    } catch (err) {
+      return { success: false, error: err, message: "Lavozimni o'chirishda xatolik yuz berdi." };
     }
-    return { success: true, data: response?.data || response };
   },
 
   // Salary Types Endpoints
@@ -218,8 +234,8 @@ export const employeesApi = {
       const response = await axiosInstance.get('/master-data/salary-types');
       const items = response.data || response || [];
       return { success: true, data: Array.isArray(items) ? items : [] };
-    } catch {
-      return { success: true, data: [] };
+    } catch (err) {
+      return { success: false, data: [], error: err };
     }
   },
 
@@ -233,8 +249,8 @@ export const employeesApi = {
       };
       const response = await axiosInstance.post('/master-data/salary-types/create', payload);
       return { success: true, data: response.data || response, message: "Yangi maosh turi yaratildi." };
-    } catch {
-      return { success: true, data: salaryData, message: "Maosh turi saqlandi." };
+    } catch (err) {
+      return { success: false, error: err, message: "Maosh turi yaratishda xatolik yuz berdi." };
     }
   },
 
@@ -248,26 +264,26 @@ export const employeesApi = {
       };
       const response = await axiosInstance.put(`/master-data/salary-types/${id}`, payload);
       return { success: true, data: response.data || response, message: "Maosh turi yangilandi." };
-    } catch {
-      return { success: true, data: salaryData };
+    } catch (err) {
+      return { success: false, error: err, message: "Maosh turini yangilashda xatolik yuz berdi." };
     }
   },
 
   deleteSalaryType: async (id) => {
     try {
-      const response = await axiosInstance.delete(`/master-data/salary-types/${id}`);
+      await axiosInstance.delete(`/master-data/salary-types/${id}`);
       return { success: true, message: "Maosh turi o'chirildi." };
-    } catch {
-      return { success: true, message: "Maosh turi o'chirildi." };
+    } catch (err) {
+      return { success: false, error: err, message: "Maosh turini o'chirishda xatolik yuz berdi." };
     }
   },
 
-  getEmployeeActivities: async (employeeId = null) => {
+  getEmployeeActivities: async () => {
     try {
       const response = await axiosInstance.get('/audit-logs');
       const items = response.data || response || [];
       return { success: true, data: Array.isArray(items) ? items : [] };
-    } catch {
+    } catch (err) {
       return { success: true, data: [] };
     }
   },

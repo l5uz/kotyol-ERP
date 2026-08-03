@@ -8,7 +8,7 @@ import { Input } from '@/components/common/Input/Input';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const ServiceTypesSettingsPage = () => {
@@ -45,9 +45,11 @@ export const ServiceTypesSettingsPage = () => {
     if (editingItem) {
       const res = await settingsApi.updateServiceType(editingItem.id, payload);
       if (res.success) { notifySuccess("Xizmat turi tahrirlandi."); await loadData(); }
+      else { notifyError("Xizmat turini tahrirlashda xatolik yuz berdi."); }
     } else {
       const res = await settingsApi.createServiceType(payload);
       if (res.success) { notifySuccess("Xizmat turi yaratildi."); await loadData(); }
+      else { notifyError("Xizmat turi yaratishda xatolik yuz berdi."); }
     }
     setIsModalOpen(false);
     setIsLoading(false);
@@ -58,6 +60,7 @@ export const ServiceTypesSettingsPage = () => {
     setIsLoading(true);
     const res = await settingsApi.deleteServiceType(deletingItem.id);
     if (res.success) { notifySuccess("Xizmat turi o'chirildi."); await loadData(); }
+    else { notifyError("Xizmat turini o'chirishda xatolik yuz berdi."); }
     setIsConfirmOpen(false);
     setDeletingItem(null);
     setIsLoading(false);

@@ -10,7 +10,7 @@ import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { dataIntegrityService } from '@/services/dataIntegrity.service';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const CategoriesSettingsPage = () => {
@@ -34,7 +34,6 @@ export const CategoriesSettingsPage = () => {
     const res = await settingsApi.getCategories();
     if (res.success && Array.isArray(res.data)) {
       setCategories(res.data);
-      dynamicSettingsService.saveList('productCategories', res.data);
     } else {
       setCategories(dynamicSettingsService.getCategories() || []);
     }
@@ -62,39 +61,25 @@ export const CategoriesSettingsPage = () => {
       const res = await settingsApi.updateCategory(editingCat.id, {
         name,
         description,
-        status: editingCat.status || 'ACTIVE'
+        status: editingCat.status || 'ACTIVE',
       });
       if (res.success) {
         notifySuccess("Kategoriya tahrirlandi.");
         await loadCategories();
       } else {
-        const updated = categories.map((c) =>
-          c.id === editingCat.id ? { ...c, name, description } : c
-        );
-        setCategories(updated);
-        dynamicSettingsService.saveList('productCategories', updated);
-        notifySuccess("Kategoriya tahrirlandi (Offline).");
+        notifyError("Kategoriyani tahrirlashda xatolik yuz berdi.");
       }
     } else {
       const res = await settingsApi.createCategory({
         name,
         description,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
       });
       if (res.success) {
         notifySuccess("Yangi kategoriya qo'shildi.");
         await loadCategories();
       } else {
-        const newCat = {
-          id: `cat_${Date.now()}`,
-          name,
-          description,
-          status: 'ACTIVE',
-        };
-        const updated = [...categories, newCat];
-        setCategories(updated);
-        dynamicSettingsService.saveList('productCategories', updated);
-        notifySuccess("Yangi kategoriya qo'shildi (Offline).");
+        notifyError("Kategoriya yaratishda xatolik yuz berdi.");
       }
     }
 
@@ -121,10 +106,7 @@ export const CategoriesSettingsPage = () => {
         notifySuccess("Kategoriya o'chirildi.");
         await loadCategories();
       } else {
-        const updated = categories.filter((c) => c.id !== deletingCat.id);
-        setCategories(updated);
-        dynamicSettingsService.saveList('productCategories', updated);
-        notifySuccess("Kategoriya o'chirildi (Offline).");
+        notifyError("Kategoriyani o'chirishda xatolik yuz berdi.");
       }
       setIsLoading(false);
       setIsConfirmOpen(false);

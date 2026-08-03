@@ -59,7 +59,6 @@ import {
   EmployeeDetailPage,
   PositionsPage,
   SalaryTypesPage,
-  EmployeeActivityPage,
 } from '@/features/employees';
 
 import {
@@ -193,7 +192,6 @@ export const router = createBrowserRouter([
           { path: '/employees/:id', element: <EmployeeDetailPage /> },
           { path: '/employees/positions', element: <PositionsPage /> },
           { path: '/employees/salary-types', element: <SalaryTypesPage /> },
-          { path: '/employees/activity', element: <EmployeeActivityPage /> },
 
           // Settings Routes
           { path: '/settings', element: <Navigate to="/settings/company" replace /> },

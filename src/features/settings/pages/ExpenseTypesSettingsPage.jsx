@@ -8,7 +8,7 @@ import { Input } from '@/components/common/Input/Input';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const ExpenseTypesSettingsPage = () => {
@@ -45,9 +45,11 @@ export const ExpenseTypesSettingsPage = () => {
     if (editingItem) {
       const res = await settingsApi.updateExpenseType(editingItem.id, payload);
       if (res.success) { notifySuccess("Xarajat turi tahrirlandi."); await loadData(); }
+      else { notifyError("Xarajat turini tahrirlashda xatolik yuz berdi."); }
     } else {
       const res = await settingsApi.createExpenseType(payload);
       if (res.success) { notifySuccess("Xarajat turi yaratildi."); await loadData(); }
+      else { notifyError("Xarajat turi yaratishda xatolik yuz berdi."); }
     }
     setIsModalOpen(false);
     setIsLoading(false);
@@ -58,6 +60,7 @@ export const ExpenseTypesSettingsPage = () => {
     setIsLoading(true);
     const res = await settingsApi.deleteExpenseType(deletingItem.id);
     if (res.success) { notifySuccess("Xarajat turi o'chirildi."); await loadData(); }
+    else { notifyError("Xarajat turini o'chirishda xatolik yuz berdi."); }
     setIsConfirmOpen(false);
     setDeletingItem(null);
     setIsLoading(false);

@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 const mapStock = (item) => {
   if (!item) return null;
   const qty = Number(item.quantity) || 0;
-  const cost = Number(item.avg_unit_cost) || 0;
+  const cost = Number(item.avg_unit_cost || item.purchasePrice || item.unitPrice) || 0;
 
   const categoryId = item.category_id || item.product?.category_id || '';
   const resolvedCategory = dynamicSettingsService.getItemById('productCategories', categoryId);
@@ -13,24 +13,24 @@ const mapStock = (item) => {
 
   const materialTypeId = item.material_type_id || item.product?.material_type_id || '';
   const resolvedMaterial = dynamicSettingsService.getItemById('materialTypes', materialTypeId);
-  const materialTypeName = item.material_type_name || item.product?.material_type_name || resolvedMaterial?.name || '';
+  const materialTypeName = item.material_type_name || item.product?.material_type_name || resolvedMaterial?.name || '-';
 
   return {
     id: item.id,
-    productId: item.product_id,
-    productName: item.product_name,
-    internalCode: item.product_code,
-    warehouseId: item.warehouse_id,
-    warehouseName: item.warehouse_name || 'Asosiy Ombor',
+    productId: item.product_id || item.productId,
+    productName: item.product_name || item.productName || item.product?.name || 'Mahsulot',
+    internalCode: item.product_code || item.productCode || item.code || '-',
+    warehouseId: item.warehouse_id || item.warehouseId,
+    warehouseName: item.warehouse_name || item.warehouseName || 'Asosiy Ombor',
     quantity: qty,
-    reservedQuantity: Number(item.reserved_quantity) || 0,
-    availableQuantity: qty - (Number(item.reserved_quantity) || 0),
-    unitName: item.unit_name || item.product?.unit_name || 'dona',
+    reservedQuantity: Number(item.reserved_quantity || item.reservedQuantity) || 0,
+    availableQuantity: qty - (Number(item.reserved_quantity || item.reservedQuantity) || 0),
+    unitName: item.unit_name || item.product?.unit_name || item.unitName || 'dona',
     categoryId,
     categoryName,
     materialTypeId,
     materialTypeName,
-    minQuantity: 10,
+    minQuantity: Number(item.min_quantity || item.minQuantity) || 10,
     purchasePrice: cost,
     currentValue: qty * cost,
     currency: item.currency || item.product?.currency || 'USD',
@@ -45,14 +45,15 @@ const sessionRevaluations = [];
 const sessionCounts = [];
 
 export const warehouseApi = {
-  // Warehouses List Endpoints (Connected to /master-data/warehouses API)
+  // Warehouses List Endpoints
   getWarehouses: async () => {
     try {
       const response = await axiosInstance.get('/master-data/warehouses');
       const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
       return { success: true, data: items };
-    } catch {
-      return { success: true, data: [] };
+    } catch (err) {
+      console.error("getWarehouses error:", err);
+      return { success: false, data: [], error: err };
     }
   },
 
@@ -66,8 +67,9 @@ export const warehouseApi = {
         return await axiosInstance.post('/master-data/warehouses', payload);
       });
       return { success: true, data: response?.data || response, message: "Yangi ombor yaratildi." };
-    } catch {
-      return { success: true, data: whData, message: "Ombor saqlandi." };
+    } catch (err) {
+      console.error("createWarehouse error:", err);
+      return { success: false, error: err, message: "Ombor yaratishda xatolik yuz berdi." };
     }
   },
 
@@ -79,8 +81,9 @@ export const warehouseApi = {
       };
       const response = await axiosInstance.put(`/master-data/warehouses/${id}`, payload);
       return { success: true, data: response?.data || response, message: "Ombor ma'lumotlari yangilandi." };
-    } catch {
-      return { success: true, data: whData, message: "Ombor ma'lumotlari yangilandi." };
+    } catch (err) {
+      console.error("updateWarehouse error:", err);
+      return { success: false, error: err, message: "Omborni yangilashda xatolik yuz berdi." };
     }
   },
 
@@ -90,8 +93,9 @@ export const warehouseApi = {
         return await axiosInstance.delete(`/master-data/warehouses/${id}/delete`);
       });
       return { success: true, message: "Ombor muvaffaqiyatli o'chirildi." };
-    } catch {
-      return { success: true, message: "Ombor o'chirildi." };
+    } catch (err) {
+      console.error("deleteWarehouse error:", err);
+      return { success: false, error: err, message: "Omborni o'chirishda xatolik yuz berdi." };
     }
   },
 
@@ -114,16 +118,12 @@ export const warehouseApi = {
           outOfStockAlerts: items.filter((item) => (Number(item.quantity) || 0) === 0).length,
         },
       };
-    } catch {
+    } catch (err) {
+      console.error("getWarehouseStats error:", err);
       return {
-        success: true,
-        data: {
-          totalNomenclature: 0,
-          totalQuantity: 0,
-          totalValue: 0,
-          lowStockAlerts: 0,
-          outOfStockAlerts: 0,
-        },
+        success: false,
+        data: { totalNomenclature: 0, totalQuantity: 0, totalValue: 0, lowStockAlerts: 0, outOfStockAlerts: 0 },
+        error: err,
       };
     }
   },
@@ -153,8 +153,9 @@ export const warehouseApi = {
       }
 
       return { success: true, data: result };
-    } catch {
-      return { success: true, data: [] };
+    } catch (err) {
+      console.error("getCurrentStock error:", err);
+      return { success: false, data: [], error: err };
     }
   },
 
@@ -164,7 +165,7 @@ export const warehouseApi = {
         .catch(() => axiosInstance.get(`/warehouse/stock/${id}/`));
       const data = response?.data || response;
       return { success: true, data: mapStock(data) };
-    } catch {
+    } catch (err) {
       try {
         const response = await axiosInstance.get('/warehouse/stock');
         const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
@@ -173,7 +174,7 @@ export const warehouseApi = {
           return { success: true, data: mapStock(item) };
         }
       } catch {}
-      return { success: true, data: null };
+      return { success: false, data: null, error: err };
     }
   },
 
@@ -200,8 +201,9 @@ export const warehouseApi = {
         .catch(() => axiosInstance.put(`/warehouse/stocks/${id}/`, payload));
 
       return { success: true, message: "Ombor zaxirasi muvaffaqiyatli yangilandi." };
-    } catch {
-      return { success: true, message: "Ombor zaxirasi yangilandi." };
+    } catch (err) {
+      console.error("updateStock error:", err);
+      return { success: false, error: err, message: "Ombor zaxirasini yangilashda xatolik yuz berdi." };
     }
   },
 
@@ -214,8 +216,9 @@ export const warehouseApi = {
         .catch(() => axiosInstance.delete(`/warehouse/stocks/${id}/`));
 
       return { success: true, message: "Ombor zaxirasi muvaffaqiyatli o'chirildi." };
-    } catch {
-      return { success: true, message: "Ombor zaxirasi o'chirildi." };
+    } catch (err) {
+      console.error("deleteStock error:", err);
+      return { success: false, error: err, message: "Ombor zaxirasini o'chirishda xatolik yuz berdi." };
     }
   },
 
@@ -255,121 +258,118 @@ export const warehouseApi = {
       }
 
       return { success: true, data: result };
-    } catch {
-      return { success: true, data: [] };
+    } catch (err) {
+      return { success: false, data: [], error: err };
     }
   },
 
-  getMovementById: async (id) => {
+  getMovementById: async () => {
     return { success: true, data: null };
   },
 
   createMovement: async (movementData) => {
-    let targetWarehouseId = movementData.warehouseId;
-    let targetProductId = movementData.productId;
-
-    // 1. Fetch real warehouses from backend
-    let realWarehouses = [];
     try {
-      const whRes = await axiosInstance.get('/master-data/warehouses');
-      realWarehouses = Array.isArray(whRes?.data) ? whRes.data : Array.isArray(whRes) ? whRes : [];
-    } catch {
-      realWarehouses = [];
-    }
+      let targetWarehouseId = movementData.warehouseId;
+      let targetProductId = movementData.productId;
 
-    if (realWarehouses.length > 0) {
-      const matchedWh = realWarehouses.find(
-        (w) => String(w.id) === String(targetWarehouseId) || w.name === movementData.warehouseName
-      );
-      targetWarehouseId = matchedWh ? matchedWh.id : realWarehouses[0].id;
-    }
-
-    // 2. Fetch real products from backend
-    let realProducts = [];
-    try {
-      const prodRes = await axiosInstance.get('/products');
-      realProducts = Array.isArray(prodRes?.data) ? prodRes.data : Array.isArray(prodRes) ? prodRes : [];
-    } catch {
-      realProducts = [];
-    }
-
-    if (targetProductId && realProducts.length > 0) {
-      const matchedP = realProducts.find((p) => String(p.id) === String(targetProductId));
-      if (matchedP) targetProductId = matchedP.id;
-    }
-
-    if (!isValidUUID(targetProductId) && movementData.productName) {
-      const matchByName = realProducts.find(
-        (p) => p.name?.toLowerCase() === movementData.productName?.toLowerCase()
-      );
-      if (matchByName) {
-        targetProductId = matchByName.id;
-      }
-    }
-
-    // 3. Create real product via POST /products if missing valid UUID
-    if (!isValidUUID(targetProductId) && movementData.productName) {
+      let realWarehouses = [];
       try {
-        const [catRes, unitRes] = await Promise.all([
-          axiosInstance.get('/master-data/product-categories').catch(() => null),
-          axiosInstance.get('/master-data/units').catch(() => null),
-        ]);
+        const whRes = await axiosInstance.get('/master-data/warehouses');
+        realWarehouses = Array.isArray(whRes?.data) ? whRes.data : Array.isArray(whRes) ? whRes : [];
+      } catch {}
 
-        const catList = Array.isArray(catRes?.data) ? catRes.data : Array.isArray(catRes) ? catRes : [];
-        const unitList = Array.isArray(unitRes?.data) ? unitRes.data : Array.isArray(unitRes) ? unitRes : [];
-
-        const catId = catList[0]?.id;
-        const unitId = unitList[0]?.id;
-
-        if (catId && unitId) {
-          const createProdRes = await axiosInstance.post('/products', {
-            name: movementData.productName,
-            code: `PRD-${Date.now().toString().slice(-6)}`,
-            type: 'FINISHED_GOOD',
-            category_id: catId,
-            unit_id: unitId,
-            min_stock_level: 0,
-            unit_price: Number(movementData.unitPrice) || 0,
-          });
-
-          const createdObj = createProdRes?.data || createProdRes;
-          if (createdObj?.id) {
-            targetProductId = createdObj.id;
-          }
-        }
-      } catch (err) {
-        console.error("Failed to auto-create product:", err);
+      if (realWarehouses.length > 0) {
+        const matchedWh = realWarehouses.find(
+          (w) => String(w.id) === String(targetWarehouseId) || w.name === movementData.warehouseName
+        );
+        targetWarehouseId = matchedWh ? matchedWh.id : realWarehouses[0].id;
       }
+
+      let realProducts = [];
+      try {
+        const prodRes = await axiosInstance.get('/products');
+        realProducts = Array.isArray(prodRes?.data) ? prodRes.data : Array.isArray(prodRes) ? prodRes : [];
+      } catch {}
+
+      if (targetProductId && realProducts.length > 0) {
+        const matchedP = realProducts.find((p) => String(p.id) === String(targetProductId));
+        if (matchedP) targetProductId = matchedP.id;
+      }
+
+      if (!isValidUUID(targetProductId) && movementData.productName) {
+        const matchByName = realProducts.find(
+          (p) => p.name?.toLowerCase() === movementData.productName?.toLowerCase()
+        );
+        if (matchByName) {
+          targetProductId = matchByName.id;
+        }
+      }
+
+      if (!isValidUUID(targetProductId) && movementData.productName) {
+        try {
+          const [catRes, unitRes] = await Promise.all([
+            axiosInstance.get('/master-data/product-categories').catch(() => null),
+            axiosInstance.get('/master-data/units').catch(() => null),
+          ]);
+
+          const catList = Array.isArray(catRes?.data) ? catRes.data : Array.isArray(catRes) ? catRes : [];
+          const unitList = Array.isArray(unitRes?.data) ? unitRes.data : Array.isArray(unitRes) ? unitRes : [];
+
+          const catId = catList[0]?.id;
+          const unitId = unitList[0]?.id;
+
+          if (catId && unitId) {
+            const createProdRes = await axiosInstance.post('/products', {
+              name: movementData.productName,
+              code: `PRD-${Date.now().toString().slice(-6)}`,
+              type: 'FINISHED_GOOD',
+              category_id: catId,
+              unit_id: unitId,
+              min_stock_level: 0,
+              unit_price: Number(movementData.unitPrice) || 0,
+            });
+
+            const createdObj = createProdRes?.data || createProdRes;
+            if (createdObj?.id) {
+              targetProductId = createdObj.id;
+            }
+          }
+        } catch (err) {
+          console.error("Failed to auto-create product:", err);
+        }
+      }
+
+      if (!isValidUUID(targetProductId) && realProducts[0]?.id) {
+        targetProductId = realProducts[0].id;
+      }
+
+      const stockPayload = {
+        warehouse_id: targetWarehouseId,
+        product_id: targetProductId,
+        product_name: movementData.productName,
+        quantity: Number(movementData.quantity) || 0,
+        avg_unit_cost: Number(movementData.unitPrice) || 0,
+        created_by: movementData.createdBy || 'Mas\'ul Xodim',
+        notes: movementData.notes || '',
+      };
+
+      const apiRes = await axiosInstance.post('/warehouse/stock', stockPayload);
+      const createdStock = apiRes?.data || apiRes;
+
+      return {
+        success: true,
+        data: {
+          ...movementData,
+          id: createdStock?.id || `mov_${Date.now()}`,
+          productId: targetProductId,
+          warehouseId: targetWarehouseId,
+        },
+        message: "Yangi mahsulot omborga muvaffaqiyatli kirim qilindi va saqlandi.",
+      };
+    } catch (err) {
+      console.error("createMovement error:", err);
+      return { success: false, error: err, message: "Kirim qilishda xatolik yuz berdi." };
     }
-
-    if (!isValidUUID(targetProductId) && realProducts[0]?.id) {
-      targetProductId = realProducts[0].id;
-    }
-
-    // 4. Send POST /warehouse/stock to Django REST API
-    const stockPayload = {
-      warehouse_id: targetWarehouseId,
-      product_id: targetProductId,
-      product_name: movementData.productName,
-      quantity: Number(movementData.quantity) || 0,
-      avg_unit_cost: Number(movementData.unitPrice) || 0,
-      created_by: movementData.createdBy || 'Mas\'ul Xodim',
-      notes: movementData.notes || '',
-    };
-
-    const apiRes = await axiosInstance.post('/warehouse/stock', stockPayload);
-    const createdStock = apiRes?.data || apiRes;
-
-    return {
-      success: true,
-      data: {
-        ...movementData,
-        id: createdStock?.id || `mov_${Date.now()}`,
-        productId: targetProductId,
-        warehouseId: targetWarehouseId,
-      },
-      message: "Yangi mahsulot omborga muvaffaqiyatli kirim qilindi va saqlandi.",
-    };
   },
 
   // Revaluation Endpoints
@@ -386,10 +386,8 @@ export const warehouseApi = {
         }
       }
 
-      console.log("RAW REVALUATION RESPONSE:", response);
       const rawLogs = response?.data?.data || response?.data || response || [];
       const logs = Array.isArray(rawLogs) ? rawLogs : [];
-      console.log("PARSED REVALUATION LOGS:", logs);
 
       let empResponse = null;
       try {
@@ -438,9 +436,6 @@ export const warehouseApi = {
           };
         });
 
-      console.log("FILTERED API REVALUATIONS:", apiRevaluations);
-
-      // Merge API logs with in-memory session changes
       const merged = [...sessionRevaluations];
       apiRevaluations.forEach((item) => {
         if (!merged.some((m) => m.id === item.id)) {
@@ -456,40 +451,45 @@ export const warehouseApi = {
   },
 
   createRevaluation: async (revaluationData) => {
-    const stockId = revaluationData.productId;
-    let stockItem = null;
     try {
-      const stockRes = await warehouseApi.getStockById(stockId);
-      if (stockRes.success) stockItem = stockRes.data;
-    } catch {}
+      const stockId = revaluationData.productId;
+      let stockItem = null;
+      try {
+        const stockRes = await warehouseApi.getStockById(stockId);
+        if (stockRes.success) stockItem = stockRes.data;
+      } catch {}
 
-    if (stockItem) {
-      await warehouseApi.updateStock(stockId, {
-        ...stockItem,
-        purchasePrice: revaluationData.newPrice,
-      }).catch(() => null);
+      if (stockItem) {
+        await warehouseApi.updateStock(stockId, {
+          ...stockItem,
+          purchasePrice: revaluationData.newPrice,
+        }).catch(() => null);
+      }
+
+      const currentUser = useAuthStore.getState().user;
+      const currentUserName = currentUser?.fullName || currentUser?.full_name || currentUser?.username || 'Mas\'ul Xodim';
+
+      const diff = Number(revaluationData.newPrice) - Number(revaluationData.previousPrice);
+      const newRev = {
+        id: `rev_${Date.now()}`,
+        productId: stockItem?.productId || revaluationData.productId,
+        productName: stockItem?.productName || revaluationData.productName,
+        previousPrice: Number(revaluationData.previousPrice) || 0,
+        newPrice: Number(revaluationData.newPrice) || 0,
+        priceDifference: diff,
+        reason: revaluationData.reason || '',
+        notes: revaluationData.notes || '',
+        createdBy: currentUserName,
+        createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      };
+
+      sessionRevaluations.unshift(newRev);
+
+      return { success: true, data: newRev, message: "Qayta baholash muvaffaqiyatli saqlandi va ombor yangilandi." };
+    } catch (err) {
+      console.error("createRevaluation error:", err);
+      return { success: false, error: err, message: "Qayta baholashda xatolik yuz berdi." };
     }
-
-    const currentUser = useAuthStore.getState().user;
-    const currentUserName = currentUser?.fullName || currentUser?.full_name || currentUser?.username || 'Mas\'ul Xodim';
-
-    const diff = Number(revaluationData.newPrice) - Number(revaluationData.previousPrice);
-    const newRev = {
-      id: `rev_${Date.now()}`,
-      productId: stockItem?.productId || revaluationData.productId,
-      productName: stockItem?.productName || revaluationData.productName,
-      previousPrice: Number(revaluationData.previousPrice) || 0,
-      newPrice: Number(revaluationData.newPrice) || 0,
-      priceDifference: diff,
-      reason: revaluationData.reason || '',
-      notes: revaluationData.notes || '',
-      createdBy: currentUserName,
-      createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
-    };
-
-    sessionRevaluations.unshift(newRev);
-
-    return { success: true, data: newRev, message: "Qayta baholash muvaffaqiyatli saqlandi va ombor yangilandi." };
   },
 
   // Inventory Count Endpoints
@@ -506,10 +506,8 @@ export const warehouseApi = {
         }
       }
 
-      console.log("RAW INVENTORY COUNT RESPONSE:", response);
       const rawLogs = response?.data?.data || response?.data || response || [];
       const logs = Array.isArray(rawLogs) ? rawLogs : [];
-      console.log("PARSED INVENTORY COUNT LOGS:", logs);
 
       let empResponse = null;
       try {
@@ -551,9 +549,6 @@ export const warehouseApi = {
           };
         });
 
-      console.log("FILTERED API COUNTS:", apiCounts);
-
-      // Merge API logs with in-memory session changes
       const merged = [...sessionCounts];
       apiCounts.forEach((item) => {
         if (!merged.some((m) => m.id === item.id)) {
@@ -569,41 +564,46 @@ export const warehouseApi = {
   },
 
   createInventoryCount: async (countData) => {
-    const stockId = countData.productId;
-    let stockItem = null;
     try {
-      const stockRes = await warehouseApi.getStockById(stockId);
-      if (stockRes.success) stockItem = stockRes.data;
-    } catch {}
+      const stockId = countData.productId;
+      let stockItem = null;
+      try {
+        const stockRes = await warehouseApi.getStockById(stockId);
+        if (stockRes.success) stockItem = stockRes.data;
+      } catch {}
 
-    if (stockItem) {
-      await warehouseApi.updateStock(stockId, {
-        ...stockItem,
-        quantity: countData.actualQuantity,
-      }).catch(() => null);
+      if (stockItem) {
+        await warehouseApi.updateStock(stockId, {
+          ...stockItem,
+          quantity: countData.actualQuantity,
+        }).catch(() => null);
+      }
+
+      const currentUser = useAuthStore.getState().user;
+      const currentUserName = currentUser?.fullName || currentUser?.full_name || currentUser?.username || 'Mas\'ul Xodim';
+
+      const diff = Number(countData.actualQuantity) - Number(countData.systemQuantity);
+      const newCount = {
+        id: `inv_${Date.now()}`,
+        productId: stockItem?.productId || countData.productId,
+        productName: stockItem?.productName || countData.productName,
+        unitName: stockItem?.unitName || countData.unitName || 'dona',
+        systemQuantity: Number(countData.systemQuantity) || 0,
+        actualQuantity: Number(countData.actualQuantity) || 0,
+        difference: diff,
+        reason: countData.reason || '',
+        notes: countData.notes || '',
+        status: 'ADJUSTED',
+        createdBy: currentUserName,
+        countDate: new Date().toISOString().split('T')[0],
+      };
+
+      sessionCounts.unshift(newCount);
+
+      return { success: true, data: newCount, message: "Inventarizatsiya sanoq tuzatishi saqlandi va ombor yangilandi." };
+    } catch (err) {
+      console.error("createInventoryCount error:", err);
+      return { success: false, error: err, message: "Inventarizatsiyada xatolik yuz berdi." };
     }
-
-    const currentUser = useAuthStore.getState().user;
-    const currentUserName = currentUser?.fullName || currentUser?.full_name || currentUser?.username || 'Mas\'ul Xodim';
-
-    const diff = Number(countData.actualQuantity) - Number(countData.systemQuantity);
-    const newCount = {
-      id: `inv_${Date.now()}`,
-      productId: stockItem?.productId || countData.productId,
-      productName: stockItem?.productName || countData.productName,
-      unitName: stockItem?.unitName || countData.unitName || 'dona',
-      systemQuantity: Number(countData.systemQuantity) || 0,
-      actualQuantity: Number(countData.actualQuantity) || 0,
-      difference: diff,
-      reason: countData.reason || '',
-      notes: countData.notes || '',
-      status: 'ADJUSTED',
-      createdBy: currentUserName,
-      countDate: new Date().toISOString().split('T')[0],
-    };
-
-    sessionCounts.unshift(newCount);
-
-    return { success: true, data: newCount, message: "Inventarizatsiya sanoq tuzatishi saqlandi va ombor yangilandi." };
   },
 };

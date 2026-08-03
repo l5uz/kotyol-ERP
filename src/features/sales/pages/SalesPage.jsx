@@ -12,6 +12,7 @@ import { formatCurrency } from '@/utils/currency.utils';
 import { usePermission } from '@/hooks/usePermission';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
 import { ROUTES } from '@/constants/routes.constants';
+import { notifyError, notifySuccess } from '@/services/notification.service';
 
 export const SalesPage = () => {
   const navigate = useNavigate();
@@ -80,7 +81,12 @@ export const SalesPage = () => {
 
   const handleDeleteSale = async () => {
     if (!deleteId) return;
-    await salesApi.deleteSale(deleteId);
+    const res = await salesApi.deleteSale(deleteId);
+    if (res.success) {
+      notifySuccess(res.message || "Sotuv hujjati o'chirildi.");
+    } else {
+      notifyError(res.message || "Sotuv hujjatini o'chirishda xatolik.");
+    }
     setIsConfirmOpen(false);
     setDeleteId(null);
     loadSalesData();
@@ -139,8 +145,8 @@ export const SalesPage = () => {
       ),
     },
     {
-      header: 'Jami Summa ($)',
-      cell: (row) => <strong className="text-primary fs-7">{formatCurrency(row.totalAmount, 'USD')}</strong>,
+      header: 'Jami Summa',
+      cell: (row) => <strong className="text-primary fs-7">{formatCurrency(row.totalAmount)}</strong>,
     },
     {
       header: 'Status',

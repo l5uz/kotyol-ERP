@@ -9,7 +9,7 @@ import { CalculationBreakdown } from '@/components/common/CalculationBreakdown/C
 import { purchasingApi } from '../api/purchasingApi';
 import { businessRulesService } from '@/services/businessRules.service';
 import { documentNumberingService } from '@/services/documentNumbering.service';
-import { formatCurrency } from '@/utils/currency.utils';
+import { formatCurrency, getActiveCurrency } from '@/utils/currency.utils';
 import { LuPlus, LuSave } from 'react-icons/lu';
 
 export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
@@ -25,7 +25,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
     warehouseId: '',
     invoiceNumber: '',
     orderDate: new Date().toISOString().split('T')[0],
-    currency: 'USD',
+    currency: getActiveCurrency(),
     taxRate: 12,
     status: 'DRAFT',
     items: [],
@@ -45,7 +45,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
         warehouseId: purchase.warehouseId || '',
         invoiceNumber: purchase.invoiceNumber || '',
         orderDate: purchase.orderDate || new Date().toISOString().split('T')[0],
-        currency: purchase.currency || 'USD',
+        currency: purchase.currency || getActiveCurrency(),
         taxRate: purchase.taxRate || 12,
         status: purchase.status || 'DRAFT',
         items: purchase.items ? [...purchase.items] : [],
@@ -59,7 +59,7 @@ export const PurchaseFormModal = ({ isOpen, onClose, purchase, onSave }) => {
         warehouseId: '',
         invoiceNumber: autoInvoiceNumber,
         orderDate: new Date().toISOString().split('T')[0],
-        currency: 'USD',
+        currency: getActiveCurrency(),
         taxRate: 12,
         status: 'DRAFT',
         items: [{ productId: '', quantity: 1, unitPrice: 0 }],

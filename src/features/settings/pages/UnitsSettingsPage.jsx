@@ -7,7 +7,7 @@ import { Input } from '@/components/common/Input/Input';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const UnitsSettingsPage = () => {
@@ -46,9 +46,11 @@ export const UnitsSettingsPage = () => {
     if (editingItem) {
       const res = await settingsApi.updateUnit(editingItem.id, payload);
       if (res.success) { notifySuccess("O'lchov birligi tahrirlandi."); await loadData(); }
+      else { notifyError("O'lchov birligini tahrirlashda xatolik yuz berdi."); }
     } else {
       const res = await settingsApi.createUnit(payload);
       if (res.success) { notifySuccess("O'lchov birligi yaratildi."); await loadData(); }
+      else { notifyError("O'lchov birligi yaratishda xatolik yuz berdi."); }
     }
     setIsModalOpen(false);
     setIsLoading(false);
@@ -59,6 +61,7 @@ export const UnitsSettingsPage = () => {
     setIsLoading(true);
     const res = await settingsApi.deleteUnit(deletingItem.id);
     if (res.success) { notifySuccess("O'lchov birligi o'chirildi."); await loadData(); }
+    else { notifyError("O'lchov birligini o'chirishda xatolik yuz berdi."); }
     setIsConfirmOpen(false);
     setDeletingItem(null);
     setIsLoading(false);

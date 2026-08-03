@@ -70,7 +70,7 @@ export const FinancePage = () => {
         <div className="col-12 col-md-4 col-xl-2">
           <Card className="p-3 border-0 bg-success bg-opacity-10 shadow-sm h-100">
             <small className="text-success font-semibold d-block">Bugungi Daromad</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.todayIncome, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.todayIncome)}</strong>
             <small className="text-muted-custom fs-8">Kirim kassa va bank</small>
           </Card>
         </div>
@@ -78,7 +78,7 @@ export const FinancePage = () => {
         <div className="col-12 col-md-4 col-xl-2">
           <Card className="p-3 border-0 bg-danger bg-opacity-10 shadow-sm h-100">
             <small className="text-danger font-semibold d-block">Bugungi Xarajat</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.todayExpense, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.todayExpense)}</strong>
             <small className="text-muted-custom fs-8">Chiqim xarajatlar</small>
           </Card>
         </div>
@@ -86,7 +86,7 @@ export const FinancePage = () => {
         <div className="col-12 col-md-4 col-xl-2">
           <Card className="p-3 border-0 bg-primary bg-opacity-10 shadow-sm h-100">
             <small className="text-primary font-semibold d-block">Sof Foyda</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.netProfit, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.netProfit)}</strong>
             <small className="text-muted-custom fs-8">Daromad - Xarajat</small>
           </Card>
         </div>
@@ -94,7 +94,7 @@ export const FinancePage = () => {
         <div className="col-12 col-md-4 col-xl-2">
           <Card className="p-3 border-0 bg-info bg-opacity-10 shadow-sm h-100">
             <small className="text-info font-semibold d-block">Oylik Daromad</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.monthlyIncome, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.monthlyIncome)}</strong>
             <small className="text-muted-custom fs-8">Shu oy jami</small>
           </Card>
         </div>
@@ -102,7 +102,7 @@ export const FinancePage = () => {
         <div className="col-12 col-md-4 col-xl-2">
           <Card className="p-3 border-0 bg-warning bg-opacity-10 shadow-sm h-100">
             <small className="text-warning text-dark font-semibold d-block">Oylik Xarajat</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.monthlyExpense, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.monthlyExpense)}</strong>
             <small className="text-muted-custom fs-8">Shu oy jami</small>
           </Card>
         </div>
@@ -110,7 +110,7 @@ export const FinancePage = () => {
         <div className="col-12 col-md-4 col-xl-2">
           <Card className="p-3 border-0 bg-secondary bg-opacity-10 shadow-sm h-100">
             <small className="text-secondary font-semibold d-block">Kutilayotgan Tushum</small>
-            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.pendingReceivables, 'USD')}</strong>
+            <strong className="text-main fs-5 d-block mt-1">{formatCurrency(summary.pendingReceivables)}</strong>
             <small className="text-muted-custom fs-8">Mijozlar qarzi</small>
           </Card>
         </div>

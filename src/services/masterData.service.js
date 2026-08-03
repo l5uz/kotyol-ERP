@@ -1,24 +1,18 @@
 import { dynamicSettingsService } from './dynamicSettings.service';
 
-const MOCK_PRODUCTS = [];
-const MOCK_SUPPLIERS = [];
-const MOCK_EMPLOYEES = [];
-const MOCK_RECIPES = [];
-
 export const masterDataService = {
   // Master Entities Getters
-  getProducts: () => MOCK_PRODUCTS,
-  getProductById: (id) => MOCK_PRODUCTS.find((p) => (p.id || p.productId) === id) || null,
+  getProducts: () => [],
+  getProductById: () => null,
 
-  getSuppliers: () => MOCK_SUPPLIERS,
-  getSupplierById: (id) => MOCK_SUPPLIERS.find((s) => s.id === id) || null,
+  getSuppliers: () => [],
+  getSupplierById: () => null,
 
-  getEmployees: () => MOCK_EMPLOYEES,
-  getEmployeeById: (id) => MOCK_EMPLOYEES.find((e) => e.id === id) || null,
+  getEmployees: () => [],
+  getEmployeeById: () => null,
 
-  getRecipes: () => MOCK_RECIPES,
-  getActiveRecipeByProduct: (productId) =>
-    MOCK_RECIPES.find((r) => r.productId === productId && r.status === 'ACTIVE') || null,
+  getRecipes: () => [],
+  getActiveRecipeByProduct: () => null,
 
   // Master Settings Registries (Currencies, Warehouses, Categories, Material Types, Units, Stages, Roles)
   getCurrencies: () => dynamicSettingsService.getCurrencies(),

@@ -1,27 +1,12 @@
 import { STORAGE_KEYS } from '@/constants/storage.constants';
 
-const MOCK_CURRENCIES = [];
-const MOCK_WAREHOUSES = [];
-const MOCK_PRODUCT_CATEGORIES = [];
-const MOCK_MATERIAL_TYPES = [];
-const MOCK_UNITS = [];
-const MOCK_EXPENSE_TYPES = [];
-const MOCK_DEFECT_REASONS = [];
-const MOCK_SERVICE_TYPES = [];
-const MOCK_WARRANTY_TYPES = [];
-const MOCK_INSURANCE_TYPES = [];
-const MOCK_PRODUCTION_STAGES = [];
-const MOCK_ROLES = [];
-const MOCK_MOVEMENT_TYPES = [];
-const MOCK_MOVEMENT_REASONS = [];
-const MOCK_REVALUATION_REASONS = [];
-const MOCK_INVENTORY_REASONS = [];
-const MOCK_POSITIONS = [];
-const MOCK_SALARY_TYPES = [];
-const MOCK_SUPPLIERS = [];
+const DEFAULT_CURRENCIES = [
+  { code: 'USD', name: 'AQSh Dollari', symbol: '$' },
+  { code: 'UZS', name: 'O\'zbekiston So\'mi', symbol: 'so\'m' },
+];
 import { dataIntegrityService } from './dataIntegrity.service';
 
-export const MOCK_SUPPLIER_CATEGORIES = [
+export const DEFAULT_SUPPLIER_CATEGORIES = [
   { id: 'raw-materials', name: 'Xom ashyo', status: 'ACTIVE' },
   { id: 'components', name: 'Ehtiyot qismlar', status: 'ACTIVE' },
   { id: 'equipment', name: 'Uskunalar', status: 'ACTIVE' },
@@ -30,17 +15,17 @@ export const MOCK_SUPPLIER_CATEGORIES = [
 ];
 
 export const INITIAL_DYNAMIC_SETTINGS = {
-  productCategories: MOCK_PRODUCT_CATEGORIES,
-  units: MOCK_UNITS,
-  materialTypes: MOCK_MATERIAL_TYPES,
-  supplierCategories: MOCK_SUPPLIER_CATEGORIES,
+  productCategories: [],
+  units: [],
+  materialTypes: [],
+  supplierCategories: DEFAULT_SUPPLIER_CATEGORIES,
   customerTypes: [
     { id: 'ctype_1', name: 'Jismoniy Shaxs', status: 'ACTIVE' },
     { id: 'ctype_2', name: 'Yuridik Shaxs', status: 'ACTIVE' },
     { id: 'ctype_3', name: 'Ulgurji Xaridor', status: 'ACTIVE' },
   ],
-  serviceTypes: MOCK_SERVICE_TYPES,
-  warrantyTypes: MOCK_WARRANTY_TYPES,
+  serviceTypes: [],
+  warrantyTypes: [],
   priorities: [
     { id: 'prio_low', name: 'Past', code: 'LOW', badgeClass: 'bg-secondary' },
     { id: 'prio_normal', name: 'Oddiy', code: 'NORMAL', badgeClass: 'bg-info' },
@@ -83,16 +68,20 @@ export const INITIAL_DYNAMIC_SETTINGS = {
   warehouses: [
     { id: 'wh_main', name: 'Asosiy Ombor', status: 'ACTIVE' },
   ],
-  positions: MOCK_POSITIONS,
-  salaryTypes: MOCK_SALARY_TYPES,
-  expenseTypes: MOCK_EXPENSE_TYPES,
-  defectReasons: MOCK_DEFECT_REASONS,
-  productionStages: MOCK_PRODUCTION_STAGES,
-  roles: MOCK_ROLES,
-  movementTypes: MOCK_MOVEMENT_TYPES,
-  movementReasons: MOCK_MOVEMENT_REASONS,
-  revaluationReasons: MOCK_REVALUATION_REASONS,
-  inventoryReasons: MOCK_INVENTORY_REASONS,
+  positions: [],
+  salaryTypes: [],
+  expenseTypes: [],
+  defectReasons: [],
+  productionStages: [],
+  roles: [],
+  movementTypes: [
+    { code: 'IN', name: 'Kirim' },
+    { code: 'OUT', name: 'Chiqim' },
+    { code: 'TRANSFER', name: 'Ko\'chirish' },
+  ],
+  movementReasons: [],
+  revaluationReasons: [],
+  inventoryReasons: [],
 };
 
 class DynamicSettingsService {
@@ -192,10 +181,10 @@ class DynamicSettingsService {
 
   // Currencies
   getCurrencies() {
-    return MOCK_CURRENCIES;
+    return DEFAULT_CURRENCIES;
   }
   getCurrencyOptions() {
-    return MOCK_CURRENCIES.map((c) => ({ value: c.code, label: `${c.name} (${c.symbol})` }));
+    return DEFAULT_CURRENCIES.map((c) => ({ value: c.code, label: `${c.name} (${c.symbol})` }));
   }
 
   // Warehouses
@@ -224,10 +213,10 @@ class DynamicSettingsService {
 
   // Suppliers
   getSuppliers() {
-    return MOCK_SUPPLIERS;
+    return [];
   }
   getSupplierOptions() {
-    return MOCK_SUPPLIERS.map((s) => ({ value: s.id, label: s.companyName || s.name }));
+    return [];
   }
 
   // Product Categories
@@ -242,7 +231,7 @@ class DynamicSettingsService {
   getSupplierCategories() {
     const list = this.getList('supplierCategories');
     if (list && list.length > 0) return list;
-    return MOCK_SUPPLIER_CATEGORIES;
+    return DEFAULT_SUPPLIER_CATEGORIES;
   }
   getSupplierCategoryOptions() {
     return this.getSupplierCategories().map((c) => ({ value: c.id, label: c.name }));
@@ -252,7 +241,7 @@ class DynamicSettingsService {
   getMaterialTypes() {
     const list = this.getList('materialTypes');
     if (list && list.length > 0) return list;
-    return MOCK_MATERIAL_TYPES;
+    return [];
   }
   getMaterialTypeOptions() {
     return this.getMaterialTypes().map((m) => ({ value: m.id, label: m.name }));
@@ -268,10 +257,14 @@ class DynamicSettingsService {
 
   // Movement Types
   getMovementTypes() {
-    return MOCK_MOVEMENT_TYPES;
+    return [
+      { code: 'IN', name: 'Kirim' },
+      { code: 'OUT', name: 'Chiqim' },
+      { code: 'TRANSFER', name: 'Ko\'chirish' },
+    ];
   }
   getMovementTypeOptions() {
-    return MOCK_MOVEMENT_TYPES.map((mt) => ({ value: mt.code, label: mt.name }));
+    return this.getMovementTypes().map((mt) => ({ value: mt.code, label: mt.name }));
   }
 
   // Positions

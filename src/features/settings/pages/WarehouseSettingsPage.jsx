@@ -8,7 +8,7 @@ import { Input } from '@/components/common/Input/Input';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { settingsApi } from '../api/settingsApi';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { LuPlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 
 export const WarehouseSettingsPage = () => {
@@ -45,9 +45,11 @@ export const WarehouseSettingsPage = () => {
     if (editingItem) {
       const res = await settingsApi.updateWarehouse(editingItem.id, payload);
       if (res.success) { notifySuccess("Ombor tahrirlandi."); await loadData(); }
+      else { notifyError("Omborni tahrirlashda xatolik yuz berdi."); }
     } else {
       const res = await settingsApi.createWarehouse(payload);
       if (res.success) { notifySuccess("Yangi ombor yaratildi."); await loadData(); }
+      else { notifyError("Ombor yaratishda xatolik yuz berdi."); }
     }
     setIsModalOpen(false);
     setIsLoading(false);
@@ -58,6 +60,7 @@ export const WarehouseSettingsPage = () => {
     setIsLoading(true);
     const res = await settingsApi.deleteWarehouse(deletingItem.id);
     if (res.success) { notifySuccess("Ombor o'chirildi."); await loadData(); }
+    else { notifyError("Omborni o'chirishda xatolik yuz berdi."); }
     setIsConfirmOpen(false);
     setDeletingItem(null);
     setIsLoading(false);

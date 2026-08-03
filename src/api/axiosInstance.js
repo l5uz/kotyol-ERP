@@ -3,8 +3,9 @@ import { tokenService } from './tokenService';
 import { handleApiError } from './errorHandler';
 import { ENDPOINTS } from './endpoints';
 import { useAuthStore } from '@/store/useAuthStore';
+import { offlineSyncService } from '@/services/offlineSync.service';
 
-const baseURL = import.meta.env.VITE_API_URL || 'https://katyol9090.pythonanywhere.com/api/v1';
+const baseURL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
 
 export const axiosInstance = axios.create({
   baseURL,
@@ -106,6 +107,16 @@ axiosInstance.interceptors.response.use(
         isRefreshing = false;
         return Promise.reject(refreshErr);
       }
+    }
+
+    // Handle offline mutating requests (POST, PUT, PATCH, DELETE)
+    const method = (originalRequest?.method || 'get').toLowerCase();
+    const isMutating = ['post', 'put', 'patch', 'delete'].includes(method);
+    const isNetworkError = !navigator.onLine || (!error.response && error.request);
+
+    if (isMutating && isNetworkError && !isPublicPath(originalRequest?.url)) {
+      const fallback = offlineSyncService.enqueueRequest(originalRequest);
+      return Promise.resolve(fallback);
     }
 
     handleApiError(error);

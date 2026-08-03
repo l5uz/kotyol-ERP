@@ -8,6 +8,8 @@ import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { ROUTES } from '@/constants/routes.constants';
 
+import { getActiveCurrency } from '@/utils/currency.utils';
+
 export const ProductFormModal = ({
   isOpen,
   onClose,
@@ -33,7 +35,7 @@ export const ProductFormModal = ({
     unitId: unitOptions[0]?.value || '',
     supplierId: supplierOptions[0]?.value || '',
     purchasePrice: '',
-    currency: 'USD',
+    currency: getActiveCurrency(),
     minStock: '100',
     currentStock: '0',
     status: 'ACTIVE',
@@ -50,7 +52,7 @@ export const ProductFormModal = ({
         unitId: product.unitId || (unitOptions[0]?.value || ''),
         supplierId: product.supplierId || (supplierOptions[0]?.value || ''),
         purchasePrice: product.purchasePrice || '',
-        currency: product.currency || 'USD',
+        currency: product.currency || getActiveCurrency(),
         minStock: product.minStock || '100',
         currentStock: product.currentStock || '0',
         status: product.status || 'ACTIVE',
@@ -65,7 +67,7 @@ export const ProductFormModal = ({
         unitId: unitOptions[0]?.value || '',
         supplierId: supplierOptions[0]?.value || '',
         purchasePrice: '',
-        currency: 'USD',
+        currency: getActiveCurrency(),
         minStock: '100',
         currentStock: '0',
         status: 'ACTIVE',

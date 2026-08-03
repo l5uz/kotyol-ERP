@@ -137,7 +137,6 @@ const MENU_CATEGORIES = [
       { label: 'Xodimlar Ro\'yxati', path: ROUTES.PROTECTED.EMPLOYEES, icon: LuUsers },
       { label: 'Lavozimlar Boshqaruvi', path: ROUTES.PROTECTED.EMPLOYEES_POSITIONS, icon: LuBriefcase },
       { label: 'Oylik Turlari', path: ROUTES.PROTECTED.EMPLOYEES_SALARY_TYPES, icon: LuBadgeDollarSign },
-      { label: 'Ish Faolligi', path: ROUTES.PROTECTED.EMPLOYEES_ACTIVITY, icon: LuActivity },
     ],
   },
   {
@@ -332,15 +331,17 @@ export const Sidebar = () => {
         {/* Fixed Compact Sidebar (80px) */}
         <aside
           className={`d-flex flex-column flex-shrink-0 transition-all ${
-            isMobileOpen ? 'd-flex position-fixed start-0 top-0 h-100 z-3' : 'd-none d-md-flex'
+            isMobileOpen ? 'd-flex position-fixed start-0 top-0 h-100 z-3' : 'd-none d-md-flex position-fixed start-0 top-0 h-100'
           }`}
           style={{
             width: '80px',
             backgroundColor: 'var(--erp-sidebar-bg)',
             borderRight: '1px solid var(--erp-sidebar-border)',
             height: '100vh',
-            position: 'sticky',
+            position: 'fixed',
             top: 0,
+            left: 0,
+            zIndex: 1050,
           }}
         >
           {/* Brand Logo Header */}

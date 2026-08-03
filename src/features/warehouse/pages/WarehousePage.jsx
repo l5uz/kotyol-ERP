@@ -15,7 +15,7 @@ import { EditStockModal } from '../components/EditStockModal';
 import { warehouseApi } from '../api/warehouseApi';
 import { productsApi } from '@/features/products/api/productsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
-import { notifySuccess } from '@/services/notification.service';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 import { formatCurrency, getCurrencySymbol } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
 
@@ -79,23 +79,35 @@ export const WarehousePage = () => {
 
   const handleSaveMovement = async (formData) => {
     const res = await warehouseApi.createMovement(formData);
-    notifySuccess(res.message);
-    setIsMovementModalOpen(false);
-    loadWarehouseData();
+    if (res.success) {
+      notifySuccess(res.message || "Ombor harakati saqlandi.");
+      setIsMovementModalOpen(false);
+      loadWarehouseData();
+    } else {
+      notifyError(res.message || "Ombor harakatini saqlashda xatolik.");
+    }
   };
 
   const handleSaveRevaluation = async (formData) => {
     const res = await warehouseApi.createRevaluation(formData);
-    notifySuccess(res.message);
-    setIsRevaluationModalOpen(false);
-    loadWarehouseData();
+    if (res.success) {
+      notifySuccess(res.message || "Qayta baholash saqlandi.");
+      setIsRevaluationModalOpen(false);
+      loadWarehouseData();
+    } else {
+      notifyError(res.message || "Qayta baholashda xatolik yuz berdi.");
+    }
   };
 
   const handleSaveInventoryCount = async (formData) => {
     const res = await warehouseApi.createInventoryCount(formData);
-    notifySuccess(res.message);
-    setIsCountModalOpen(false);
-    loadWarehouseData();
+    if (res.success) {
+      notifySuccess(res.message || "Inventarizatsiya saqlandi.");
+      setIsCountModalOpen(false);
+      loadWarehouseData();
+    } else {
+      notifyError(res.message || "Inventarizatsiyada xatolik yuz berdi.");
+    }
   };
 
   const handleUpdateStock = async (updatedData) => {
@@ -118,17 +130,25 @@ export const WarehousePage = () => {
     }
 
     const res = await warehouseApi.updateStock(updatedData.id, updatedData);
-    notifySuccess(res.message);
-    setEditingStock(null);
-    loadWarehouseData();
+    if (res.success) {
+      notifySuccess(res.message || "Ombor zaxirasi yangilandi.");
+      setEditingStock(null);
+      loadWarehouseData();
+    } else {
+      notifyError(res.message || "Zaxirani yangilashda xatolik.");
+    }
   };
 
   const handleConfirmDeleteStock = async () => {
     if (!deletingStock) return;
     const res = await warehouseApi.deleteStock(deletingStock.id);
-    notifySuccess(res.message);
-    setDeletingStock(null);
-    loadWarehouseData();
+    if (res.success) {
+      notifySuccess(res.message || "Zaxira o'chirildi.");
+      setDeletingStock(null);
+      loadWarehouseData();
+    } else {
+      notifyError(res.message || "Zaxirani o'chirishda xatolik.");
+    }
   };
 
   const columns = [
@@ -202,7 +222,6 @@ export const WarehousePage = () => {
 
   return (
     <div className="warehouse-page animate-fade-in pb-5">
-
       <PageHeader
         title="Ombor Zaxiralari Boshqaruvi"
         subtitle="Xomashyo, yarim tayyor va tayyor kotyollar zaxiralarini kuzatish hamda kirim/chiqim operatsiyalari"
