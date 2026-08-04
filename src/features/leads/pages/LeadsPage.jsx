@@ -70,6 +70,29 @@ const LeadsPage = () => {
     }
   };
 
+  const handleStageDown = async (lead) => {
+    if (lead.status === 'LOST') {
+      try {
+        await leadsApi.updateLead(lead.id, { status: 'NEGOTIATION' });
+        loadLeads();
+      } catch (error) {
+        console.error(error);
+      }
+      return;
+    }
+
+    const statuses = ['NEW', 'CONTACTED', 'OFFER', 'NEGOTIATION', 'WON'];
+    const currentIndex = statuses.indexOf(lead.status);
+    if (currentIndex > 0) {
+      try {
+        await leadsApi.updateLead(lead.id, { status: statuses[currentIndex - 1] });
+        loadLeads();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
   const filteredLeads = leads.filter(l => {
     const searchMatch = (l.fullName?.toLowerCase().includes(filter.search.toLowerCase()) ||
       l.companyName?.toLowerCase().includes(filter.search.toLowerCase()) ||
@@ -109,6 +132,11 @@ const LeadsPage = () => {
                   <div className="d-flex justify-content-between align-items-center mt-2">
                     <span className="badge bg-primary bg-opacity-50">{lead.source}</span>
                     <div className="btn-group">
+                      {col.id !== 'NEW' && (
+                        <button className="btn btn-sm btn-outline-secondary py-0 px-2" onClick={(e) => { e.stopPropagation(); handleStageDown(lead); }} title="Oldingi bosqichga Qaytarish">
+                          <i className="bi bi-arrow-left"></i>
+                        </button>
+                      )}
                       <button className="btn btn-sm btn-outline-light py-0 px-2" onClick={(e) => { e.stopPropagation(); setLeadToEdit(lead); setShowModal(true); }}>
                         <i className="bi bi-pencil"></i>
                       </button>
