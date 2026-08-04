@@ -43,6 +43,10 @@ export const ROUTES = {
     SALES: '/sales',
     SALES_DETAIL: '/sales/:id',
 
+    // Leads Sub-Routes
+    LEADS: '/leads',
+    LEADS_DETAIL: '/leads/:id',
+
     // Orders Sub-Routes
     ORDERS: '/orders',
     ORDERS_DETAIL: '/orders/:id',

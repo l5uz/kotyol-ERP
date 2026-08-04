@@ -28,6 +28,7 @@ import {
   LuArrowDownLeft,
   LuBriefcase,
   LuFilter,
+  LuTarget,
 } from 'react-icons/lu';
 import { useSidebarStore } from '@/store/useSidebarStore';
 import { ROUTES } from '@/constants/routes.constants';
@@ -95,6 +96,7 @@ const MENU_CATEGORIES = [
     items: [
       { label: 'Buyurtmalar', path: ROUTES.PROTECTED.ORDERS, icon: LuClipboardList },
       { label: 'Sotuv', path: ROUTES.PROTECTED.SALES, icon: LuShoppingCart },
+      { label: 'Lidlar', path: ROUTES.PROTECTED.LEADS, icon: LuTarget },
       { label: 'Mijozlar', path: ROUTES.PROTECTED.CUSTOMERS, icon: LuUserCheck },
     ],
   },

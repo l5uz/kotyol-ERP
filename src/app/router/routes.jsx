@@ -49,6 +49,7 @@ import {
 } from '@/features/warehouse';
 
 import { CustomersPage, CustomerDetailPage } from '@/features/customers';
+import { LeadsPage, LeadDetailPage } from '@/features/leads';
 
 import { SuppliersPage, SupplierDetailPage } from '@/features/suppliers';
 import { ProductsPage } from '@/features/products/pages/ProductsPage';
@@ -178,6 +179,10 @@ export const router = createBrowserRouter([
           // Customers Routes
           { path: '/customers', element: <CustomersPage /> },
           { path: '/customers/:id', element: <CustomerDetailPage /> },
+
+          // Leads Routes
+          { path: '/leads', element: <LeadsPage /> },
+          { path: '/leads/:id', element: <LeadDetailPage /> },
 
           // Suppliers Routes
           { path: '/suppliers', element: <SuppliersPage /> },
