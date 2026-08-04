@@ -7,16 +7,18 @@ import { Input } from '@/components/common/Input/Input';
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { notifySuccess } from '@/services/notification.service';
 import { ERP_ICONS } from '@/shared/icons';
+import { getActiveCurrency } from '@/utils/currency.utils';
 
 export const ProfilePage = () => {
   const { user, updateUserProfile } = useAuthStore();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [department, setDepartment] = useState(user?.department || '');
 
   const handleSave = (e) => {
-    e.preventDefault();
-    updateUserProfile({ phone, department });
+    if (e) e.preventDefault();
+    updateUserProfile({ name, phone, department });
     notifySuccess("Profil ma'lumotlari muvaffaqiyatli saqlandi.");
     setIsEditModalOpen(false);
   };
@@ -82,22 +84,8 @@ export const ProfilePage = () => {
                 <div className="fw-semibold text-main">{user?.branchName || 'Mavjud emas'}</div>
               </div>
               <div className="col-12 col-sm-6">
-                <label className="text-muted-custom fs-8 d-block mb-1">Tizim tili</label>
-                <div className="fw-semibold text-main">{user?.language || "O'zbekcha"}</div>
-              </div>
-              <div className="col-12 col-sm-6">
                 <label className="text-muted-custom fs-8 d-block mb-1">Asosiy Valyuta</label>
-                <div className="fw-semibold text-main">{user?.currency || 'USD ($)'}</div>
-              </div>
-              <div className="col-12 col-sm-6">
-                <label className="text-muted-custom fs-8 d-block mb-1">Tizim Huquqlari</label>
-                <div className="d-flex flex-wrap gap-1 mt-1">
-                  {(user?.permissions || ['MANAGE_USERS', 'VIEW_FINANCE']).map((perm) => (
-                    <span key={perm} className="badge bg-secondary bg-opacity-10 text-secondary fs-8">
-                      {perm}
-                    </span>
-                  ))}
-                </div>
+                <div className="fw-semibold text-main">{getActiveCurrency()}</div>
               </div>
             </div>
           </Card>
@@ -121,6 +109,7 @@ export const ProfilePage = () => {
         }
       >
         <form onSubmit={handleSave}>
+          <Input label="Foydalanuvchi ismi (F.I.SH.)" value={name} onChange={(e) => setName(e.target.value)} />
           <Input label="Telefon raqami" value={phone} onChange={(e) => setPhone(e.target.value)} />
           <Input label="Bo'lim va strukturasi" value={department} onChange={(e) => setDepartment(e.target.value)} />
         </form>
