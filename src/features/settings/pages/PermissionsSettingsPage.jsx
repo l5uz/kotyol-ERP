@@ -6,26 +6,55 @@ import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { SettingsSubNav } from '../components/SettingsSubNav';
 import { PermissionMatrixTable } from '../components/PermissionMatrixTable';
 import { settingsApi } from '../api/settingsApi';
-import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { notifySuccess } from '@/services/notification.service';
 import { LuCheck } from 'react-icons/lu';
 
 export const PermissionsSettingsPage = () => {
-  const roleOptions = dynamicSettingsService.getRoleOptions();
-  const [selectedRole, setSelectedRole] = useState(roleOptions[0]?.value || 'Administrator');
+  const [roleOptions, setRoleOptions] = useState([]);
+  const [selectedRole, setSelectedRole] = useState('ADMIN');
   const [matrix, setMatrix] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const loadData = async () => {
     setIsLoading(true);
-    const res = await settingsApi.getPermissionsMatrix();
-    if (res.success && res.data) {
-      const data = res.data;
-      setMatrix(data.SUPER_ADMIN || data[selectedRole] || data || {});
+    try {
+      const rolesRes = await settingsApi.getRoles();
+      let roles = [];
+      if (rolesRes.success && Array.isArray(rolesRes.data)) {
+        roles = rolesRes.data.map(r => ({ value: r.code || r.name, label: r.name }));
+        setRoleOptions(roles);
+      }
+
+      const matrixRes = await settingsApi.getPermissionsMatrix();
+      if (matrixRes.success && matrixRes.data) {
+        const defaultRole = roles[0]?.value || 'ADMIN';
+        setSelectedRole(defaultRole);
+        setMatrix(matrixRes.data[defaultRole] || matrixRes.data || {});
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
+  };
+
+  const handleRoleChange = async (roleVal) => {
+    setSelectedRole(roleVal);
+    setIsLoading(true);
+    try {
+      const matrixRes = await settingsApi.getPermissionsMatrix();
+      if (matrixRes.success && matrixRes.data) {
+        setMatrix(matrixRes.data[roleVal] || matrixRes.data || {});
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleTogglePermission = (moduleKey, actionKey) => {
@@ -61,7 +90,7 @@ export const PermissionsSettingsPage = () => {
           <div className="d-flex align-items-center gap-2" style={{ minWidth: '220px' }}>
             <Select
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
+              onChange={(e) => handleRoleChange(e.target.value)}
               options={roleOptions}
             />
             <Button variant="primary" size="sm" icon={<LuCheck />} onClick={handleSave}>
