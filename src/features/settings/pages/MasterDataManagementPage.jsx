@@ -178,7 +178,7 @@ export const MasterDataManagementPage = () => {
           onChange={toggleSelectAll}
         />
       ),
-      accessor: (row) => (
+      cell: (row) => (
         <input
           type="checkbox"
           className="form-check-input"
@@ -187,22 +187,21 @@ export const MasterDataManagementPage = () => {
         />
       ),
     },
-    {
-      header: activeConfig.fields[0].label,
-      accessor: (row) => row[activeConfig.fields[0].name],
-    },
-    {
-      header: activeConfig.fields[1] ? activeConfig.fields[1].label : 'Kod / Qiymat',
-      accessor: (row) => {
-        const field = activeConfig.fields[1];
-        if (!field) return row.code || '—';
-        return row[field.name] || '—';
+    // Map fields dynamically from the active config
+    ...activeConfig.fields.map((field) => ({
+      header: field.label,
+      cell: (row) => {
+        const val = row[field.name];
+        if (val === true || val === 'true') return 'Ha';
+        if (val === false || val === 'false') return 'Yo\'q';
+        return val || '—';
       },
-    },
-    {
-      header: 'Tavsif',
-      accessor: (row) => row.description || '—',
-    },
+    })),
+    // Add Code / Value column if not already defined in fields
+    ...(!activeConfig.fields.some(f => f.name === 'code') ? [{
+      header: 'Kod / Qiymat',
+      cell: (row) => row.code || '—',
+    }] : []),
     {
       header: 'Holat',
       cell: (row) => <StatusBadge status={row.status} />,
