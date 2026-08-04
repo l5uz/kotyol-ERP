@@ -15,10 +15,12 @@ export const ProfilePage = () => {
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [department, setDepartment] = useState(user?.department || '');
+  const [organizationName, setOrganizationName] = useState(user?.organizationName || '');
+  const [branchName, setBranchName] = useState(user?.branchName || '');
 
   const handleSave = (e) => {
     if (e) e.preventDefault();
-    updateUserProfile({ name, phone, department });
+    updateUserProfile({ name, phone, department, organizationName, branchName });
     notifySuccess("Profil ma'lumotlari muvaffaqiyatli saqlandi.");
     setIsEditModalOpen(false);
   };
@@ -112,6 +114,8 @@ export const ProfilePage = () => {
           <Input label="Foydalanuvchi ismi (F.I.SH.)" value={name} onChange={(e) => setName(e.target.value)} />
           <Input label="Telefon raqami" value={phone} onChange={(e) => setPhone(e.target.value)} />
           <Input label="Bo'lim va strukturasi" value={department} onChange={(e) => setDepartment(e.target.value)} />
+          <Input label="Tashkilot nomi" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} />
+          <Input label="Filial nomi" value={branchName} onChange={(e) => setBranchName(e.target.value)} />
         </form>
       </Modal>
     </div>
