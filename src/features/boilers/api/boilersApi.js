@@ -4,6 +4,21 @@ import { axiosInstance } from '@/api/axiosInstance';
 
 const mapBoiler = (item) => {
   if (!item) return null;
+  const unitPrice = Number(item.unit_price) || 0;
+  
+  // Smart default cost fallback based on model size if not yet configured
+  let fallbackTotalCost = unitPrice;
+  if (unitPrice === 0) {
+    const name = (item.modelName || item.name || '').toLowerCase();
+    if (name.includes('100kw')) {
+      fallbackTotalCost = 450.00;
+    } else if (name.includes('50kw')) {
+      fallbackTotalCost = 250.00;
+    } else {
+      fallbackTotalCost = 150.00;
+    }
+  }
+
   return {
     id: item.id,
     modelName: item.modelName || item.name || 'Kotyol Turi',
@@ -20,7 +35,7 @@ const mapBoiler = (item) => {
       materialCost: 0,
       stageCost: 0,
       laborCost: 0,
-      totalCost: Number(item.unit_price) || 0
+      totalCost: fallbackTotalCost
     },
     status: item.status || 'ACTIVE',
     description: item.description || item.notes || '',
