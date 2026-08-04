@@ -110,15 +110,25 @@ def company_profile_view(request):
     company = Company.objects.first()
     if not company:
         company = Company.objects.create(
-            name="Kotyol Manufacturing",
-            phone="+998 (90) 123-45-67",
+            name=request.user.organization_name or "Kotyol Manufacturing",
+            phone=request.user.phone or "+998 (90) 123-45-67",
             website="https://kotyol.uz",
             address="Toshkent sh., Chilonzor tumani, 5-daha",
             description="Yuqori sifatli isitish kotyollari ishlab chiqarish zavodi.",
-            currency="USD",
+            currency="UZS",
             timezone="Asia/Tashkent (UTC+5)",
             date_format="YYYY-MM-DD"
         )
+    else:
+        modified = False
+        if (company.name == "UZS Korxona" or not company.name) and request.user.organization_name:
+            company.name = request.user.organization_name
+            modified = True
+        if (company.phone == "+99898546757" or not company.phone) and request.user.phone:
+            company.phone = request.user.phone
+            modified = True
+        if modified:
+            company.save()
 
     if request.method == 'GET':
         return Response({"success": True, "data": CompanyResponseSerializer(company).data})
@@ -130,6 +140,14 @@ def company_profile_view(request):
     for key, value in update_data.items():
         setattr(company, key, value)
     company.save()
+
+    # Also sync updated name/phone to user's registered organization details
+    if "name" in update_data and update_data["name"] and request.user.organization_name != update_data["name"]:
+        request.user.organization_name = update_data["name"]
+        if request.user.organization_id_fk:
+            request.user.organization_id_fk.name = update_data["name"]
+            request.user.organization_id_fk.save()
+        request.user.save()
 
     record_audit_log(
         action="UPDATE",
