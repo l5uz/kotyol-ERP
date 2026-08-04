@@ -37,3 +37,18 @@ class Order(BaseModel):
 
     class Meta:
         db_table = 'orders'
+
+class Lead(BaseModel):
+    full_name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=50)
+    email = models.EmailField(max_length=255, null=True, blank=True)
+    company_name = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(max_length=50, default="NEW") # NEW, CONTACTED, OFFER, NEGOTIATION, WON, LOST
+    source = models.CharField(max_length=100, null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    next_contact_date = models.DateField(null=True, blank=True)
+    assigned_employee_id = models.CharField(max_length=36, null=True, blank=True)
+    assigned_employee_name = models.CharField(max_length=255, null=True, blank=True)
+
+    class Meta:
+        db_table = 'leads'
