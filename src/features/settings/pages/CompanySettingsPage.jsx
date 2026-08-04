@@ -85,38 +85,46 @@ export const CompanySettingsPage = () => {
 
       <Card title="Kompaniya Profil Sozlamalari" action={cardAction}>
         {!isEditing ? (
-          <div className="row g-3 fs-7">
+          <div className="row g-4 fs-7">
             <div className="col-12 col-md-6">
               <label className="text-muted-custom fs-8 d-block mb-1">Kompaniya Rasmiy Nomi</label>
-              <div className="fw-semibold text-main">{formData.name}</div>
+              <div className="fw-semibold text-main fs-6">{formData.name || 'Kiritilmagan'}</div>
             </div>
             <div className="col-12 col-md-6">
               <label className="text-muted-custom fs-8 d-block mb-1">Telefon Raqami</label>
-              <div className="fw-semibold text-main">{formData.phone}</div>
+              <div className="fw-semibold text-main fs-6">{formData.phone || 'Kiritilmagan'}</div>
             </div>
             <div className="col-12 col-md-6">
               <label className="text-muted-custom fs-8 d-block mb-1">Rasmiy Vebsayt</label>
-              <div className="fw-semibold text-main">{formData.website}</div>
+              <div className="fw-semibold text-main">{formData.website || '—'}</div>
             </div>
-            <div className="col-12">
+            <div className="col-12 col-md-6">
               <label className="text-muted-custom fs-8 d-block mb-1">Yuridik va Sex Manzili</label>
-              <div className="fw-semibold text-main">{formData.address}</div>
+              <div className="fw-semibold text-main">{formData.address || '—'}</div>
             </div>
             <div className="col-12">
               <label className="text-muted-custom fs-8 d-block mb-1">Korxona Faoliyati Tavsifi</label>
-              <div className="fw-semibold text-main">{formData.description || 'Kiritilmagan'}</div>
+              <div className="fw-semibold text-main p-3 rounded bg-white bg-opacity-5 border-custom">
+                {formData.description || 'Kiritilmagan'}
+              </div>
             </div>
             <div className="col-12 col-md-4">
-              <label className="text-muted-custom fs-8 d-block mb-1">Asosiy Hisob Valyutasi</label>
-              <div className="fw-semibold text-main">{formData.currency}</div>
+              <div className="p-3 rounded bg-white bg-opacity-5 border-custom text-center">
+                <label className="text-muted-custom fs-8 d-block mb-1">Asosiy Hisob Valyutasi</label>
+                <div className="fw-bold text-main fs-5">{formData.currency}</div>
+              </div>
             </div>
             <div className="col-12 col-md-4">
-              <label className="text-muted-custom fs-8 d-block mb-1">Vaqt Mintaqasi</label>
-              <div className="fw-semibold text-main">{formData.timezone}</div>
+              <div className="p-3 rounded bg-white bg-opacity-5 border-custom text-center">
+                <label className="text-muted-custom fs-8 d-block mb-1">Vaqt Mintaqasi</label>
+                <div className="fw-semibold text-main">{formData.timezone}</div>
+              </div>
             </div>
             <div className="col-12 col-md-4">
-              <label className="text-muted-custom fs-8 d-block mb-1">Sana Formati</label>
-              <div className="fw-semibold text-main">{formData.dateFormat}</div>
+              <div className="p-3 rounded bg-white bg-opacity-5 border-custom text-center">
+                <label className="text-muted-custom fs-8 d-block mb-1">Sana Formati</label>
+                <div className="fw-semibold text-main">{formData.dateFormat}</div>
+              </div>
             </div>
           </div>
         ) : (
