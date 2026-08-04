@@ -4,21 +4,6 @@ import { axiosInstance } from '@/api/axiosInstance';
 
 const mapBoiler = (item) => {
   if (!item) return null;
-  const unitPrice = Number(item.unit_price) || 0;
-  
-  // Smart default cost fallback based on model size if not yet configured
-  let fallbackTotalCost = unitPrice;
-  if (unitPrice === 0) {
-    const name = (item.modelName || item.name || '').toLowerCase();
-    if (name.includes('100kw')) {
-      fallbackTotalCost = 450.00;
-    } else if (name.includes('50kw')) {
-      fallbackTotalCost = 250.00;
-    } else {
-      fallbackTotalCost = 150.00;
-    }
-  }
-
   return {
     id: item.id,
     modelName: item.modelName || item.name || 'Kotyol Turi',
@@ -35,7 +20,7 @@ const mapBoiler = (item) => {
       materialCost: 0,
       stageCost: 0,
       laborCost: 0,
-      totalCost: fallbackTotalCost
+      totalCost: Number(item.unit_price) || 0
     },
     status: item.status || 'ACTIVE',
     description: item.description || item.notes || '',
@@ -48,6 +33,49 @@ export const boilersApi = {
   getBoilers: async (filters = {}) => {
     const response = await axiosInstance.get('/master-data/boilers');
     let list = (response.data || []).map(mapBoiler).filter(Boolean);
+
+    try {
+      const recRes = await recipesApi.getRecipes().catch(() => null);
+      const recipes = recRes?.success ? (recRes.data || []) : [];
+      const allStages = dynamicSettingsService.getProductionStages();
+
+      list = list.map((boiler) => {
+        const recipe = recipes.find(
+          (r) =>
+            (boiler.recipeId && String(r.id) === String(boiler.recipeId)) ||
+            String(r.productId) === String(boiler.id) ||
+            r.productName?.toLowerCase() === boiler.modelName?.toLowerCase()
+        );
+
+        if (recipe) {
+          const materialCost = Number(recipe.estimatedTotalCost || recipe.baseMaterialCost || 0);
+          const stageCost = (boiler.selectedStageIds || []).reduce((acc, stgId) => {
+            const stg = allStages.find((s) => s.id === stgId);
+            return acc + (stg ? (stg.defaultPrice || 0) : 0);
+          }, 0);
+
+          const laborCost = stageCost * 0.10;
+          const overheadCost = (materialCost + stageCost) * 0.05;
+          const totalCost = materialCost + stageCost + laborCost + overheadCost;
+
+          return {
+            ...boiler,
+            recipeId: recipe.id,
+            recipeName: recipe.recipeName,
+            costBreakdown: {
+              materialCost,
+              stageCost,
+              laborCost,
+              overheadCost,
+              totalCost,
+            },
+          };
+        }
+        return boiler;
+      });
+    } catch (_err) {
+      console.warn("Failed to dynamically compute boiler costs on load:", _err);
+    }
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -67,7 +95,47 @@ export const boilersApi = {
 
   getBoilerById: async (id) => {
     const response = await axiosInstance.get(`/master-data/boilers/${id}`);
-    return { success: true, data: mapBoiler(response.data) };
+    const b = mapBoiler(response.data);
+    
+    if (b) {
+      try {
+        const recRes = await recipesApi.getRecipes().catch(() => null);
+        const recipes = recRes?.success ? (recRes.data || []) : [];
+        const recipe = recipes.find(
+          (r) =>
+            (b.recipeId && String(r.id) === String(b.recipeId)) ||
+            String(r.productId) === String(b.id) ||
+            r.productName?.toLowerCase() === b.modelName?.toLowerCase()
+        );
+
+        if (recipe) {
+          const allStages = dynamicSettingsService.getProductionStages();
+          const materialCost = Number(recipe.estimatedTotalCost || recipe.baseMaterialCost || 0);
+          const stageCost = (b.selectedStageIds || []).reduce((acc, stgId) => {
+            const stg = allStages.find((s) => s.id === stgId);
+            return acc + (stg ? (stg.defaultPrice || 0) : 0);
+          }, 0);
+
+          const laborCost = stageCost * 0.10;
+          const overheadCost = (materialCost + stageCost) * 0.05;
+          const totalCost = materialCost + stageCost + laborCost + overheadCost;
+
+          b.recipeId = recipe.id;
+          b.recipeName = recipe.recipeName;
+          b.costBreakdown = {
+            materialCost,
+            stageCost,
+            laborCost,
+            overheadCost,
+            totalCost,
+          };
+        }
+      } catch (_err) {
+        // ignore
+      }
+    }
+
+    return { success: true, data: b };
   },
 
   calculateBoilerCost: async (recipeId, selectedStageIds = []) => {
