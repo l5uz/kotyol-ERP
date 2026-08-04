@@ -30,7 +30,7 @@ export const reportsApi = {
     try {
       const [salesRes, purRes, prodRes, stockRes, txsRes, srvRes] = await Promise.all([
         axiosInstance.get('/sales').catch(() => ({ data: [] })),
-        axiosInstance.get('/purchasing/orders').catch(() => ({ data: [] })),
+        axiosInstance.get('/purchasing').catch(() => ({ data: [] })),
         axiosInstance.get('/production/batches').catch(() => ({ data: [] })),
         axiosInstance.get('/warehouse/stock').catch(() => ({ data: [] })),
         axiosInstance.get('/finance/transactions').catch(() => ({ data: [] })),
