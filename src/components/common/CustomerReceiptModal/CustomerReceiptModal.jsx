@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { formatCurrency, getActiveCurrency } from '@/utils/currency.utils';
-import { LuPrinter, LuCheckCircle2, LuTriangleAlert, LuCalendar, LuDollarSign, LuShieldCheck } from 'react-icons/lu';
+import { LuPrinter, LuCircleCheck, LuTriangleAlert, LuCalendar, LuDollarSign, LuShieldCheck, LuClock } from 'react-icons/lu';
 
 export const CustomerReceiptModal = ({
   isOpen,
@@ -21,20 +21,27 @@ export const CustomerReceiptModal = ({
   const boilerModelName = customerData.boilerModelName || 'Isitish Kotyoli (Standart)';
   const totalAmount = parseFloat(customerData.totalAmount) || 0;
   const depositAmount = parseFloat(customerData.depositAmount) || 0;
-  const autoDiscountOnLate = customerData.autoDiscountOnLate !== false; // default true if selected
+  const autoDiscountOnLate = customerData.autoDiscountOnLate !== false;
   const lateDiscountRate = parseFloat(customerData.lateDiscountRate) || 0.5;
 
-  // Calculation of late delay
+  // Dynamic calculation for days and decreasing price
   let daysLate = 0;
+  let daysRemaining = 0;
   let isOverdue = false;
-  if (deliveryDate && deliveryDate < todayStr) {
-    const d1 = new Date(todayStr);
-    const d2 = new Date(deliveryDate);
-    const diffTime = Math.abs(d1 - d2);
-    daysLate = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    isOverdue = daysLate > 0;
+
+  if (deliveryDate) {
+    const tDate = new Date(todayStr);
+    const dDate = new Date(deliveryDate);
+    const diffDays = Math.round((dDate - tDate) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) {
+      isOverdue = true;
+      daysLate = Math.abs(diffDays);
+    } else {
+      daysRemaining = diffDays;
+    }
   }
 
+  // Dynamic daily reduction: lateDiscountRate % for each overdue day
   const discountPercent = (autoDiscountOnLate && isOverdue) ? Math.min(50, daysLate * lateDiscountRate) : 0;
   const lateDiscountAmount = Math.round((totalAmount * discountPercent) / 100);
   const finalPrice = Math.max(0, totalAmount - lateDiscountAmount);
@@ -71,7 +78,7 @@ export const CustomerReceiptModal = ({
         </div>
       }
     >
-      {/* Printable Area with print-specific stylesheet */}
+      {/* Printable Area */}
       <div ref={printRef} className="customer-receipt-container p-4 bg-white text-dark rounded border shadow-sm position-relative">
         <style>{`
           @media print {
@@ -159,11 +166,11 @@ export const CustomerReceiptModal = ({
           </table>
         </div>
 
-        {/* Deadlines & Automatic Late Discount Terms */}
+        {/* Deadlines, Dynamic Days & Automatic Price Reduction */}
         <div className="bg-light p-3 rounded mb-3 border">
           <h6 className="fw-bold text-dark mb-2 d-flex align-items-center gap-1">
             <LuCalendar className="text-primary" />
-            <span>Muddati va Kechikish Bo'yicha Shartlar:</span>
+            <span>Muddati va Dinamik Arzonlashuv Shartlari:</span>
           </h6>
           <div className="row g-2 small">
             <div className="col-6">
@@ -172,12 +179,16 @@ export const CustomerReceiptModal = ({
             <div className="col-6">
               <span className="text-muted">Yetkazib Berish Sanasi:</span> <strong className="text-primary">{deliveryDate || 'Belgilanmagan'}</strong>
             </div>
+
+            {/* Dynamic Days Counter & Reduction Info */}
             <div className="col-12 mt-2">
               <div className="p-2 rounded border bg-white fs-8">
                 {autoDiscountOnLate ? (
                   <div className="text-success d-flex align-items-center gap-1">
                     <LuShieldCheck />
-                    <span><strong>Avtomatik chegirma faol:</strong> Belgilangan sanadan o'tib ketsa, har bir kechikkan kun uchun kotyol narxi kuniga {lateDiscountRate}% arzonlashadi.</span>
+                    <span>
+                      <strong>Dinamik arzonlashuv faol:</strong> Rejadagi sanadan kechikilgan har bir kun uchun kotyol narxi kuniga <strong>{lateDiscountRate}%</strong> kamayib boradi.
+                    </span>
                   </div>
                 ) : (
                   <div className="text-muted">
@@ -186,14 +197,26 @@ export const CustomerReceiptModal = ({
                 )}
               </div>
             </div>
-            {isOverdue && autoDiscountOnLate && (
+
+            {/* Dynamic Overdue vs Remaining Counter Alert */}
+            {deliveryDate && (
               <div className="col-12">
-                <div className="alert alert-warning py-1 px-2 mb-0 fs-8 d-flex align-items-center gap-2">
-                  <LuTriangleAlert className="text-warning fs-6" />
-                  <span>
-                    <strong>Kechikish aniqlandi:</strong> Rejadagi sanadan <strong>{daysLate} kun</strong> o'tdi. ({discountPercent}% chegirma = -{formatCurrency(lateDiscountAmount)})
-                  </span>
-                </div>
+                {isOverdue ? (
+                  <div className="alert alert-warning py-2 px-3 mb-0 fs-8 d-flex align-items-center gap-2">
+                    <LuTriangleAlert className="text-warning fs-5" />
+                    <div>
+                      <div><strong>⚠️ Dinamik Kechikish Aniqlandi:</strong> Rejadagi sanadan <strong>{daysLate} kun</strong> o'tdi.</div>
+                      <div>Dinamik chegirma: <strong>{discountPercent}%</strong> (-{formatCurrency(lateDiscountAmount)}) kamaydi.</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="alert alert-info py-2 px-3 mb-0 fs-8 d-flex align-items-center gap-2">
+                    <LuClock className="text-info fs-5" />
+                    <div>
+                      <strong>🚚 Yetkazib berish vaqti:</strong> Rejadagi sanagacha dinamik <strong>{daysRemaining} kun</strong> qoldi.
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -209,8 +232,8 @@ export const CustomerReceiptModal = ({
               </div>
 
               {lateDiscountAmount > 0 && (
-                <div className="d-flex justify-content-between small mb-1 text-danger">
-                  <span>Kechikish Sababli Chegirma ({discountPercent}%):</span>
+                <div className="d-flex justify-content-between small mb-1 text-danger fw-bold">
+                  <span>Dinamik Arzonlashuv Chegirmasi (-{lateDiscountRate}%/kun × {daysLate} kun):</span>
                   <span>-{formatCurrency(lateDiscountAmount)}</span>
                 </div>
               )}
@@ -243,7 +266,6 @@ export const CustomerReceiptModal = ({
             </div>
             <div className="col-4">
               <div className="d-inline-block p-2 border rounded bg-light mb-1">
-                {/* SVG Barcode Graphic */}
                 <svg width="120" height="36" viewBox="0 0 120 36" fill="none">
                   <rect x="5" y="4" width="2" height="28" fill="#000" />
                   <rect x="9" y="4" width="4" height="28" fill="#000" />

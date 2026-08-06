@@ -77,12 +77,18 @@ export const CustomerDetailPage = () => {
   const lateDiscountRate = parseFloat(customer.lateDiscountRate) || 0.5;
 
   let daysLate = 0;
+  let daysRemaining = 0;
   let isOverdue = false;
-  if (deliveryDate && deliveryDate < todayStr) {
-    const d1 = new Date(todayStr);
-    const d2 = new Date(deliveryDate);
-    daysLate = Math.ceil(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
-    isOverdue = daysLate > 0;
+  if (deliveryDate) {
+    const tDate = new Date(todayStr);
+    const dDate = new Date(deliveryDate);
+    const diffDays = Math.round((dDate - tDate) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) {
+      isOverdue = true;
+      daysLate = Math.abs(diffDays);
+    } else {
+      daysRemaining = diffDays;
+    }
   }
 
   const discountPercent = (autoDiscountOnLate && isOverdue) ? Math.min(50, daysLate * lateDiscountRate) : 0;
@@ -285,8 +291,8 @@ export const CustomerDetailPage = () => {
                           </div>
                         </div>
                       ) : (
-                        <div className="text-muted fs-8">
-                          Hozircha yetkazib berish muddati kechikmagan. Narx o'zgarishsiz qoladi.
+                        <div className="alert alert-info mb-0 fs-8 d-flex align-items-center gap-2">
+                          <span>🚚 <strong>Yetkazib berish vaqti:</strong> Rejadagi sanagacha dinamik <strong>{daysRemaining} kun</strong> qoldi.</span>
                         </div>
                       )}
                     </div>
