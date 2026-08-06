@@ -132,7 +132,7 @@ export const ProductionKanbanBoard = ({
           `🎉 '${targetOrder.title || targetOrder.productionNumber}' yakunlandi! Xodim (${empName}) hisobiga ${formatCurrency(salaryAmount)} ish haqi avtomatik qo'shildi!`
         );
       } catch (_err) {
-        // Finance salary credit handled
+        // Silently handle salary transaction creation
       }
     }
   };
@@ -170,7 +170,7 @@ export const ProductionKanbanBoard = ({
           return (
             <div
               key={col.code}
-              style={{ width: isCollapsed ? '72px' : '320px', minWidth: isCollapsed ? '72px' : '320px' }}
+              style={{ width: isCollapsed ? '72px' : '360px', minWidth: isCollapsed ? '72px' : '360px' }}
               className="transition-all"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, col.code)}
@@ -277,7 +277,7 @@ export const ProductionKanbanBoard = ({
 
                 {/* Column Body */}
                 {!isCollapsed && (
-                  <div className="card-body p-2 d-flex flex-column gap-2 min-vh-50 overflow-y-auto">
+                  <div className="card-body p-2 d-flex flex-column gap-3 min-vh-50 overflow-y-auto">
                     {colOrders.length === 0 ? (
                       <div className="text-center py-4 text-muted-custom fs-8 border border-dashed rounded-3 border-custom">
                         Topshiriqlar mavjud emas
@@ -307,7 +307,7 @@ export const ProductionKanbanBoard = ({
         })}
 
         {/* Add New Stage Column */}
-        <div style={{ width: '320px', minWidth: '320px' }} className="p-2">
+        <div style={{ width: '360px', minWidth: '360px' }} className="p-2">
           {isAddingStage ? (
             <div className="card p-3 border-custom bg-surface rounded-3 shadow-sm">
               <h6 className="fs-7 fw-bold text-main mb-3">Yangi Ish Bosqichi</h6>
@@ -396,18 +396,19 @@ const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, emp
       draggable
       onDragStart={onDragStart}
       onClick={onClick}
-      style={{ cursor: 'pointer' }}
+      style={{ cursor: 'pointer', minWidth: '0' }}
     >
       {/* Top Header: Batch Number & Quick Stage Move Arrow */}
-      <div className="d-flex align-items-center justify-content-between mb-2">
-        <div className="d-flex align-items-center gap-1">
-          <LuGripVertical className="text-muted-custom fs-6" />
-          <span className="fw-bold text-primary fs-8">{order.productionNumber}</span>
+      <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+        <div className="d-flex align-items-center gap-1 min-w-0">
+          <LuGripVertical className="text-muted-custom fs-6 flex-shrink-0" />
+          <span className="fw-bold text-primary fs-7 text-nowrap">{order.productionNumber}</span>
         </div>
+
         {nextStage && (
           <button
             type="button"
-            className="btn btn-sm btn-outline-primary py-0 px-2 fs-8 d-flex align-items-center gap-1"
+            className="btn btn-sm btn-outline-primary py-1 px-2 fs-8 text-nowrap d-flex align-items-center gap-1 flex-shrink-0"
             title={`Keyingi bosqich: ${nextStage.name}`}
             onClick={(e) => {
               e.stopPropagation();
@@ -419,30 +420,33 @@ const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, emp
             }}
           >
             <span>{nextStage.name}</span>
-            <LuArrowRight />
+            <LuArrowRight className="flex-shrink-0" />
           </button>
         )}
       </div>
 
       {/* 1. Title */}
-      <h6 className="fw-bold text-main fs-7 mb-1 line-clamp-2">
+      <h6 className="fw-bold text-main fs-7 mb-2 lh-sm text-break">
         {order.title || order.boilerModelName || "Ishlab chiqarish topshirig'i"}
       </h6>
 
       {/* 2. Izoh / Notes */}
-      <p className="text-muted-custom fs-8 mb-2 line-clamp-2">
-        {order.notes || order.customerName || "Izoh va instruksiya mavjud emas"}
+      <p className="text-muted-custom fs-8 mb-3 lh-sm text-break">
+        {order.notes || order.customerName || "Izoh va instruksiya kiritilmagan"}
       </p>
 
       {/* Footer: Assigned Employee Badge & Click hint */}
-      <div className="d-flex align-items-center justify-content-between pt-2 border-top border-custom fs-8">
-        <div className="d-flex align-items-center gap-1">
-          <LuUsers className={hasAssignedEmployee ? "text-success" : "text-warning"} />
-          <span className={hasAssignedEmployee ? "text-main fw-medium" : "text-danger fw-bold"}>
+      <div className="d-flex align-items-center justify-content-between pt-2 border-top border-custom fs-8 gap-2">
+        <div className="d-flex align-items-center gap-1 min-w-0 flex-grow-1">
+          <LuUsers className={hasAssignedEmployee ? "text-success flex-shrink-0" : "text-warning flex-shrink-0"} />
+          <span className={`text-truncate ${hasAssignedEmployee ? "text-main fw-medium" : "text-danger fw-bold"}`}>
             {hasAssignedEmployee ? order.assignedEmployees[0] : "⚠️ Xodim biriktirilmagan"}
           </span>
         </div>
-        <span className="text-primary fs-9 opacity-75">Batafsil ➔</span>
+
+        <span className="text-primary fs-9 fw-semibold text-nowrap flex-shrink-0">
+          Batafsil ➔
+        </span>
       </div>
     </div>
   );
