@@ -385,131 +385,64 @@ export const ProductionKanbanBoard = ({
 
 const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, employees = [], onStagesUpdated }) => {
   const currentStageIndex = stages.findIndex((s) => s.code === order.status || s.code === order.stage);
-  const currentStageObj = stages[currentStageIndex] || stages[0];
   const nextStage = stages[currentStageIndex + 1];
-
-  // Dynamic labor wage / stage cost fetched via API
-  const stageRate = currentStageObj?.defaultPrice || 150000;
-  const estimatedSalary = (order.quantity || 1) * stageRate;
   const hasAssignedEmployee = order.assignedEmployees && order.assignedEmployees.length > 0 && order.assignedEmployees[0] !== '';
 
   return (
     <div
-      className={`card border-custom rounded-3 p-3 bg-surface shadow-sm cursor-grab position-relative hover-shadow ${
+      className={`card border-custom rounded-3 p-3 bg-surface shadow-sm cursor-pointer position-relative hover-shadow ${
         !hasAssignedEmployee ? 'border-warning border-opacity-75' : ''
       }`}
       draggable
       onDragStart={onDragStart}
       onClick={onClick}
+      style={{ cursor: 'pointer' }}
     >
+      {/* Top Header: Batch Number & Quick Stage Move Arrow */}
       <div className="d-flex align-items-center justify-content-between mb-2">
         <div className="d-flex align-items-center gap-1">
           <LuGripVertical className="text-muted-custom fs-6" />
-          <Link
-            to={`${ROUTES.PROTECTED.PRODUCTION}/${order.id}`}
-            className="fw-bold text-primary text-decoration-none fs-7"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {order.productionNumber}
-          </Link>
+          <span className="fw-bold text-primary fs-8">{order.productionNumber}</span>
         </div>
-        <div className="d-flex align-items-center gap-1">
-          {nextStage && (
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-primary py-0 px-2 fs-8 d-flex align-items-center gap-1"
-              title={`Keyingi bosqich: ${nextStage.name}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!hasAssignedEmployee) {
-                  notifyError("Xodim biriktirish MAJBURIY! Avval xodim tanlang.");
-                  return;
-                }
-                if (onMoveStage) onMoveStage(nextStage.code);
-              }}
-            >
-              <span>{nextStage.name}</span>
-              <LuArrowRight />
-            </button>
-          )}
+        {nextStage && (
           <button
-            className="btn btn-sm btn-outline-secondary p-1 border-0"
-            title="Tezkor Ko'rish"
+            type="button"
+            className="btn btn-sm btn-outline-primary py-0 px-2 fs-8 d-flex align-items-center gap-1"
+            title={`Keyingi bosqich: ${nextStage.name}`}
             onClick={(e) => {
               e.stopPropagation();
-              if (onClick) onClick();
-            }}
-          >
-            <LuEye />
-          </button>
-        </div>
-      </div>
-
-      <h6 className="fw-semibold text-main fs-7 mb-2 line-clamp-2">{order.title || order.boilerModelName}</h6>
-
-      <div className="d-flex align-items-center justify-content-between text-muted-custom fs-8 mb-2">
-        <span>Buyurtma: <strong className="text-primary">{order.orderNumber || 'ORD-2026'}</strong></span>
-        <span>Reja: <strong className="text-main">{order.quantity} dona</strong></span>
-      </div>
-
-      {/* Operation Rate Tag fetched dynamically */}
-      <div className="d-flex align-items-center justify-content-between p-2 rounded-2 bg-body-custom border border-custom mb-2 fs-8">
-        <span className="text-muted-custom d-flex align-items-center gap-1">
-          <LuDollarSign className="text-success fs-7" /> Operatsiya Ish Haqi:
-        </span>
-        <strong className="text-success fw-bold font-mono">{formatCurrency(estimatedSalary)}</strong>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="mb-2">
-        <div className="d-flex justify-content-between fs-8 text-muted-custom mb-1">
-          <span>Bajarilish:</span>
-          <strong className="text-primary">{order.progressPercent}%</strong>
-        </div>
-        <div className="progress" style={{ height: '5px' }}>
-          <div
-            className={`progress-bar ${order.progressPercent === 100 ? 'bg-success' : 'bg-primary'}`}
-            role="progressbar"
-            style={{ width: `${order.progressPercent}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Mandatory Employee Select Footer */}
-      <div className="d-flex align-items-center justify-content-between pt-2 border-top border-custom fs-8">
-        <div className="d-flex align-items-center gap-1 text-muted-custom flex-grow-1 me-2" onClick={(e) => e.stopPropagation()}>
-          <LuUsers className={hasAssignedEmployee ? "text-info flex-shrink-0" : "text-warning flex-shrink-0"} />
-          <select
-            className={`form-select form-select-sm py-0 px-1 fs-8 fw-semibold ${hasAssignedEmployee ? 'text-main' : 'text-danger fw-bold'} border-0 bg-transparent`}
-            style={{ minWidth: '110px', cursor: 'pointer', outline: 'none', boxShadow: 'none' }}
-            value={order.assignedEmployees?.[0] || ''}
-            onChange={async (e) => {
-              const val = e.target.value;
-              if (val) {
-                await productionApi.updateProductionOrder(order.id, {
-                  ...order,
-                  assignedEmployees: [val],
-                });
-                notifySuccess(`Topshiriq xodimga biriktirildi: ${val}`);
-                if (onStagesUpdated) onStagesUpdated();
+              if (!hasAssignedEmployee) {
+                notifyError("Xodim biriktirish MAJBURIY! Avval card ustiga bosib xodim tanlang.");
+                return;
               }
+              if (onMoveStage) onMoveStage(nextStage.code);
             }}
           >
-            <option value="" disabled>⚠️ Xodim biriktirish (MAJBURIY)</option>
-            {employees.map((emp) => {
-              const fullName = `${emp.firstName || emp.fullName?.split(' ')[0]} ${emp.lastName || ''}`.trim();
-              return (
-                <option key={emp.id} value={fullName}>
-                  👤 {fullName}
-                </option>
-              );
-            })}
-          </select>
+            <span>{nextStage.name}</span>
+            <LuArrowRight />
+          </button>
+        )}
+      </div>
+
+      {/* 1. Title */}
+      <h6 className="fw-bold text-main fs-7 mb-1 line-clamp-2">
+        {order.title || order.boilerModelName || "Ishlab chiqarish topshirig'i"}
+      </h6>
+
+      {/* 2. Izoh / Notes */}
+      <p className="text-muted-custom fs-8 mb-2 line-clamp-2">
+        {order.notes || order.customerName || "Izoh va instruksiya mavjud emas"}
+      </p>
+
+      {/* Footer: Assigned Employee Badge & Click hint */}
+      <div className="d-flex align-items-center justify-content-between pt-2 border-top border-custom fs-8">
+        <div className="d-flex align-items-center gap-1">
+          <LuUsers className={hasAssignedEmployee ? "text-success" : "text-warning"} />
+          <span className={hasAssignedEmployee ? "text-main fw-medium" : "text-danger fw-bold"}>
+            {hasAssignedEmployee ? order.assignedEmployees[0] : "⚠️ Xodim biriktirilmagan"}
+          </span>
         </div>
-        <div className="d-flex align-items-center gap-1 text-muted-custom flex-shrink-0">
-          <LuClock className="text-warning" />
-          <span>v{order.version || 1}</span>
-        </div>
+        <span className="text-primary fs-9 opacity-75">Batafsil ➔</span>
       </div>
     </div>
   );
