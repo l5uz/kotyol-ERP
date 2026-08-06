@@ -17,6 +17,7 @@ import {
   LuTrash2,
   LuPlus,
   LuTriangleAlert,
+  LuInfo,
 } from 'react-icons/lu';
 import { settingsApi } from '@/features/settings/api/settingsApi';
 import { productionApi } from '@/features/production/api/productionApi';
@@ -116,7 +117,7 @@ export const ProductionKanbanBoard = ({
     if (isLastStage) {
       const empName = targetOrder.assignedEmployees?.[0] || 'Usta (Ishchi)';
       const stageObj = stages.find((s) => s.code === targetStageCode) || stages[stages.length - 1];
-      const stageRate = stageObj?.defaultPrice || 150000;
+      const stageRate = Number(targetOrder.stagePrice) || (stageObj?.defaultPrice ? Number(stageObj.defaultPrice) : 0);
       const salaryAmount = (targetOrder.quantity || 1) * stageRate;
 
       try {
@@ -160,6 +161,12 @@ export const ProductionKanbanBoard = ({
 
   return (
     <div style={{ width: '100%', maxWidth: '100%', overflowX: 'auto' }}>
+      {stages.length === 0 && (
+        <div className="alert alert-info border-info d-flex align-items-center gap-2 mb-3 fs-7">
+          <LuInfo className="fs-5 text-info flex-shrink-0" />
+          <span>Hali ishlab chiqarish bosqichlari (ustunlari) kiritilmagan. O'ng tarafdagi <strong>"Yangi Bosqich Qo'shish"</strong> tugmasi orqali yangi bosqich qo'shishingiz mumkin!</span>
+        </div>
+      )}
       <div className="d-flex gap-3 pb-4 align-items-start" style={{ minWidth: 'max-content' }}>
         {stages.map((col, idx) => {
           const colOrders = orders.filter((o) => o.status === col.code || o.stage === col.code);

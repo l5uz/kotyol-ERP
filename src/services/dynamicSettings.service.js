@@ -342,14 +342,7 @@ class DynamicSettingsService {
   // Production Stages
   getProductionStages() {
     const list = this.getList('productionStages');
-    if (list && list.length > 0) return list;
-    return [
-      { id: 'st_1', name: 'Metall Kesish va Zagotovka', code: 'CUTTING', isDefault: true },
-      { id: 'st_2', name: 'Payvandlash va Yig\'ish', code: 'WELDING', isDefault: false },
-      { id: 'st_3', name: 'Gidravlik Sinov', code: 'TESTING', isDefault: false },
-      { id: 'st_4', name: 'Bo\'yash va Quritish', code: 'PAINTING', isDefault: false },
-      { id: 'st_5', name: 'Gatovka va Qadoqlash', code: 'PACKAGING', isDefault: false },
-    ];
+    return Array.isArray(list) ? list : [];
   }
 
   // Expense Types

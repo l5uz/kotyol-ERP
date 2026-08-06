@@ -49,8 +49,8 @@ export const PayrollPage = () => {
       let grandPaid = 0;
 
       const payrollList = empList.map((emp) => {
-        // Base monthly salary amount
-        const monthlySalary = emp.salaryAmount || (emp.isOwner ? 15000 : 3500);
+        // Base monthly salary amount from DB
+        const monthlySalary = Number(emp.salaryAmount) || 0;
         const earnedAmount = monthlySalary;
 
         // Calculate total salary paid out to this employee dynamically from backend transactions

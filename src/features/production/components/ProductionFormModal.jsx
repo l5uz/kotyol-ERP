@@ -13,7 +13,7 @@ import { employeesApi } from '@/features/employees/api/employeesApi';
 import { formatCurrency } from '@/utils/currency.utils';
 import { notifyError } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
-import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck, LuUserCheck, LuDollarSign, LuCalculator, LuCircleCheck } from 'react-icons/lu';
+import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck, LuUserCheck, LuDollarSign, LuCalculator, LuCircleCheck, LuInfo } from 'react-icons/lu';
 
 export const ProductionFormModal = ({
   isOpen,
@@ -39,7 +39,6 @@ export const ProductionFormModal = ({
 
   // REAL GET API fetched salary types from /master-data/salary-types
   const [salaryTypeOptions, setSalaryTypeOptions] = useState([]);
-  const [rawSalaryTypes, setRawSalaryTypes] = useState([]);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isDraftRestored, setIsDraftRestored] = useState(false);
@@ -54,7 +53,7 @@ export const ProductionFormModal = ({
     assignedEmployee: '',
     salaryTypeId: '',
     salaryTypeName: '',
-    stagePrice: 150000,
+    stagePrice: 0,
     startDate: new Date().toISOString().split('T')[0],
     expectedFinishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
     notes: '',
@@ -71,36 +70,29 @@ export const ProductionFormModal = ({
 
         let combinedOptions = [];
 
-        // 1. Process backend REAL salary types
+        // 1. Process backend REAL salary types from DB
         if (salRes.success && Array.isArray(salRes.data) && salRes.data.length > 0) {
-          setRawSalaryTypes(salRes.data);
           const salMapped = salRes.data.map((st) => ({
             value: st.id,
-            label: `💵 ${st.name} — ${formatCurrency(st.amount || 150000)} / dona`,
-            price: Number(st.amount) || 150000,
+            label: `💵 ${st.name} — ${st.amount ? formatCurrency(st.amount) : "Tarif kiritilmagan"} / dona`,
+            price: Number(st.amount) || 0,
             name: st.name,
           }));
           combinedOptions = [...combinedOptions, ...salMapped];
         }
 
-        // 2. Process production stage tariffs
+        // 2. Process production stage tariffs from DB
         if (stageRes.success && Array.isArray(stageRes.data) && stageRes.data.length > 0) {
           const stageMapped = stageRes.data.map((stg) => ({
             value: stg.id || stg.code,
-            label: `⚙️ ${stg.name} (Bosqich Tarifi) — ${formatCurrency(stg.defaultPrice || 150000)} / dona`,
-            price: Number(stg.defaultPrice) || 150000,
+            label: `⚙️ ${stg.name} (Bosqich) — ${stg.defaultPrice ? formatCurrency(stg.defaultPrice) : "Tarif kiritilmagan"} / dona`,
+            price: Number(stg.defaultPrice) || 0,
             name: stg.name,
           }));
           combinedOptions = [...combinedOptions, ...stageMapped];
         }
 
-        if (combinedOptions.length === 0) {
-          combinedOptions = [
-            { value: 'sal_default_1', label: '💵 Ishbay Payvandlash maoshi — $150.00 / dona', price: 150, name: 'Ishbay Payvandlash maoshi' },
-            { value: 'sal_default_2', label: '💵 Yig\'uv va sichqonlash maoshi — $200.00 / dona', price: 200, name: 'Yig\'uv va sichqonlash maoshi' },
-          ];
-        }
-
+        // ZERO MOCK FALLBACKS: If DB is empty, array is empty!
         setSalaryTypeOptions(combinedOptions);
 
         if (!formData.salaryTypeId && combinedOptions.length > 0) {
@@ -149,7 +141,7 @@ export const ProductionFormModal = ({
         assignedEmployee: productionOrder.assignedEmployees?.[0] || employeeOptions[0]?.value || '',
         salaryTypeId: productionOrder.salaryTypeId || '',
         salaryTypeName: productionOrder.salaryTypeName || '',
-        stagePrice: productionOrder.stagePrice || 150000,
+        stagePrice: Number(productionOrder.stagePrice) || 0,
         startDate: productionOrder.startDate || new Date().toISOString().split('T')[0],
         expectedFinishDate: productionOrder.expectedFinishDate || new Date().toISOString().split('T')[0],
         notes: productionOrder.notes || '',
@@ -170,7 +162,7 @@ export const ProductionFormModal = ({
         assignedEmployee: firstEmp,
         salaryTypeId: firstSal?.value || '',
         salaryTypeName: firstSal?.name || '',
-        stagePrice: firstSal?.price || 150000,
+        stagePrice: firstSal?.price || 0,
         startDate: new Date().toISOString().split('T')[0],
         expectedFinishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
         notes: '',
@@ -213,14 +205,15 @@ export const ProductionFormModal = ({
   };
 
   const handleAddNewSalaryType = (newRecord) => {
-    const newSal = { value: `sal_${Date.now()}`, label: `💵 ${newRecord.name} — ${formatCurrency(150000)} / dona`, price: 150000, name: newRecord.name };
+    const amt = Number(newRecord.amount) || 0;
+    const newSal = { value: `sal_${Date.now()}`, label: `💵 ${newRecord.name} — ${formatCurrency(amt)} / dona`, price: amt, name: newRecord.name };
     setSalaryTypeOptions((prev) => [...prev, newSal]);
     handleFieldChange('salaryTypeId', newSal.value);
     return newSal;
   };
 
   // Calculate live wage amount based on GET API salary type price and quantity
-  const calculatedTotalSalary = (Number(formData.quantity) || 1) * (Number(formData.stagePrice) || 150000);
+  const calculatedTotalSalary = (Number(formData.quantity) || 1) * (Number(formData.stagePrice) || 0);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -336,7 +329,7 @@ export const ProductionFormModal = ({
               managePath={ROUTES.PROTECTED.EMPLOYEES_SALARY_TYPES}
               onAddNew={handleAddNewSalaryType}
               entityTitle="Maosh Turi"
-              required
+              placeholder={salaryTypeOptions.length === 0 ? "Bazada maosh turi hali yaratilmagan — Yangi Qo'shing" : "Maosh turini tanlang"}
             />
           </div>
 
@@ -346,34 +339,43 @@ export const ProductionFormModal = ({
               type="number"
               value={formData.stagePrice}
               onChange={(e) => handleFieldChange('stagePrice', e.target.value)}
-              required
+              placeholder="0"
             />
           </div>
         </div>
 
         {/* Live Calculated Salary Wage Display Banner */}
-        <div className="p-3 bg-success bg-opacity-10 border border-2 border-success border-opacity-25 rounded-3 mb-3 text-dark">
-          <div className="d-flex align-items-center justify-content-between">
-            <div className="d-flex align-items-center gap-2">
-              <div className="p-2 bg-success text-white rounded-circle d-flex align-items-center justify-content-center">
-                <LuDollarSign className="fs-5" />
+        {calculatedTotalSalary > 0 ? (
+          <div className="p-3 bg-success bg-opacity-10 border border-2 border-success border-opacity-25 rounded-3 mb-3 text-dark">
+            <div className="d-flex align-items-center justify-content-between">
+              <div className="d-flex align-items-center gap-2">
+                <div className="p-2 bg-success text-white rounded-circle d-flex align-items-center justify-content-center">
+                  <LuDollarSign className="fs-5" />
+                </div>
+                <div>
+                  <span className="fs-8 text-muted d-block fw-semibold">Tanlangan Maosh Turi va Miqdorga Qarab Hisoblangan Ish Haqi Summasi:</span>
+                  <strong className="fs-6 text-success fw-bold">
+                    {formatCurrency(calculatedTotalSalary)}
+                  </strong>
+                  <small className="text-muted ms-2">
+                    ({formData.quantity} dona × {formatCurrency(formData.stagePrice)})
+                  </small>
+                </div>
               </div>
-              <div>
-                <span className="fs-8 text-muted d-block fw-semibold">Tanlangan Maosh Turi va Miqdorga Qarab Hisoblangan Ish Haqi Summasi:</span>
-                <strong className="fs-6 text-success fw-bold">
-                  {formatCurrency(calculatedTotalSalary)}
-                </strong>
-                <small className="text-muted ms-2">
-                  ({formData.quantity} dona × {formatCurrency(formData.stagePrice)})
-                </small>
-              </div>
-            </div>
 
-            <div className="badge bg-success text-white px-3 py-2 fs-8 fw-semibold rounded-pill d-flex align-items-center gap-1">
-              <LuCircleCheck /> Kanban bajarilganda xodim maosh balansiga tushadi
+              <div className="badge bg-success text-white px-3 py-2 fs-8 fw-semibold rounded-pill d-flex align-items-center gap-1">
+                <LuCircleCheck /> Kanban bajarilganda xodim maosh balansiga tushadi
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-25 rounded-3 mb-3 text-muted d-flex align-items-center gap-2 fs-8">
+            <LuInfo className="fs-5 text-secondary flex-shrink-0" />
+            <span>
+              <strong>Maosh Tarifi Kiritilmagan:</strong> Hali backend bazasida maosh turi tanlanmagan. Maosh tarifini kiritish uchun yuqoridagi "Maosh Turi" menyusidan yangi maosh turi qo'shing.
+            </span>
+          </div>
+        )}
 
         {/* Collapsible Section for Progressive Disclosure */}
         <div className="border-custom rounded-3 p-2 mb-3 bg-body-custom">

@@ -664,7 +664,7 @@ export const settingsApi = {
         name: item.name,
         code: item.code,
         stageOrder: item.stage_order || item.stageOrder || item.sequence || 1,
-        defaultPrice: item.default_price || item.defaultPrice || item.amount || 150000,
+        defaultPrice: Number(item.default_price || item.defaultPrice || item.amount) || 0,
         status: item.status || 'ACTIVE',
       }));
       dynamicSettingsService.saveList('productionStages', data);
@@ -680,7 +680,7 @@ export const settingsApi = {
         name: payload.name,
         code: payload.code,
         stage_order: payload.stageOrder || 1,
-        default_price: payload.defaultPrice || 150000,
+        default_price: Number(payload.defaultPrice) || 0,
         status: payload.status || 'ACTIVE',
       };
       const response = await axiosInstance.post('/master-data/production-stages/create', data).catch(async () => {
