@@ -8,9 +8,11 @@ import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { documentNumberingService } from '@/services/documentNumbering.service';
 import { useFormDraftStore } from '@/store/useFormDraftStore';
+import { settingsApi } from '@/features/settings/api/settingsApi';
+import { formatCurrency } from '@/utils/currency.utils';
 import { notifyError } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
-import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck, LuUserCheck } from 'react-icons/lu';
+import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck, LuUserCheck, LuDollarSign, LuCalculator, LuCircleCheck } from 'react-icons/lu';
 
 export const ProductionFormModal = ({
   isOpen,
@@ -34,6 +36,10 @@ export const ProductionFormModal = ({
   );
   const [priorityOptions, setPriorityOptions] = useState(dynamicSettingsService.getOrderPriorityOptions());
 
+  // GET API fetched stages and salary rates
+  const [stageOptions, setStageOptions] = useState([]);
+  const [stagesList, setStagesList] = useState([]);
+
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isDraftRestored, setIsDraftRestored] = useState(false);
 
@@ -45,10 +51,44 @@ export const ProductionFormModal = ({
     quantity: 1,
     priority: 'NORMAL',
     assignedEmployee: '',
+    stageId: '',
+    stagePrice: 150000,
     startDate: new Date().toISOString().split('T')[0],
     expectedFinishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
     notes: '',
   });
+
+  // GET production stages & salary rates dynamically via API
+  useEffect(() => {
+    const fetchStagesApi = async () => {
+      try {
+        const res = await settingsApi.getProductionStages();
+        if (res.success && Array.isArray(res.data)) {
+          setStagesList(res.data);
+          const mapped = res.data.map((s) => ({
+            value: s.id || s.code,
+            label: `${s.name} — ${formatCurrency(s.defaultPrice || 150000)} / dona`,
+            price: s.defaultPrice || 150000,
+          }));
+          setStageOptions(mapped);
+
+          if (!formData.stageId && mapped.length > 0) {
+            setFormData((prev) => ({
+              ...prev,
+              stageId: mapped[0].value,
+              stagePrice: mapped[0].price,
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("fetchStagesApi error:", err);
+      }
+    };
+
+    if (isOpen) {
+      fetchStagesApi();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (orders.length > 0) {
@@ -76,6 +116,8 @@ export const ProductionFormModal = ({
         quantity: productionOrder.quantity || 1,
         priority: productionOrder.priority || 'NORMAL',
         assignedEmployee: productionOrder.assignedEmployees?.[0] || employeeOptions[0]?.value || '',
+        stageId: productionOrder.stageId || '',
+        stagePrice: productionOrder.stagePrice || 150000,
         startDate: productionOrder.startDate || new Date().toISOString().split('T')[0],
         expectedFinishDate: productionOrder.expectedFinishDate || new Date().toISOString().split('T')[0],
         notes: productionOrder.notes || '',
@@ -93,6 +135,8 @@ export const ProductionFormModal = ({
         quantity: 1,
         priority: 'NORMAL',
         assignedEmployee: firstEmp,
+        stageId: stageOptions[0]?.value || '',
+        stagePrice: stageOptions[0]?.price || 150000,
         startDate: new Date().toISOString().split('T')[0],
         expectedFinishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
         notes: '',
@@ -103,7 +147,16 @@ export const ProductionFormModal = ({
   }, [productionOrder, isOpen]);
 
   const handleFieldChange = (field, value) => {
-    const updated = { ...formData, [field]: value };
+    let updated = { ...formData, [field]: value };
+
+    // If stage selection changed, update stage price automatically from GET API list
+    if (field === 'stageId') {
+      const selectedStageObj = stageOptions.find((s) => s.value === value);
+      if (selectedStageObj) {
+        updated.stagePrice = selectedStageObj.price;
+      }
+    }
+
     setFormData(updated);
     if (!productionOrder) {
       saveDraft(FORM_KEY, updated);
@@ -124,6 +177,9 @@ export const ProductionFormModal = ({
     return newE;
   };
 
+  // Calculate live wage amount based on GET API stage price and quantity
+  const calculatedTotalSalary = (Number(formData.quantity) || 1) * (Number(formData.stagePrice) || 150000);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.assignedEmployee || !formData.assignedEmployee.trim()) {
@@ -140,6 +196,7 @@ export const ProductionFormModal = ({
       customerName: selectedOrd ? selectedOrd.customerName : 'Mijoz MCHJ',
       boilerModelName: selectedOrd ? selectedOrd.boilerModelName : 'Sanoat Kotyoli',
       assignedEmployees: [formData.assignedEmployee.trim()],
+      totalSalaryAmount: calculatedTotalSalary,
     });
   };
 
@@ -212,9 +269,9 @@ export const ProductionFormModal = ({
           </div>
         </div>
 
-        {/* Mandatory Assigned Employee Row */}
+        {/* Mandatory Employee & GET Salary Stage Tarif Select */}
         <div className="row g-3 mb-3">
-          <div className="col-12 col-md-6">
+          <div className="col-12 col-md-4">
             <DynamicSelect
               label="👤 Biriktirilgan Mas'ul Usta / Xodim (MAJBURIY)"
               value={formData.assignedEmployee}
@@ -227,13 +284,49 @@ export const ProductionFormModal = ({
             />
           </div>
 
-          <div className="col-12 col-md-6">
+          {/* GET API Salary Stage Tarif Selection */}
+          <div className="col-12 col-md-5">
             <Select
-              label="Prioritet"
-              value={formData.priority}
-              onChange={(e) => handleFieldChange('priority', e.target.value)}
-              options={priorityOptions}
+              label="💰 Ish Haqi Tarifi (GET API orqali olindi)"
+              value={formData.stageId}
+              onChange={(e) => handleFieldChange('stageId', e.target.value)}
+              options={stageOptions}
+              required
             />
+          </div>
+
+          <div className="col-12 col-md-3">
+            <Input
+              label="Bir dona mahsulot tarifi (UZS)"
+              type="number"
+              value={formData.stagePrice}
+              onChange={(e) => handleFieldChange('stagePrice', e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Live Calculated Salary Wage Display Banner */}
+        <div className="p-3 bg-success bg-opacity-10 border border-2 border-success border-opacity-25 rounded-3 mb-3 text-dark">
+          <div className="d-flex align-items-center justify-content-between">
+            <div className="d-flex align-items-center gap-2">
+              <div className="p-2 bg-success text-white rounded-circle d-flex align-items-center justify-content-center">
+                <LuDollarSign className="fs-5" />
+              </div>
+              <div>
+                <span className="fs-8 text-muted d-block fw-semibold">Bosqich va Reja Miqdoriga Qarab Hisoblangan Xodim Maoshi:</span>
+                <strong className="fs-6 text-success fw-bold">
+                  {formatCurrency(calculatedTotalSalary)}
+                </strong>
+                <small className="text-muted ms-2">
+                  ({formData.quantity} dona × {formatCurrency(formData.stagePrice)})
+                </small>
+              </div>
+            </div>
+
+            <div className="badge bg-success text-white px-3 py-2 fs-8 fw-semibold rounded-pill d-flex align-items-center gap-1">
+              <LuCircleCheck /> Kanban bajarilganda xodim balansiga tushadi
+            </div>
           </div>
         </div>
 
@@ -246,7 +339,7 @@ export const ProductionFormModal = ({
           >
             <div className="d-flex align-items-center gap-2">
               <LuSlidersHorizontal className="text-primary" />
-              <span>Qo'shimcha Parametrlar (Sex Liniyasi va Muddatlar)</span>
+              <span>Qo'shimcha Parametrlar (Sex Liniyasi, Prioritet va Muddatlar)</span>
             </div>
             {showAdvanced ? <LuChevronUp /> : <LuChevronDown />}
           </button>
@@ -264,6 +357,15 @@ export const ProductionFormModal = ({
               </div>
 
               <div className="col-12 col-md-4">
+                <Select
+                  label="Prioritet"
+                  value={formData.priority}
+                  onChange={(e) => handleFieldChange('priority', e.target.value)}
+                  options={priorityOptions}
+                />
+              </div>
+
+              <div className="col-12 col-md-4">
                 <Input
                   label="Boshlanish Sanasi"
                   type="date"
@@ -273,7 +375,7 @@ export const ProductionFormModal = ({
                 />
               </div>
 
-              <div className="col-12 col-md-4">
+              <div className="col-12 col-md-6">
                 <Input
                   label="Kutilayotgan Yakunlanish Sanasi"
                   type="date"
