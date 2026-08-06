@@ -112,6 +112,9 @@ class OrderService:
 
         late_rate = Decimal(str(data.get("late_discount_rate") or data.get("lateDiscountRate") or 0.5))
 
+        emp_id = (data.get("assigned_employee_id") or data.get("assignedEmployeeId") or "").strip()
+        emp_name = (data.get("assigned_employee_name") or data.get("assignedEmployeeName") or "").strip()
+
         order = Order.objects.create(
             order_number=num,
             order_name=(data.get("order_name") or data.get("orderName") or "Yangi buyurtma").strip(),
@@ -125,6 +128,8 @@ class OrderService:
             deposit_amount=dep,
             auto_discount_on_late=auto_disc,
             late_discount_rate=late_rate,
+            assigned_employee_id=emp_id,
+            assigned_employee_name=emp_name,
             priority=data.get("priority") or "HIGH",
             status=data.get("status") or "NEW",
             delivery_date=d_date,
@@ -150,6 +155,10 @@ class OrderService:
             order.customer_name = (data.get("customer_name") or data.get("customerName") or "").strip()
         if "boiler_model_name" in data or "boilerModelName" in data:
             order.boiler_model_name = (data.get("boiler_model_name") or data.get("boilerModelName") or "").strip()
+        if "assigned_employee_id" in data or "assignedEmployeeId" in data:
+            order.assigned_employee_id = (data.get("assigned_employee_id") or data.get("assignedEmployeeId") or "").strip()
+        if "assigned_employee_name" in data or "assignedEmployeeName" in data:
+            order.assigned_employee_name = (data.get("assigned_employee_name") or data.get("assignedEmployeeName") or "").strip()
 
         if "quantity" in data and data["quantity"] is not None:
             order.quantity = Decimal(str(data["quantity"]))

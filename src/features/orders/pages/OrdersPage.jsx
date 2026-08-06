@@ -219,6 +219,14 @@ export const OrdersPage = () => {
       },
     },
     {
+      header: 'Mas\'ul Xodim',
+      cell: (row) => (
+        <span className="text-main fs-8 fw-semibold">
+          {row.assignedEmployeeName ? `👤 ${row.assignedEmployeeName}` : <span className="text-muted fs-8">Biriktirilmagan</span>}
+        </span>
+      ),
+    },
+    {
       header: 'Jami Summa ($)',
       cell: (row) => <strong className="text-primary fs-7">{formatCurrency(row.totalAmount || 0)}</strong>,
     },

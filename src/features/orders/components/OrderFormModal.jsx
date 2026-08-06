@@ -8,11 +8,12 @@ import { Button } from '@/components/common/Button/Button';
 import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { CalculationBreakdown } from '@/components/common/CalculationBreakdown/CalculationBreakdown';
 import { ordersApi } from '../api/ordersApi';
+import { employeesApi } from '@/features/employees/api/employeesApi';
 import { businessRulesService } from '@/services/businessRules.service';
 import { documentNumberingService } from '@/services/documentNumbering.service';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { ROUTES } from '@/constants/routes.constants';
-import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuBoxes, LuBookmarkCheck } from 'react-icons/lu';
+import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuBoxes, LuBookmarkCheck, LuUserCheck } from 'react-icons/lu';
 
 export const OrderFormModal = ({
   isOpen,
@@ -24,14 +25,28 @@ export const OrderFormModal = ({
 }) => {
   const [customerOptions, setCustomerOptions] = useState(customers.map((c) => ({ value: c.id, label: c.customerName || c.name })));
   const [boilerOptions, setBoilerOptions] = useState(boilers.map((b) => ({ value: b.id, label: `${b.modelName} v${b.version}` })));
+  const [employeeOptions, setEmployeeOptions] = useState([]);
   const [customerList, setCustomerList] = useState(customers);
   const [boilerList, setBoilerList] = useState(boilers);
+  const [employeeList, setEmployeeList] = useState([]);
 
   const [priorityOptions, setPriorityOptions] = useState([]);
   const [statusOptions, setStatusOptions] = useState([]);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [availabilityCheck, setAvailabilityCheck] = useState(null);
+
+  useEffect(() => {
+    loadEmployees();
+  }, []);
+
+  const loadEmployees = async () => {
+    const res = await employeesApi.getEmployees();
+    if (res.success && Array.isArray(res.data)) {
+      setEmployeeList(res.data);
+      setEmployeeOptions(res.data.map((e) => ({ value: e.id, label: `${e.fullName} (${e.positionName || 'Xodim'})` })));
+    }
+  };
 
   useEffect(() => {
     setCustomerOptions(customers.map((c) => ({ value: c.id, label: c.customerName || c.name })));
@@ -50,8 +65,13 @@ export const OrderFormModal = ({
     customerId: '',
     boilerId: '',
     quantity: 1,
+    depositAmount: 5000000,
     priority: 'MEDIUM',
     expectedDeliveryDate: '',
+    autoDiscountOnLate: true,
+    lateDiscountRate: 0.5,
+    assignedEmployeeId: '',
+    assignedEmployeeName: '',
     notes: '',
     isReserved: false,
     status: 'PENDING',
@@ -71,6 +91,8 @@ export const OrderFormModal = ({
         expectedDeliveryDate: order.expectedDeliveryDate || '',
         autoDiscountOnLate: order.autoDiscountOnLate !== undefined ? order.autoDiscountOnLate : true,
         lateDiscountRate: order.lateDiscountRate !== undefined ? order.lateDiscountRate : 0.5,
+        assignedEmployeeId: order.assignedEmployeeId || '',
+        assignedEmployeeName: order.assignedEmployeeName || '',
         notes: order.notes || '',
         isReserved: order.isReserved || false,
         status: order.status || 'PENDING',
@@ -80,7 +102,6 @@ export const OrderFormModal = ({
       const firstCust = customerList[0];
       const firstBoil = boilerList[0];
 
-      // Auto-set delivery date to +14 days
       const d = new Date();
       d.setDate(d.getDate() + 14);
       const deliveryDateStr = d.toISOString().split('T')[0];
@@ -97,6 +118,8 @@ export const OrderFormModal = ({
         expectedDeliveryDate: deliveryDateStr,
         autoDiscountOnLate: true,
         lateDiscountRate: 0.5,
+        assignedEmployeeId: '',
+        assignedEmployeeName: '',
         notes: '',
         isReserved: true,
         status: 'PENDING',
@@ -113,9 +136,9 @@ export const OrderFormModal = ({
   }, [formData.boilerId, formData.quantity]);
 
   const runAvailabilityCheck = async () => {
-    const res = await ordersApi.checkMaterialAvailability(formData.boilerId, formData.quantity);
-    if (res.success) {
-      setAvailabilityCheck(res.data);
+    const res = await ordersApi.checkBoilerOrderAvailability(formData.boilerId, formData.quantity);
+    if (res) {
+      setAvailabilityCheck(res);
     }
   };
 
@@ -147,6 +170,7 @@ export const OrderFormModal = ({
 
     const selectedCust = customerList.find((c) => c.id === formData.customerId);
     const selectedBoil = boilerList.find((b) => b.id === formData.boilerId);
+    const selectedEmp = employeeList.find((e) => String(e.id) === String(formData.assignedEmployeeId));
 
     const unitPrice = availabilityCheck ? availabilityCheck.unitPrice : (selectedBoil?.basePrice || 15000);
     const totalAmount = availabilityCheck ? availabilityCheck.totalAmount : (unitPrice * formData.quantity);
@@ -157,21 +181,20 @@ export const OrderFormModal = ({
       boilerModelName: selectedBoil ? selectedBoil.modelName : '',
       unitPrice,
       totalAmount,
-      materialAvailabilityStatus: availabilityCheck ? availabilityCheck.materialAvailabilityStatus : 'AVAILABLE',
+      assignedEmployeeName: selectedEmp ? selectedEmp.fullName : formData.assignedEmployeeName,
     });
   };
 
-  // Financial Breakdown calculations
-  const taxBreakdown = availabilityCheck
-    ? businessRulesService.calculateOrderTax(availabilityCheck.totalAmount, 12)
-    : null;
+  const selectedBoiler = boilerList.find((b) => b.id === formData.boilerId);
+  const rawTotal = (availabilityCheck?.totalAmount) || ((selectedBoiler?.basePrice || 15000) * formData.quantity);
+  const taxBreakdown = businessRulesService.calculateOrderTotal(rawTotal, 0, true);
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={order ? "Buyurtmani Tahrirlash" : "Yangi Buyurtma Rasmiylashtirish"}
-      size="lg"
+      size="xl"
       footer={
         <div className="d-flex justify-content-end gap-2 w-100">
           <Button variant="outline-secondary" size="sm" onClick={onClose}>
@@ -184,21 +207,21 @@ export const OrderFormModal = ({
       }
     >
       <form onSubmit={handleSubmit}>
-        {/* Document Auto-Number & Core Fields */}
+        {/* Core Primary Fields */}
         <div className="row g-3 mb-3">
           <div className="col-12 col-md-4">
             <Input
-              label="Buyurtma Nomi"
+              label="Buyurtma Nomi / Hujjat №"
+              placeholder="Masalan: Navoiy Azot Uchun Kotyol"
               value={formData.orderName}
               onChange={(e) => handleFieldChange('orderName', e.target.value)}
-              placeholder="Masalan, Toshkent Sh. Buyurtmasi"
               required
             />
           </div>
 
           <div className="col-12 col-md-4">
             <Input
-              label="Buyurtma Sanasi"
+              label="Zakaz Berilgan Sana"
               type="date"
               value={formData.orderDate}
               onChange={(e) => handleFieldChange('orderDate', e.target.value)}
@@ -257,6 +280,37 @@ export const OrderFormModal = ({
           </div>
         </div>
 
+        {/* Assigned Employee (Xodim Biriktirish) Row */}
+        <div className="row g-3 mb-3">
+          <div className="col-12 col-md-6">
+            <DynamicSelect
+              label="👤 Biriktirilgan Mas'ul Xodim"
+              value={formData.assignedEmployeeId}
+              onChange={(e) => {
+                const empId = e.target.value;
+                const matched = employeeList.find((emp) => String(emp.id) === String(empId));
+                setFormData((prev) => ({
+                  ...prev,
+                  assignedEmployeeId: empId,
+                  assignedEmployeeName: matched ? matched.fullName : '',
+                }));
+              }}
+              options={employeeOptions}
+              managePath={ROUTES.PROTECTED.EMPLOYEES}
+              entityTitle="Xodim"
+            />
+          </div>
+
+          <div className="col-12 col-md-6">
+            <Select
+              label="Prioritet"
+              value={formData.priority}
+              onChange={(e) => handleFieldChange('priority', e.target.value)}
+              options={priorityOptions}
+            />
+          </div>
+        </div>
+
         {/* Automatic Read-Only Material & Cost Availability Check Card */}
         {availabilityCheck && (
           <div className="p-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 mb-3 fs-7">
@@ -288,22 +342,6 @@ export const OrderFormModal = ({
               </div>
             </div>
           </div>
-        )}
-
-        {/* Calculation Breakdown Component */}
-        {taxBreakdown && (
-          <CalculationBreakdown
-            title="Buyurtma Summasi va QQS (12%) Kalkulyatsiyasi"
-            formula={taxBreakdown.formula}
-            totalLabel="Yakuniy Shartnoma Summasi"
-            totalValue={taxBreakdown.grandTotal}
-            defaultExpanded={false}
-            items={[
-              { label: "Mahsulot Baza Summasi:", value: `$${taxBreakdown.subtotal.toLocaleString()}` },
-              { label: "Qo'llanilgan Chegirma (0%):", value: `$${taxBreakdown.discountAmount.toLocaleString()}` },
-              { label: "QQS Solig'i (12%):", value: `$${taxBreakdown.taxAmount.toLocaleString()}` },
-            ]}
-          />
         )}
 
         {/* Deposit & Late Delivery Discount Card */}
@@ -356,33 +394,14 @@ export const OrderFormModal = ({
           >
             <div className="d-flex align-items-center gap-2">
               <LuSlidersHorizontal className="text-primary" />
-              <span>Qo'shimcha Parametrlar</span>
+              <span>Qo'shimcha Parametrlar va Rezerv</span>
             </div>
             {showAdvanced ? <LuChevronUp /> : <LuChevronDown />}
           </button>
 
           {showAdvanced && (
             <div className="row g-3 pt-3 border-top border-custom mt-2">
-              <div className="col-12 col-md-4">
-                <Input
-                  label="Kutilayotgan Topshirish Sanasi"
-                  type="date"
-                  value={formData.expectedDeliveryDate}
-                  onChange={(e) => handleFieldChange('expectedDeliveryDate', e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="col-12 col-md-4">
-                <Select
-                  label="Prioritet"
-                  value={formData.priority}
-                  onChange={(e) => handleFieldChange('priority', e.target.value)}
-                  options={priorityOptions}
-                />
-              </div>
-
-              <div className="col-12 col-md-4 d-flex align-items-center pt-4">
+              <div className="col-12 col-md-6 d-flex align-items-center pt-4">
                 <div className="form-check form-switch cursor-pointer">
                   <input
                     className="form-check-input cursor-pointer"
@@ -398,19 +417,19 @@ export const OrderFormModal = ({
               </div>
 
               <div className="col-12">
-                <label className="form-label fs-7 fw-medium text-main">Shartnoma Izohi va Eslatmalar</label>
+                <label className="form-label fs-7 fw-medium text-main">Buyurtma Izohi va Eslatmalar</label>
                 <textarea
                   className="form-control fs-7"
                   rows="2"
                   value={formData.notes}
                   onChange={(e) => handleFieldChange('notes', e.target.value)}
-                  placeholder="Maxsus qadoqlash yoki obyektga yetkazish shartlari..."
+                  placeholder="Maxsus shartlar..."
                 ></textarea>
               </div>
 
               <div className="col-12">
-                <label className="form-label fs-7 fw-medium text-main">Buyurtma Shartnomasi va Ilovalarni Yuklash</label>
-                <FileUpload label="Shartnoma fayllarini yuklash" maxSizeMB={5} />
+                <label className="form-label fs-7 fw-medium text-main">Shartnoma Hujjatlarini Yuklash</label>
+                <FileUpload label="Buyurtma shartnomasi hujjatini yuklash" maxSizeMB={5} />
               </div>
             </div>
           )}

@@ -142,6 +142,13 @@ export const OrderDetailPage = () => {
               </div>
 
               <div className="col-6 col-md-4">
+                <span className="text-muted-custom d-block">👤 Mas'ul Xodim:</span>
+                <strong className="text-primary fs-6">
+                  {order.assignedEmployeeName || 'Biriktirilmagan'}
+                </strong>
+              </div>
+
+              <div className="col-6 col-md-4">
                 <span className="text-muted-custom d-block">Umumiy Summa:</span>
                 <strong className="text-main fs-6">{formatCurrency(totalAmount)}</strong>
               </div>

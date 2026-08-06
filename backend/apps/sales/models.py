@@ -36,6 +36,8 @@ class Order(BaseModel):
     deposit_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     auto_discount_on_late = models.BooleanField(default=True)
     late_discount_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.50)
+    assigned_employee_id = models.CharField(max_length=36, null=True, blank=True)
+    assigned_employee_name = models.CharField(max_length=255, null=True, blank=True)
     notes = models.TextField(null=True, blank=True)
 
     class Meta:

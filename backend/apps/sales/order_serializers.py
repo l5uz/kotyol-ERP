@@ -27,6 +27,10 @@ class OrderCreateSerializer(serializers.Serializer):
     autoDiscountOnLate = serializers.BooleanField(required=False, default=True)
     late_discount_rate = serializers.FloatField(required=False, allow_null=True, default=0.5)
     lateDiscountRate = serializers.FloatField(required=False, allow_null=True, default=0.5)
+    assigned_employee_id = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
+    assignedEmployeeId = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
+    assigned_employee_name = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
+    assignedEmployeeName = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
     notes = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
 
 class OrderResponseSerializer(serializers.Serializer):
@@ -60,6 +64,10 @@ class OrderResponseSerializer(serializers.Serializer):
     autoDiscountOnLate = serializers.SerializerMethodField()
     late_discount_rate = serializers.SerializerMethodField()
     lateDiscountRate = serializers.SerializerMethodField()
+    assigned_employee_id = serializers.SerializerMethodField()
+    assignedEmployeeId = serializers.SerializerMethodField()
+    assigned_employee_name = serializers.SerializerMethodField()
+    assignedEmployeeName = serializers.SerializerMethodField()
     notes = serializers.CharField(allow_null=True, required=False)
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
@@ -138,3 +146,15 @@ class OrderResponseSerializer(serializers.Serializer):
 
     def get_lateDiscountRate(self, obj):
         return self.get_late_discount_rate(obj)
+
+    def get_assigned_employee_id(self, obj):
+        return getattr(obj, 'assigned_employee_id', '') or ''
+
+    def get_assignedEmployeeId(self, obj):
+        return self.get_assigned_employee_id(obj)
+
+    def get_assigned_employee_name(self, obj):
+        return getattr(obj, 'assigned_employee_name', '') or ''
+
+    def get_assignedEmployeeName(self, obj):
+        return self.get_assigned_employee_name(obj)
