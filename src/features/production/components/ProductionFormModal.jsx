@@ -8,8 +8,9 @@ import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { documentNumberingService } from '@/services/documentNumbering.service';
 import { useFormDraftStore } from '@/store/useFormDraftStore';
+import { notifyError } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
-import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck } from 'react-icons/lu';
+import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck, LuUserCheck } from 'react-icons/lu';
 
 export const ProductionFormModal = ({
   isOpen,
@@ -27,8 +28,8 @@ export const ProductionFormModal = ({
   );
   const [employeeOptions, setEmployeeOptions] = useState(
     employees.map((e) => ({
-      value: `${e.firstName} ${e.lastName}`,
-      label: `${e.firstName} ${e.lastName} (${e.positionName || 'Xodim'})`,
+      value: `${e.firstName || e.fullName?.split(' ')[0]} ${e.lastName || ''}`.trim(),
+      label: `${e.fullName || `${e.firstName} ${e.lastName}`} (${e.positionName || 'Xodim'})`,
     }))
   );
   const [priorityOptions, setPriorityOptions] = useState(dynamicSettingsService.getOrderPriorityOptions());
@@ -58,8 +59,8 @@ export const ProductionFormModal = ({
     if (employees.length > 0) {
       setEmployeeOptions(
         employees.map((e) => ({
-          value: `${e.firstName} ${e.lastName}`,
-          label: `${e.firstName} ${e.lastName} (${e.positionName || 'Xodim'})`,
+          value: `${e.firstName || e.fullName?.split(' ')[0]} ${e.lastName || ''}`.trim(),
+          label: `${e.fullName || `${e.firstName} ${e.lastName}`} (${e.positionName || 'Xodim'})`,
         }))
       );
     }
@@ -74,16 +75,16 @@ export const ProductionFormModal = ({
         line: productionOrder.line || 'Liniya A-1 (Payvandlash sex)',
         quantity: productionOrder.quantity || 1,
         priority: productionOrder.priority || 'NORMAL',
-        assignedEmployee: productionOrder.assignedEmployees?.[0] || '',
+        assignedEmployee: productionOrder.assignedEmployees?.[0] || employeeOptions[0]?.value || '',
         startDate: productionOrder.startDate || new Date().toISOString().split('T')[0],
         expectedFinishDate: productionOrder.expectedFinishDate || new Date().toISOString().split('T')[0],
         notes: productionOrder.notes || '',
       });
       setIsDraftRestored(false);
     } else if (isOpen) {
-      // Clear old cached form draft
       clearDraft(FORM_KEY);
       const firstOrder = orderOptions[0]?.value || '';
+      const firstEmp = employeeOptions[0]?.value || '';
       setFormData({
         productionNumber: documentNumberingService.generateNumber('PRODUCTION'),
         orderId: firstOrder,
@@ -91,7 +92,7 @@ export const ProductionFormModal = ({
         line: 'Liniya A-1 (Payvandlash sex)',
         quantity: 1,
         priority: 'NORMAL',
-        assignedEmployee: employeeOptions[0]?.value || '',
+        assignedEmployee: firstEmp,
         startDate: new Date().toISOString().split('T')[0],
         expectedFinishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
         notes: '',
@@ -125,6 +126,11 @@ export const ProductionFormModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.assignedEmployee || !formData.assignedEmployee.trim()) {
+      notifyError("Ishlab chiqarish topshirig'iga kamida 1 ta mas'ul xodim biriktirish MAJBURIY!");
+      return;
+    }
+
     const selectedOrd = orders.find((o) => o.id === formData.orderId);
 
     clearDraft(FORM_KEY);
@@ -133,7 +139,7 @@ export const ProductionFormModal = ({
       orderNumber: selectedOrd ? selectedOrd.orderNumber : 'ORD-2026-8801',
       customerName: selectedOrd ? selectedOrd.customerName : 'Mijoz MCHJ',
       boilerModelName: selectedOrd ? selectedOrd.boilerModelName : 'Sanoat Kotyoli',
-      assignedEmployees: formData.assignedEmployee ? [formData.assignedEmployee] : [],
+      assignedEmployees: [formData.assignedEmployee.trim()],
     });
   };
 
@@ -171,9 +177,9 @@ export const ProductionFormModal = ({
         {/* Core Primary Header Fields */}
         <div className="row g-3 mb-3">
           {/* Dynamic Order Select */}
-          <div className="col-12 col-md-5">
+          <div className="col-12 col-md-4">
             <DynamicSelect
-              label="Tegishli Buyurtma №"
+              label="Tegishli Buyurtma № (Mijoz Zakazi)"
               value={formData.orderId}
               onChange={(e) => handleFieldChange('orderId', e.target.value)}
               options={orderOptions}
@@ -184,7 +190,7 @@ export const ProductionFormModal = ({
             />
           </div>
 
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-5">
             <Input
               label="Texnologik Operatsiya va Mahsulot Nomi"
               placeholder="Masalan: Kotyol yig'ish va payvandlash"
@@ -206,6 +212,31 @@ export const ProductionFormModal = ({
           </div>
         </div>
 
+        {/* Mandatory Assigned Employee Row */}
+        <div className="row g-3 mb-3">
+          <div className="col-12 col-md-6">
+            <DynamicSelect
+              label="👤 Biriktirilgan Mas'ul Usta / Xodim (MAJBURIY)"
+              value={formData.assignedEmployee}
+              onChange={(e) => handleFieldChange('assignedEmployee', e.target.value)}
+              options={employeeOptions}
+              managePath={ROUTES.PROTECTED.EMPLOYEES}
+              onAddNew={handleAddNewEmployee}
+              entityTitle="Xodim"
+              required
+            />
+          </div>
+
+          <div className="col-12 col-md-6">
+            <Select
+              label="Prioritet"
+              value={formData.priority}
+              onChange={(e) => handleFieldChange('priority', e.target.value)}
+              options={priorityOptions}
+            />
+          </div>
+        </div>
+
         {/* Collapsible Section for Progressive Disclosure */}
         <div className="border-custom rounded-3 p-2 mb-3 bg-body-custom">
           <button
@@ -215,7 +246,7 @@ export const ProductionFormModal = ({
           >
             <div className="d-flex align-items-center gap-2">
               <LuSlidersHorizontal className="text-primary" />
-              <span>Qo'shimcha Parametrlar (Sex Liniyasi, Xodimlar va Muddatlar)</span>
+              <span>Qo'shimcha Parametrlar (Sex Liniyasi va Muddatlar)</span>
             </div>
             {showAdvanced ? <LuChevronUp /> : <LuChevronDown />}
           </button>
@@ -232,29 +263,7 @@ export const ProductionFormModal = ({
                 />
               </div>
 
-              {/* Dynamic Employee Multi-Select */}
               <div className="col-12 col-md-4">
-                <DynamicSelect
-                  label="Biriktirilgan Usta / Ishchi Xodim"
-                  value={formData.assignedEmployee}
-                  onChange={(e) => handleFieldChange('assignedEmployee', e.target.value)}
-                  options={employeeOptions}
-                  managePath={ROUTES.PROTECTED.EMPLOYEES}
-                  onAddNew={handleAddNewEmployee}
-                  entityTitle="Xodim"
-                />
-              </div>
-
-              <div className="col-12 col-md-4">
-                <Select
-                  label="Prioritet"
-                  value={formData.priority}
-                  onChange={(e) => handleFieldChange('priority', e.target.value)}
-                  options={priorityOptions}
-                />
-              </div>
-
-              <div className="col-12 col-md-6">
                 <Input
                   label="Boshlanish Sanasi"
                   type="date"
@@ -264,7 +273,7 @@ export const ProductionFormModal = ({
                 />
               </div>
 
-              <div className="col-12 col-md-6">
+              <div className="col-12 col-md-4">
                 <Input
                   label="Kutilayotgan Yakunlanish Sanasi"
                   type="date"

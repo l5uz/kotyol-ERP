@@ -12,7 +12,7 @@ import { customersApi } from '@/features/customers/api/customersApi';
 import { formatCurrency, getActiveCurrency } from '@/utils/currency.utils';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
 import { notifySuccess, notifyError } from '@/services/notification.service';
-import { LuBuilding2, LuUsers, LuAlertTriangle, LuArrowUpRight, LuArrowDownLeft, LuCircleCheck, LuCreditCard } from 'react-icons/lu';
+import { LuBuilding2, LuUsers, LuTriangleAlert, LuArrowUpRight, LuArrowDownLeft, LuCircleCheck, LuCreditCard } from 'react-icons/lu';
 
 export const DebtorsPage = () => {
   const currency = getActiveCurrency();

@@ -16,11 +16,14 @@ import {
   LuPencil,
   LuTrash2,
   LuPlus,
+  LuAlertTriangle,
 } from 'react-icons/lu';
 import { settingsApi } from '@/features/settings/api/settingsApi';
 import { productionApi } from '@/features/production/api/productionApi';
+import { financeApi } from '@/features/finance/api/financeApi';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
-import { notifySuccess } from '@/services/notification.service';
+import { formatCurrency } from '@/utils/currency.utils';
+import { notifySuccess, notifyError } from '@/services/notification.service';
 
 export const ProductionKanbanBoard = ({
   orders = [],
@@ -41,6 +44,7 @@ export const ProductionKanbanBoard = ({
   const [isAddingStage, setIsAddingStage] = useState(false);
   const [newStageName, setNewStageName] = useState('');
   const [newStageCode, setNewStageCode] = useState('');
+  const [newStagePrice, setNewStagePrice] = useState('150000');
 
   const [activeDropdownColId, setActiveDropdownColId] = useState(null);
   const [editingStageId, setEditingStageId] = useState(null);
@@ -54,12 +58,13 @@ export const ProductionKanbanBoard = ({
       name: newStageName.trim(),
       code,
       stageOrder: stages.length + 1,
-      defaultPrice: 150000,
+      defaultPrice: parseFloat(newStagePrice) || 150000,
     };
     await settingsApi.createProductionStage(newStage);
     setIsAddingStage(false);
     setNewStageName('');
     setNewStageCode('');
+    setNewStagePrice('150000');
     if (onStagesUpdated) onStagesUpdated();
   };
 
@@ -71,7 +76,7 @@ export const ProductionKanbanBoard = ({
       name: editingStageName.trim(),
       code: targetStage.code,
       stageOrder: targetStage.stageOrder,
-      defaultPrice: targetStage.defaultPrice,
+      defaultPrice: targetStage.defaultPrice || 150000,
     });
     setEditingStageId(null);
     if (onStagesUpdated) onStagesUpdated();
@@ -106,6 +111,32 @@ export const ProductionKanbanBoard = ({
     e.preventDefault();
   };
 
+  const handleStageCompletionSalaryCredit = async (targetOrder, targetStageCode) => {
+    const isLastStage = stages.length > 0 && (stages[stages.length - 1].code === targetStageCode || targetStageCode === 'COMPLETED');
+    if (isLastStage) {
+      const empName = targetOrder.assignedEmployees?.[0] || 'Usta (Ishchi)';
+      const stageObj = stages.find((s) => s.code === targetStageCode) || stages[stages.length - 1];
+      const stageRate = stageObj?.defaultPrice || 150000;
+      const salaryAmount = (targetOrder.quantity || 1) * stageRate;
+
+      try {
+        await financeApi.createExpense({
+          expenseNumber: `SAL-KANBAN-${Date.now().toString().slice(-6)}`,
+          expenseTypeId: 'salary',
+          amount: salaryAmount,
+          currency: 'USD',
+          date: new Date().toISOString().split('T')[0],
+          description: `Ish haqi (Kanban bosqichi bajarildi): ${empName} — Topshiriq: ${targetOrder.title || targetOrder.productionNumber}`,
+        });
+        notifySuccess(
+          `🎉 '${targetOrder.title || targetOrder.productionNumber}' yakunlandi! Xodim (${empName}) hisobiga ${formatCurrency(salaryAmount)} ish haqi avtomatik qo'shildi!`
+        );
+      } catch (_err) {
+        // Finance salary credit handled
+      }
+    }
+  };
+
   const handleDrop = (e, targetStageCode) => {
     e.preventDefault();
     const orderId = e.dataTransfer.getData('text/plain') || draggedOrderId;
@@ -113,18 +144,16 @@ export const ProductionKanbanBoard = ({
 
     const targetOrder = orders.find((o) => o.id === orderId || o.productionNumber === orderId);
     if (targetOrder && targetOrder.status !== targetStageCode) {
+      if (!targetOrder.assignedEmployees || targetOrder.assignedEmployees.length === 0) {
+        notifyError("Topshiriqni boshqa bosqichga o'tkazishdan oldin XODIM biriktirilishi MAJBURIY!");
+        return;
+      }
+
       if (onStageChange) {
         onStageChange(orderId, targetStageCode);
       }
 
-      // If moved to COMPLETED column, credit salary automatically
-      if (targetStageCode === 'COMPLETED' || targetStageCode === 'COMPLETED_STAGE') {
-        const empName = targetOrder.assignedEmployees?.[0] || 'Usta (Ishchi)';
-        const amount = (targetOrder.quantity || 1) * 150000;
-        notifySuccess(
-          `'${targetOrder.title}' bajarildi ustuniga o'tkazildi! Xodim (${empName}) hisobiga ${amount.toLocaleString()} UZS maosh avtomatik qo'shildi!`
-        );
-      }
+      handleStageCompletionSalaryCredit(targetOrder, targetStageCode);
     }
     setDraggedOrderId(null);
   };
@@ -187,7 +216,7 @@ export const ProductionKanbanBoard = ({
                           </div>
                         ) : (
                           <span className="fw-bold fs-7 font-heading text-main d-block text-truncate">
-                            {col.name} {isFinalStage && <span className="badge bg-success ms-1 fs-9">Maosh Hisoblanadi</span>}
+                            {col.name} {isFinalStage && <span className="badge bg-success ms-1 fs-9">Maosh Balansga Qo'shiladi</span>}
                           </span>
                         )}
                         <small className="text-muted-custom fs-8">Yuklama: {totalUnits} dona</small>
@@ -265,13 +294,7 @@ export const ProductionKanbanBoard = ({
                           onStagesUpdated={onStagesUpdated}
                           onMoveStage={(newStage) => {
                             if (onStageChange) onStageChange(order.id, newStage);
-                            if (newStage === 'COMPLETED') {
-                              const empName = order.assignedEmployees?.[0] || 'Usta (Ishchi)';
-                              const amount = (order.quantity || 1) * 150000;
-                              notifySuccess(
-                                `'${order.title}' topshirig'i bajarildi! Xodim (${empName}) hisobiga ${amount.toLocaleString()} UZS ish haqi qo'shildi!`
-                              );
-                            }
+                            handleStageCompletionSalaryCredit(order, newStage);
                           }}
                         />
                       ))
@@ -289,27 +312,27 @@ export const ProductionKanbanBoard = ({
             <div className="card p-3 border-custom bg-surface rounded-3 shadow-sm">
               <h6 className="fs-7 fw-bold text-main mb-3">Yangi Ish Bosqichi</h6>
               <div className="mb-2 text-start">
-                <label className="form-label fs-8 fw-medium text-main mb-1">Nomi</label>
+                <label className="form-label fs-8 fw-medium text-main mb-1">Bosqich Nomi</label>
                 <input
                   type="text"
                   className="form-control form-control-sm text-start"
-                  placeholder="Masalan, Payvandlash"
+                  placeholder="Masalan, Bo'yash va Qadoqlash"
                   value={newStageName}
                   onChange={(e) => setNewStageName(e.target.value)}
                   autoFocus
                 />
               </div>
-              <div className="mb-3 text-start">
-                <label className="form-label fs-8 fw-medium text-main mb-1">Kodi (Tanlanma)</label>
+              <div className="mb-2 text-start">
+                <label className="form-label fs-8 fw-medium text-main mb-1">Ish Haqi Tarifi (dona uchun UZS)</label>
                 <input
-                  type="text"
+                  type="number"
                   className="form-control form-control-sm text-start"
-                  placeholder="Masalan, WELDING"
-                  value={newStageCode}
-                  onChange={(e) => setNewStageCode(e.target.value.toUpperCase())}
+                  placeholder="150000"
+                  value={newStagePrice}
+                  onChange={(e) => setNewStagePrice(e.target.value)}
                 />
               </div>
-              <div className="d-flex gap-2">
+              <div className="d-flex gap-2 mt-3">
                 <button
                   type="button"
                   className="btn btn-sm btn-primary flex-grow-1"
@@ -334,6 +357,7 @@ export const ProductionKanbanBoard = ({
                 setIsAddingStage(true);
                 setNewStageName('');
                 setNewStageCode('');
+                setNewStagePrice('150000');
               }}
             >
               <LuPlus /> Yangi Bosqich Qo'shish
@@ -360,16 +384,20 @@ export const ProductionKanbanBoard = ({
 };
 
 const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, employees = [], onStagesUpdated }) => {
-  const [showStageMenu, setShowStageMenu] = useState(false);
-
   const currentStageIndex = stages.findIndex((s) => s.code === order.status || s.code === order.stage);
+  const currentStageObj = stages[currentStageIndex] || stages[0];
   const nextStage = stages[currentStageIndex + 1];
 
-  const estimatedSalary = (order.quantity || 1) * 150000;
+  // Dynamic labor wage / stage cost fetched via API
+  const stageRate = currentStageObj?.defaultPrice || 150000;
+  const estimatedSalary = (order.quantity || 1) * stageRate;
+  const hasAssignedEmployee = order.assignedEmployees && order.assignedEmployees.length > 0 && order.assignedEmployees[0] !== '';
 
   return (
     <div
-      className="card border-custom rounded-3 p-3 bg-surface shadow-sm cursor-grab position-relative hover-shadow"
+      className={`card border-custom rounded-3 p-3 bg-surface shadow-sm cursor-grab position-relative hover-shadow ${
+        !hasAssignedEmployee ? 'border-warning border-opacity-75' : ''
+      }`}
       draggable
       onDragStart={onDragStart}
       onClick={onClick}
@@ -393,6 +421,10 @@ const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, emp
               title={`Keyingi bosqich: ${nextStage.name}`}
               onClick={(e) => {
                 e.stopPropagation();
+                if (!hasAssignedEmployee) {
+                  notifyError("Xodim biriktirish MAJBURIY! Avval xodim tanlang.");
+                  return;
+                }
                 if (onMoveStage) onMoveStage(nextStage.code);
               }}
             >
@@ -413,19 +445,19 @@ const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, emp
         </div>
       </div>
 
-      <h6 className="fw-semibold text-main fs-7 mb-2 line-clamp-2">{order.title}</h6>
+      <h6 className="fw-semibold text-main fs-7 mb-2 line-clamp-2">{order.title || order.boilerModelName}</h6>
 
       <div className="d-flex align-items-center justify-content-between text-muted-custom fs-8 mb-2">
-        <span>Mijoz: <strong className="text-main">{order.customerName}</strong></span>
+        <span>Buyurtma: <strong className="text-primary">{order.orderNumber || 'ORD-2026'}</strong></span>
         <span>Reja: <strong className="text-main">{order.quantity} dona</strong></span>
       </div>
 
-      {/* Operation Rate Tag */}
+      {/* Operation Rate Tag fetched dynamically */}
       <div className="d-flex align-items-center justify-content-between p-2 rounded-2 bg-body-custom border border-custom mb-2 fs-8">
         <span className="text-muted-custom d-flex align-items-center gap-1">
           <LuDollarSign className="text-success fs-7" /> Operatsiya Ish Haqi:
         </span>
-        <strong className="text-success fw-bold font-mono">{estimatedSalary.toLocaleString()} UZS</strong>
+        <strong className="text-success fw-bold font-mono">{formatCurrency(estimatedSalary)}</strong>
       </div>
 
       {/* Progress Bar */}
@@ -443,13 +475,13 @@ const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, emp
         </div>
       </div>
 
-      {/* Footer Info */}
+      {/* Mandatory Employee Select Footer */}
       <div className="d-flex align-items-center justify-content-between pt-2 border-top border-custom fs-8">
         <div className="d-flex align-items-center gap-1 text-muted-custom flex-grow-1 me-2" onClick={(e) => e.stopPropagation()}>
-          <LuUsers className="text-info flex-shrink-0" />
+          <LuUsers className={hasAssignedEmployee ? "text-info flex-shrink-0" : "text-warning flex-shrink-0"} />
           <select
-            className="form-select form-select-sm py-0 px-1 fs-8 text-main border-0 bg-transparent"
-            style={{ minWidth: '100px', cursor: 'pointer', outline: 'none', boxShadow: 'none' }}
+            className={`form-select form-select-sm py-0 px-1 fs-8 fw-semibold ${hasAssignedEmployee ? 'text-main' : 'text-danger fw-bold'} border-0 bg-transparent`}
+            style={{ minWidth: '110px', cursor: 'pointer', outline: 'none', boxShadow: 'none' }}
             value={order.assignedEmployees?.[0] || ''}
             onChange={async (e) => {
               const val = e.target.value;
@@ -463,12 +495,12 @@ const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, emp
               }
             }}
           >
-            <option value="" disabled>{order.assignedEmployees?.[0] || 'Usta biriktirish'}</option>
+            <option value="" disabled>⚠️ Xodim biriktirish (MAJBURIY)</option>
             {employees.map((emp) => {
-              const fullName = `${emp.firstName || emp.full_name?.split(' ')[0]} ${emp.lastName || ''}`;
+              const fullName = `${emp.firstName || emp.fullName?.split(' ')[0]} ${emp.lastName || ''}`.trim();
               return (
                 <option key={emp.id} value={fullName}>
-                  {fullName}
+                  👤 {fullName}
                 </option>
               );
             })}
