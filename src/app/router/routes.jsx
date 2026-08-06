@@ -26,7 +26,7 @@ import {
   ServiceReportPage,
 } from '@/features/reports';
 
-import { FinancePage, ExpensesPage, IncomesPage, FinanceDetailPage } from '@/features/finance';
+import { FinancePage, ExpensesPage, IncomesPage, PayrollPage, DebtorsPage, FinanceDetailPage } from '@/features/finance';
 import { ServicesPage } from '@/features/services/pages/ServicesPage';
 import { ServiceDetailPage } from '@/features/services/pages/ServiceDetailPage';
 import { ProductionPage } from '@/features/production/pages/ProductionPage';
@@ -134,6 +134,8 @@ export const router = createBrowserRouter([
 
           // Finance Routes
           { path: '/finance', element: <FinancePage /> },
+          { path: '/finance/payroll', element: <PayrollPage /> },
+          { path: '/finance/debtors', element: <DebtorsPage /> },
           { path: '/finance/expenses', element: <ExpensesPage /> },
           { path: '/finance/incomes', element: <IncomesPage /> },
           { path: '/finance/:id', element: <FinanceDetailPage /> },

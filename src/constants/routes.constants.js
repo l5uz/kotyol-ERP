@@ -27,6 +27,8 @@ export const ROUTES = {
 
     // Finance Sub-Routes
     FINANCE: '/finance',
+    FINANCE_PAYROLL: '/finance/payroll',
+    FINANCE_DEBTORS: '/finance/debtors',
     FINANCE_EXPENSES: '/finance/expenses',
     FINANCE_INCOMES: '/finance/incomes',
     FINANCE_DETAIL: '/finance/:id',

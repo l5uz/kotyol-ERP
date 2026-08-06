@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { ROUTES } from '@/constants/routes.constants';
-import { LuLayoutDashboard, LuArrowUpRight, LuArrowDownLeft } from 'react-icons/lu';
+import { LuLayoutDashboard, LuArrowUpRight, LuArrowDownLeft, LuUsers, LuBadgeAlert } from 'react-icons/lu';
 
 export const FinanceSubNav = () => {
   return (
@@ -18,6 +18,30 @@ export const FinanceSubNav = () => {
         >
           <LuLayoutDashboard />
           <span>Moliya Boshqaruvi</span>
+        </NavLink>
+
+        <NavLink
+          to="/finance/payroll"
+          className={({ isActive }) =>
+            `btn btn-sm text-nowrap d-flex align-items-center gap-2 border-0 ${
+              isActive ? 'btn-primary text-white fw-bold' : 'btn-outline-secondary text-main'
+            }`
+          }
+        >
+          <LuUsers className="text-primary" />
+          <span>Ish Haqi (Payroll)</span>
+        </NavLink>
+
+        <NavLink
+          to="/finance/debtors"
+          className={({ isActive }) =>
+            `btn btn-sm text-nowrap d-flex align-items-center gap-2 border-0 ${
+              isActive ? 'btn-primary text-white fw-bold' : 'btn-outline-secondary text-main'
+            }`
+          }
+        >
+          <LuBadgeAlert className="text-warning" />
+          <span>Qarzdorlar Reestri</span>
         </NavLink>
 
         <NavLink
