@@ -127,6 +127,8 @@ const MENU_CATEGORIES = [
     icon: LuBadgeDollarSign,
     items: [
       { label: 'Moliya Boshqaruvi', path: ROUTES.PROTECTED.FINANCE, icon: LuBadgeDollarSign },
+      { label: 'Ish Haqi (Payroll)', path: '/finance/payroll', icon: LuUsers },
+      { label: 'Qarzdorlar Reestri', path: '/finance/debtors', icon: LuBadgeDollarSign },
       { label: 'Xarajatlar Reyestri', path: '/finance/expenses', icon: LuArrowUpRight },
       { label: 'Daromadlar Reyestri', path: '/finance/incomes', icon: LuArrowDownLeft },
     ],
