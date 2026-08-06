@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LuPlus, LuEye, LuPencil, LuTrash2, LuUsers, LuPrinter, LuCalendar, LuTriangleAlert } from 'react-icons/lu';
+import { LuPlus, LuEye, LuPencil, LuTrash2, LuUsers, LuPrinter, LuCalendar, LuTriangleAlert, LuAward } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -12,6 +12,7 @@ import { CustomersSubNav } from '../components/CustomersSubNav';
 import { CustomerFilterBar } from '../components/CustomerFilterBar';
 import { CustomerFormModal } from '../components/CustomerFormModal';
 import { CustomerReceiptModal } from '@/components/common/CustomerReceiptModal/CustomerReceiptModal';
+import { InsurancePolicyModal } from '@/components/common/InsurancePolicyModal/InsurancePolicyModal';
 import { customersApi } from '../api/customersApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
@@ -30,6 +31,7 @@ export const CustomersPage = () => {
   const [deletingCustomer, setDeletingCustomer] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [receiptCustomer, setReceiptCustomer] = useState(null);
+  const [insuranceCustomer, setInsuranceCustomer] = useState(null);
 
   const customerTypes = dynamicSettingsService.getCustomerTypes();
   const regions = dynamicSettingsService.getRegions();
@@ -144,6 +146,13 @@ export const CustomersPage = () => {
           >
             <LuPrinter />
           </button>
+          <button
+            className="btn btn-sm btn-outline-success p-1 border-0"
+            onClick={() => setInsuranceCustomer(row)}
+            title="Sug'urta Polisi va Bepul Servis Qog'ozi"
+          >
+            <LuAward />
+          </button>
           <Link
             to={`${ROUTES.PROTECTED.CUSTOMERS}/${row.id}`}
             className="btn btn-sm btn-outline-info p-1 border-0"
@@ -243,6 +252,12 @@ export const CustomersPage = () => {
         isDanger={true}
         confirmText="O'chirish"
         cancelText="Bekor qilish"
+      />
+
+      <InsurancePolicyModal
+        isOpen={!!insuranceCustomer}
+        onClose={() => setInsuranceCustomer(null)}
+        data={insuranceCustomer}
       />
     </div>
   );

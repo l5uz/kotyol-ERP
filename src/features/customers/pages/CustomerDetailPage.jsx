@@ -1,7 +1,7 @@
 import { formatCurrency, getActiveCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { LuChevronLeft, LuUsers, LuPhone, LuMail, LuMapPin, LuPlus, LuShoppingBag, LuShoppingCart, LuWrench, LuFileText, LuPrinter, LuCalendar, LuDollarSign, LuShieldCheck, LuTriangleAlert } from 'react-icons/lu';
+import { LuChevronLeft, LuUsers, LuPhone, LuMail, LuMapPin, LuPlus, LuShoppingBag, LuShoppingCart, LuWrench, LuFileText, LuPrinter, LuCalendar, LuDollarSign, LuShieldCheck, LuTriangleAlert, LuAward } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Timeline } from '@/components/common/Timeline/Timeline';
 import { CustomersSubNav } from '../components/CustomersSubNav';
 import { CustomerReceiptModal } from '@/components/common/CustomerReceiptModal/CustomerReceiptModal';
+import { InsurancePolicyModal } from '@/components/common/InsurancePolicyModal/InsurancePolicyModal';
 import { customersApi } from '../api/customersApi';
 import { salesApi } from '@/features/sales/api/salesApi';
 import { servicesApi } from '@/features/services/api/servicesApi';
@@ -19,11 +20,12 @@ import { ROUTES } from '@/constants/routes.constants';
 export const CustomerDetailPage = () => {
   const { id } = useParams();
   const [customer, setCustomer] = useState(null);
-  const [sales, setSales] = useState([]);
-  const [services, setServices] = useState([]);
+  const [salesHistory, setSalesHistory] = useState([]);
+  const [servicesHistory, setServicesHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [isInsuranceModalOpen, setIsInsuranceModalOpen] = useState(false);
 
   useEffect(() => {
     loadCustomerDetails();
@@ -148,6 +150,10 @@ export const CustomerDetailPage = () => {
 
             <Button variant="primary" size="sm" icon={<LuPrinter />} onClick={() => setIsReceiptOpen(true)}>
               🖨️ Chek Chop Etish
+            </Button>
+
+            <Button variant="outline-success" size="sm" icon={<LuAward />} onClick={() => setIsInsuranceModalOpen(true)}>
+              🛡️ Sug'urta Polisi
             </Button>
           </div>
         }
@@ -346,6 +352,12 @@ export const CustomerDetailPage = () => {
         isOpen={isReceiptOpen}
         onClose={() => setIsReceiptOpen(false)}
         customerData={customer}
+      />
+
+      <InsurancePolicyModal
+        isOpen={isInsuranceModalOpen}
+        onClose={() => setIsInsuranceModalOpen(false)}
+        data={customer}
       />
     </div>
   );

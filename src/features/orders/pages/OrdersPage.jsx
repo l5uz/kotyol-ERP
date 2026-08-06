@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LuPlus, LuEye, LuPencil, LuTrash2, LuClipboardList, LuPlay, LuLock, LuPrinter } from 'react-icons/lu';
+import { LuPlus, LuEye, LuPencil, LuTrash2, LuClipboardList, LuPlay, LuLock, LuPrinter, LuAward } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -12,6 +12,7 @@ import { OrdersSubNav } from '../components/OrdersSubNav';
 import { OrderFilterBar } from '../components/OrderFilterBar';
 import { OrderFormModal } from '../components/OrderFormModal';
 import { CustomerReceiptModal } from '@/components/common/CustomerReceiptModal/CustomerReceiptModal';
+import { InsurancePolicyModal } from '@/components/common/InsurancePolicyModal/InsurancePolicyModal';
 import { ordersApi } from '../api/ordersApi';
 import { customersApi } from '@/features/customers/api/customersApi';
 import { boilersApi } from '@/features/boilers/api/boilersApi';
@@ -39,6 +40,7 @@ export const OrdersPage = () => {
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [receiptOrder, setReceiptOrder] = useState(null);
+  const [insuranceOrder, setInsuranceOrder] = useState(null);
   
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [isBulkCalcOpen, setIsBulkCalcOpen] = useState(false);
@@ -241,6 +243,13 @@ export const OrdersPage = () => {
             title="Chek chiqarish va Chop etish"
           >
             <LuPrinter />
+          </button>
+          <button
+            className="btn btn-sm btn-outline-success p-1 border-0"
+            onClick={() => setInsuranceOrder(row)}
+            title="Sug'urta Polisi va Bepul Servis Qog'ozi"
+          >
+            <LuAward />
           </button>
           <Link
             to={`${ROUTES.PROTECTED.ORDERS}/${row.id}`}
@@ -455,6 +464,12 @@ export const OrdersPage = () => {
           lateDiscountRate: receiptOrder.lateDiscountRate,
           receiptNumber: receiptOrder.orderNumber,
         } : null}
+      />
+
+      <InsurancePolicyModal
+        isOpen={!!insuranceOrder}
+        onClose={() => setInsuranceOrder(null)}
+        data={insuranceOrder}
       />
     </div>
   );

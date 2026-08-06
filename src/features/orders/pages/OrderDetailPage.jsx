@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { LuChevronLeft, LuClipboardList, LuPlay, LuPrinter, LuX, LuBoxes, LuBookmarkCheck, LuDollarSign, LuCalendar, LuTriangleAlert, LuShieldCheck } from 'react-icons/lu';
+import { LuChevronLeft, LuClipboardList, LuPlay, LuPrinter, LuX, LuBoxes, LuBookmarkCheck, LuDollarSign, LuCalendar, LuTriangleAlert, LuShieldCheck, LuAward } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Timeline } from '@/components/common/Timeline/Timeline';
 import { OrdersSubNav } from '../components/OrdersSubNav';
 import { CustomerReceiptModal } from '@/components/common/CustomerReceiptModal/CustomerReceiptModal';
+import { InsurancePolicyModal } from '@/components/common/InsurancePolicyModal/InsurancePolicyModal';
 import { ordersApi } from '../api/ordersApi';
 import { notifySuccess } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
@@ -19,6 +20,7 @@ export const OrderDetailPage = () => {
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [isInsuranceModalOpen, setIsInsuranceModalOpen] = useState(false);
 
   useEffect(() => {
     loadOrderDetails();
@@ -112,6 +114,10 @@ export const OrderDetailPage = () => {
 
             <Button variant="primary" size="sm" onClick={() => setIsReceiptOpen(true)}>
               <LuPrinter className="me-1" /> Chek Chop Etish
+            </Button>
+
+            <Button variant="outline-success" size="sm" onClick={() => setIsInsuranceModalOpen(true)}>
+              <LuAward className="me-1" /> Sug'urta Polisi
             </Button>
 
             {order.status !== 'IN_PRODUCTION' && order.status !== 'COMPLETED' && (
@@ -261,6 +267,12 @@ export const OrderDetailPage = () => {
           lateDiscountRate: order.lateDiscountRate,
           receiptNumber: order.orderNumber,
         }}
+      />
+
+      <InsurancePolicyModal
+        isOpen={isInsuranceModalOpen}
+        onClose={() => setIsInsuranceModalOpen(false)}
+        data={order}
       />
     </div>
   );

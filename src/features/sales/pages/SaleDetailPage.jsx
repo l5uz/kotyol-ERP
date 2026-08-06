@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { LuChevronLeft, LuShoppingCart, LuBuilding2, LuFlame, LuFileText, LuDollarSign, LuWarehouse } from 'react-icons/lu';
+import { LuChevronLeft, LuShoppingCart, LuBuilding2, LuFlame, LuFileText, LuDollarSign, LuWarehouse, LuAward, LuPrinter } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
+import { Button } from '@/components/common/Button/Button';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
+import { InsurancePolicyModal } from '@/components/common/InsurancePolicyModal/InsurancePolicyModal';
 import { salesApi } from '../api/salesApi';
 import { formatCurrency } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
@@ -11,6 +13,7 @@ export const SaleDetailPage = () => {
   const { id } = useParams();
   const [sale, setSale] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInsuranceModalOpen, setIsInsuranceModalOpen] = useState(false);
 
   useEffect(() => {
     loadSaleDetail();
@@ -46,9 +49,14 @@ export const SaleDetailPage = () => {
           { label: sale.invoiceNumber },
         ]}
         actions={
-          <Link to={ROUTES.PROTECTED.SALES} className="btn btn-outline-secondary btn-sm">
-            <LuChevronLeft className="me-1" /> Sotuvlar Ro'yxatiga Qaytish
-          </Link>
+          <div className="d-flex gap-2">
+            <Button variant="success" size="sm" icon={<LuAward />} onClick={() => setIsInsuranceModalOpen(true)}>
+              🛡️ Sug'urta Polisi va Bepul Servis Qog'ozi
+            </Button>
+            <Link to={ROUTES.PROTECTED.SALES} className="btn btn-outline-secondary btn-sm">
+              <LuChevronLeft className="me-1" /> Sotuvlar Ro'yxatiga Qaytish
+            </Link>
+          </div>
         }
       />
 
@@ -118,37 +126,61 @@ export const SaleDetailPage = () => {
                 <span>{formatCurrency(sale.totalAmount)}</span>
               </div>
             </div>
+
+            <div className="mt-3">
+              <Button
+                variant="outline-success"
+                size="sm"
+                className="w-100"
+                icon={<LuAward />}
+                onClick={() => setIsInsuranceModalOpen(true)}
+              >
+                Sug'urta Polisi & Servis Guvohnomasini Chop Etish
+              </Button>
+            </div>
           </Card>
         </div>
 
-        {/* Right Column - Stock Dispatch & Documents */}
+        {/* Right Column - Financial Breakdown & Profit Margins */}
         <div className="col-12 col-lg-8">
-          <div className="d-flex flex-column gap-3">
-            <Card title="Ombor Sarfiyati va Mahsulot Chiqimi">
-              <div className="p-3 bg-body-custom rounded-3 border-custom d-flex align-items-center gap-3">
-                <LuWarehouse className="text-success fs-3" />
-                <div>
-                  <strong className="text-main d-block fs-7">Tayyor Mahsulot Ombordan Chiqim Qilindi</strong>
-                  <small className="text-muted-custom fs-8">
-                    Ushbu sotuv rasmiylashtirilgach, {sale.quantity} dona {sale.boilerModelName} tayyor mahsulot omboridan avtomatik yechildi.
-                  </small>
+          <Card className="p-4 mb-3" title="📊 Sotuv Rentabelligi va Foyda Tahlili">
+            <div className="row g-3 fs-7">
+              <div className="col-6 col-md-4">
+                <div className="p-3 bg-body-custom rounded-3 border-custom">
+                  <small className="text-muted-custom d-block mb-1">Tannarx (Ishlab Chiqarish):</small>
+                  <strong className="text-secondary fs-6">{formatCurrency(sale.actualCost)}</strong>
                 </div>
               </div>
-            </Card>
 
-            <Card title="Sotuv Hujjatlari va Faktura Fayllari">
-              <div className="d-flex align-items-center gap-2 p-2 bg-body-custom rounded border-custom">
-                <LuFileText className="text-primary fs-5" />
-                <div className="flex-grow-1">
-                  <span className="fw-semibold fs-7 d-block">Schyot_Faktura_{sale.invoiceNumber}.pdf</span>
-                  <small className="text-muted-custom fs-8">1.8 MB — Tasdiqlangan va imzolangan</small>
+              <div className="col-6 col-md-4">
+                <div className="p-3 bg-success bg-opacity-10 rounded-3 border border-success border-opacity-25">
+                  <small className="text-success d-block mb-1">Sof Foyda (Profit):</small>
+                  <strong className="text-success fs-6">+{formatCurrency(sale.profit)}</strong>
                 </div>
-                <button className="btn btn-sm btn-outline-primary border-0 fs-8">Yuklab olish</button>
               </div>
-            </Card>
-          </div>
+
+              <div className="col-12 col-md-4">
+                <div className="p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25">
+                  <small className="text-primary d-block mb-1">Rentabellik Margini (%):</small>
+                  <strong className="text-primary fs-6">{sale.profitMarginPercent}%</strong>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4" title="📝 Izoh va Shartlar">
+            <p className="text-muted-custom fs-7 mb-0">
+              {sale.notes || "Ushbu sotuv bo'yicha qo'shimcha maxsus izoh kiritilmagan."}
+            </p>
+          </Card>
         </div>
       </div>
+
+      <InsurancePolicyModal
+        isOpen={isInsuranceModalOpen}
+        onClose={() => setIsInsuranceModalOpen(false)}
+        data={sale}
+      />
     </div>
   );
 };
