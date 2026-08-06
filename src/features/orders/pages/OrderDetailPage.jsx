@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { LuChevronLeft, LuClipboardList, LuPlay, LuPrinter, LuX, LuBoxes, LuBookmarkCheck, LuDollarSign } from 'react-icons/lu';
+import { LuChevronLeft, LuClipboardList, LuPlay, LuPrinter, LuX, LuBoxes, LuBookmarkCheck, LuDollarSign, LuCalendar, LuTriangleAlert, LuShieldCheck } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Timeline } from '@/components/common/Timeline/Timeline';
 import { OrdersSubNav } from '../components/OrdersSubNav';
+import { CustomerReceiptModal } from '@/components/common/CustomerReceiptModal/CustomerReceiptModal';
 import { ordersApi } from '../api/ordersApi';
 import { notifySuccess } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
@@ -17,6 +18,7 @@ export const OrderDetailPage = () => {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   useEffect(() => {
     loadOrderDetails();
@@ -36,10 +38,6 @@ export const OrderDetailPage = () => {
     loadOrderDetails();
   };
 
-  const handlePrint = () => {
-    notifySuccess("Buyurtma hujjati va schyot-faktura chop etishga yuborildi.");
-  };
-
   if (isLoading || !order) {
     return (
       <div className="order-detail-page animate-fade-in pb-5">
@@ -52,6 +50,27 @@ export const OrderDetailPage = () => {
       </div>
     );
   }
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const totalAmount = parseFloat(order.totalAmount) || 0;
+  const depositAmount = parseFloat(order.depositAmount) || 5000000;
+  const deliveryDate = order.expectedDeliveryDate || '';
+  const autoDiscountOnLate = order.autoDiscountOnLate !== false;
+  const lateDiscountRate = parseFloat(order.lateDiscountRate) || 0.5;
+
+  let daysLate = 0;
+  let isOverdue = false;
+  if (deliveryDate && deliveryDate < todayStr) {
+    const d1 = new Date(todayStr);
+    const d2 = new Date(deliveryDate);
+    daysLate = Math.ceil(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
+    isOverdue = daysLate > 0;
+  }
+
+  const discountPercent = (autoDiscountOnLate && isOverdue) ? Math.min(50, daysLate * lateDiscountRate) : 0;
+  const lateDiscountAmount = Math.round((totalAmount * discountPercent) / 100);
+  const finalPrice = Math.max(0, totalAmount - lateDiscountAmount);
+  const remainingAmount = Math.max(0, finalPrice - depositAmount);
 
   const attachmentColumns = [
     { header: 'Hujjat Nomi', accessor: 'fileName' },
@@ -91,8 +110,8 @@ export const OrderDetailPage = () => {
               <LuChevronLeft className="me-1" /> Ro'yxatga Qaytish
             </Link>
 
-            <Button variant="outline-dark" size="sm" onClick={handlePrint}>
-              <LuPrinter className="me-1" /> Chop Etish
+            <Button variant="primary" size="sm" onClick={() => setIsReceiptOpen(true)}>
+              <LuPrinter className="me-1" /> Chek Chop Etish
             </Button>
 
             {order.status !== 'IN_PRODUCTION' && order.status !== 'COMPLETED' && (
@@ -105,115 +124,137 @@ export const OrderDetailPage = () => {
       />
 
       <div className="row g-3">
-        {/* Left Column: Order Summary Card */}
-        <div className="col-12 col-lg-4">
-          <Card className="p-4 mb-3">
-            <div className="d-flex align-items-center gap-3 mb-3">
-              <div
-                className="rounded-3 bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-3"
-                style={{ width: '64px', height: '64px' }}
-              >
-                <LuClipboardList />
+        {/* Main Details Panel */}
+        <div className="col-12 col-lg-8">
+          <Card className="p-4 mb-3" title="📋 Buyurtma va Shartnoma Ma'lumotlari">
+            <div className="row g-3 fs-7">
+              <div className="col-6 col-md-4">
+                <span className="text-muted-custom d-block">Buyurtmachi Mijoz:</span>
+                <strong className="text-primary fs-6">{order.customerName}</strong>
               </div>
-              <div>
-                <h6 className="fw-bold text-main mb-0 font-heading">{order.orderNumber}</h6>
-                <span className="badge bg-secondary bg-opacity-10 text-secondary fs-8">Sana: {order.orderDate}</span>
+              <div className="col-6 col-md-4">
+                <span className="text-muted-custom d-block">Kotyol Modeli:</span>
+                <strong className="text-main fs-6">{order.boilerModelName}</strong>
               </div>
-            </div>
-
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <StatusBadge status={order.status} />
-              {order.isReserved && (
-                <span className="badge bg-info bg-opacity-10 text-info fs-8 d-flex align-items-center gap-1">
-                  <LuBookmarkCheck /> Materiallar Rezervda
-                </span>
-              )}
-            </div>
-
-            <hr className="border-custom my-3" />
-
-            <div className="text-start fs-7 d-flex flex-column gap-2">
-              <div>
-                <small className="text-muted-custom d-block">Buyurtmachi Mijoz:</small>
-                <Link to={`${ROUTES.PROTECTED.CUSTOMERS}/${order.customerId}`} className="fw-bold text-primary text-decoration-none">
-                  {order.customerName}
-                </Link>
-              </div>
-
-              <div>
-                <small className="text-muted-custom d-block">Kotyol Modeli:</small>
-                <Link to={`${ROUTES.PROTECTED.BOILERS}/${order.boilerId}`} className="fw-bold text-primary text-decoration-none">
-                  {order.boilerModelName}
-                </Link>
-              </div>
-
-              <div>
-                <small className="text-muted-custom d-block">Buyurtma Miqdori:</small>
+              <div className="col-6 col-md-4">
+                <span className="text-muted-custom d-block">Miqdori:</span>
                 <strong className="text-main fs-6">{order.quantity} dona</strong>
               </div>
 
-              <div>
-                <small className="text-muted-custom d-block">Kutilayotgan Topshirish Sanasi:</small>
-                <strong className="text-main">{order.expectedDeliveryDate}</strong>
+              <div className="col-6 col-md-4">
+                <span className="text-muted-custom d-block">Umumiy Summa:</span>
+                <strong className="text-main fs-6">{formatCurrency(totalAmount)}</strong>
               </div>
-            </div>
 
-            <hr className="border-custom my-3" />
-
-            {/* Financial Summary */}
-            <div className="text-start fs-7 d-flex flex-column gap-1 bg-body-custom p-3 rounded-3 border-custom">
-              <div className="d-flex justify-content-between">
-                <span className="text-muted-custom">1 Birlik Narxi:</span>
-                <span>{formatCurrency(order.unitPrice)}</span>
+              <div className="col-6 col-md-4">
+                <div className="p-2 rounded bg-success bg-opacity-10 border border-success">
+                  <span className="text-success fs-8 d-block fw-bold">💰 Zaklad (Avans):</span>
+                  <strong className="text-success fs-6">{formatCurrency(depositAmount)}</strong>
+                </div>
               </div>
-              <div className="d-flex justify-content-between fw-bold pt-2 border-top border-custom text-primary fs-6">
-                <span>Jami Buyurtma Summasi:</span>
-                <span>{formatCurrency(order.totalAmount || 0)}</span>
+
+              <div className="col-6 col-md-4">
+                <div className="p-2 rounded bg-warning bg-opacity-25 border border-warning">
+                  <span className="text-dark fs-8 d-block fw-bold">📦 Qolgan Summa:</span>
+                  <strong className="text-danger fs-6">{formatCurrency(remainingAmount)}</strong>
+                </div>
+              </div>
+
+              <div className="col-6 col-md-4">
+                <span className="text-muted-custom d-block">📅 Buyurtma Sanasi:</span>
+                <strong className="text-main">{order.orderDate}</strong>
+              </div>
+
+              <div className="col-6 col-md-4">
+                <span className="text-muted-custom d-block">🚚 Yetkazish Sanasi (Reja):</span>
+                <strong className={isOverdue ? "text-danger" : "text-primary"}>
+                  {deliveryDate || 'Belgilanmagan'}
+                </strong>
+              </div>
+
+              <div className="col-6 col-md-4">
+                <span className="text-muted-custom d-block">Status:</span>
+                <StatusBadge status={order.status} />
+              </div>
+
+              {/* Late Delivery Status & Discount */}
+              <div className="col-12 mt-3">
+                <div className="p-3 rounded border bg-body-custom">
+                  <h6 className="fw-bold fs-7 mb-2 d-flex align-items-center gap-2">
+                    <LuCalendar className="text-primary" />
+                    <span>Sanadan O'tgandagi Avtomatik Arzonlashuv Holati:</span>
+                  </h6>
+
+                  {autoDiscountOnLate ? (
+                    <div>
+                      <div className="text-success fs-8 d-flex align-items-center gap-1 mb-2">
+                        <LuShieldCheck />
+                        <span><strong>Avtomatik chegirma faol:</strong> Sanadan kechikilsa, kuniga {lateDiscountRate}% kotyol narxi arzonlashadi.</span>
+                      </div>
+
+                      {isOverdue ? (
+                        <div className="alert alert-warning mb-0 fs-8 d-flex align-items-center gap-2">
+                          <LuTriangleAlert className="fs-5 text-warning" />
+                          <div>
+                            <strong>Kechikish mavjud:</strong> Rejadagi sanadan <strong>{daysLate} kun</strong> o'tdi.
+                            <div>Narx <strong>{discountPercent}%</strong> ga arzonlashdi (-{formatCurrency(lateDiscountAmount)}).</div>
+                            <div>Yakuniy Narx: <strong className="text-success">{formatCurrency(finalPrice)}</strong></div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-muted fs-8">
+                          Hozircha yetkazib berish muddati kechikmagan. Narx o'zgarishsiz.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-muted fs-8">
+                      Kechikganda avtomatik arzonlashuv opsiyasi o'chirilgan.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Right Column: Material Status, Production Flow & Timeline */}
-        <div className="col-12 col-lg-8">
-          <div className="d-flex flex-column gap-3">
-            {/* Material Availability Banner */}
-            <Card title="Materiallar va Ombordagi Resurslar Statusi">
-              <div className="d-flex align-items-center justify-content-between p-3 bg-body-custom rounded-3 border-custom">
-                <div className="d-flex align-items-center gap-2">
-                  <LuBoxes className="fs-4 text-primary" />
-                  <div>
-                    <strong className="fs-7 text-main d-block">Xomashyo Zaxira Holati</strong>
-                    <small className="text-muted-custom">
-                      {order.materialAvailabilityStatus === 'AVAILABLE'
-                        ? 'Reseptura bo\'yicha barcha kerakli xomashyolar omborda yetarli va rezervlangan.'
-                        : 'Ba\'zi xomashyolar qisman yetarli emas.'}
-                    </small>
-                  </div>
-                </div>
-                <span className={`badge ${order.materialAvailabilityStatus === 'AVAILABLE' ? 'bg-success' : 'bg-warning text-dark'} fs-8`}>
-                  {order.materialAvailabilityStatus === 'AVAILABLE' ? 'Mavjud va Rezervlangan' : 'Qisman Yetarli'}
-                </span>
-              </div>
-            </Card>
+        {/* Side Timeline & Receipt Card */}
+        <div className="col-12 col-lg-4">
+          <Card className="p-3 mb-3 bg-primary bg-opacity-10 border-primary">
+            <h6 className="fw-bold text-primary mb-2 d-flex align-items-center gap-2">
+              <LuPrinter />
+              <span>Mijoz Uchun Chek Chop Etish</span>
+            </h6>
+            <p className="small text-muted mb-3">
+              Mijozga zaklad summasi, yetkazish kuni va kechikish shartlari aks etgan rasmiy kvitansiya chekini chiqarib bering.
+            </p>
+            <Button variant="primary" className="w-100" icon={<LuPrinter />} onClick={() => setIsReceiptOpen(true)}>
+              🧾 Chekni Chiqarish
+            </Button>
+          </Card>
 
-            {/* Notes */}
-            <Card title="Shartnoma Izohi va Eslatmalar">
-              <p className="fs-7 text-main mb-0">{order.notes || 'Izoh kiritilmagan.'}</p>
-            </Card>
-
-            {/* Attachments */}
-            <Card title="Buyurtma Ilovalari va Shartnomalar">
-              <Table columns={attachmentColumns} data={order.attachments || []} />
-            </Card>
-
-            {/* Timeline */}
-            <Card title="Buyurtma Bosqichlari Tarixi">
-              <Timeline items={timelineItems} />
-            </Card>
-          </div>
+          <Card title="⏱️ Buyurtma Jarayoni Tarixi (Timeline)">
+            <Timeline items={timelineItems} />
+          </Card>
         </div>
       </div>
+
+      <CustomerReceiptModal
+        isOpen={isReceiptOpen}
+        onClose={() => setIsReceiptOpen(false)}
+        customerData={{
+          customerName: order.customerName,
+          phone: '+998 90 123 45 67',
+          boilerModelName: order.boilerModelName,
+          totalAmount: order.totalAmount,
+          depositAmount: order.depositAmount,
+          orderDate: order.orderDate,
+          deliveryDate: order.expectedDeliveryDate,
+          autoDiscountOnLate: order.autoDiscountOnLate,
+          lateDiscountRate: order.lateDiscountRate,
+          receiptNumber: order.orderNumber,
+        }}
+      />
     </div>
   );
 };

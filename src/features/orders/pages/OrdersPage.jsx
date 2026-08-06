@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LuPlus, LuEye, LuPencil, LuTrash2, LuClipboardList, LuPlay, LuLock } from 'react-icons/lu';
+import { LuPlus, LuEye, LuPencil, LuTrash2, LuClipboardList, LuPlay, LuLock, LuPrinter } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -11,6 +11,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { OrdersSubNav } from '../components/OrdersSubNav';
 import { OrderFilterBar } from '../components/OrderFilterBar';
 import { OrderFormModal } from '../components/OrderFormModal';
+import { CustomerReceiptModal } from '@/components/common/CustomerReceiptModal/CustomerReceiptModal';
 import { ordersApi } from '../api/ordersApi';
 import { customersApi } from '@/features/customers/api/customersApi';
 import { boilersApi } from '@/features/boilers/api/boilersApi';
@@ -37,6 +38,7 @@ export const OrdersPage = () => {
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [receiptOrder, setReceiptOrder] = useState(null);
   
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [isBulkCalcOpen, setIsBulkCalcOpen] = useState(false);
@@ -225,9 +227,16 @@ export const OrdersPage = () => {
       header: 'Amallar',
       cell: (row) => (
         <div className="d-flex align-items-center gap-1">
+          <button
+            className="btn btn-sm btn-outline-primary p-1 border-0"
+            onClick={() => setReceiptOrder(row)}
+            title="Chek chiqarish va Chop etish"
+          >
+            <LuPrinter />
+          </button>
           <Link
             to={`${ROUTES.PROTECTED.ORDERS}/${row.id}`}
-            className="btn btn-sm btn-outline-primary p-1 border-0"
+            className="btn btn-sm btn-outline-info p-1 border-0"
             title="Tafsilotni ko'rish"
           >
             <LuEye />
@@ -422,6 +431,23 @@ export const OrdersPage = () => {
           }
         />
       )}
+
+      <CustomerReceiptModal
+        isOpen={!!receiptOrder}
+        onClose={() => setReceiptOrder(null)}
+        customerData={receiptOrder ? {
+          customerName: receiptOrder.customerName,
+          phone: receiptOrder.phone || '+998 90 123 45 67',
+          boilerModelName: receiptOrder.boilerModelName,
+          totalAmount: receiptOrder.totalAmount,
+          depositAmount: receiptOrder.depositAmount,
+          orderDate: receiptOrder.orderDate,
+          deliveryDate: receiptOrder.expectedDeliveryDate,
+          autoDiscountOnLate: receiptOrder.autoDiscountOnLate,
+          lateDiscountRate: receiptOrder.lateDiscountRate,
+          receiptNumber: receiptOrder.orderNumber,
+        } : null}
+      />
     </div>
   );
 };

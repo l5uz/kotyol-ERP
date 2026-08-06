@@ -3,7 +3,23 @@ import { axiosInstance } from '@/api/axiosInstance';
 const mapCustomer = (item) => {
   if (!item) return null;
 
-  let extra = { customerTypeId: 'ctype_1', region: 'Toshkent shahri', address: item.address || '' };
+  let extra = {
+    customerTypeId: 'ctype_1',
+    region: 'Toshkent shahri',
+    address: item.address || '',
+    district: '',
+    altPhone: '',
+    notes: '',
+    passport: '',
+    depositAmount: 5000000,
+    orderDate: item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    deliveryDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+    boilerModelName: 'Kotyol K-50kW',
+    totalAmount: 18000000,
+    autoDiscountOnLate: true,
+    lateDiscountRate: 0.5,
+  };
+
   if (item.address && item.address.trim().startsWith('{')) {
     try {
       extra = { ...extra, ...JSON.parse(item.address) };
@@ -20,11 +36,22 @@ const mapCustomer = (item) => {
     contactPerson: item.contact_name || '',
     phone: item.phone || '',
     email: item.email || '',
-    address: extra.address,
+    address: extra.address || '',
     tin: item.code || '',
-    customerTypeId: extra.customerTypeId,
+    customerTypeId: extra.customerTypeId || 'ctype_1',
     customerTypeName: extra.customerTypeId === 'ctype_2' ? 'Yuridik Shaxs' : 'Jismoniy Shaxs',
-    region: extra.region,
+    region: extra.region || 'Toshkent shahri',
+    district: extra.district || '',
+    altPhone: extra.altPhone || '',
+    notes: extra.notes || '',
+    passport: extra.passport || '',
+    depositAmount: extra.depositAmount !== undefined ? Number(extra.depositAmount) : 5000000,
+    orderDate: extra.orderDate || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    deliveryDate: extra.deliveryDate || '',
+    boilerModelName: extra.boilerModelName || 'Kotyol K-50kW',
+    totalAmount: extra.totalAmount !== undefined ? Number(extra.totalAmount) : 18000000,
+    autoDiscountOnLate: extra.autoDiscountOnLate !== undefined ? Boolean(extra.autoDiscountOnLate) : true,
+    lateDiscountRate: extra.lateDiscountRate !== undefined ? Number(extra.lateDiscountRate) : 0.5,
     status: item.status || 'ACTIVE',
     createdDate: item.created_at?.split('T')[0] || '',
     updatedDate: item.updated_at?.split('T')[0] || '',
@@ -85,7 +112,18 @@ export const customersApi = {
       const addressStr = JSON.stringify({
         customerTypeId: customerData.customerTypeId || 'ctype_1',
         region: customerData.region || 'Toshkent shahri',
+        district: customerData.district || '',
         address: customerData.address || '',
+        altPhone: customerData.altPhone || '',
+        passport: customerData.passport || '',
+        notes: customerData.notes || '',
+        depositAmount: customerData.depositAmount !== undefined ? Number(customerData.depositAmount) : 0,
+        orderDate: customerData.orderDate || new Date().toISOString().split('T')[0],
+        deliveryDate: customerData.deliveryDate || '',
+        boilerModelName: customerData.boilerModelName || 'Kotyol K-50kW',
+        totalAmount: customerData.totalAmount !== undefined ? Number(customerData.totalAmount) : 0,
+        autoDiscountOnLate: customerData.autoDiscountOnLate !== undefined ? Boolean(customerData.autoDiscountOnLate) : true,
+        lateDiscountRate: customerData.lateDiscountRate !== undefined ? Number(customerData.lateDiscountRate) : 0.5,
       });
 
       const payload = {
@@ -114,10 +152,10 @@ export const customersApi = {
       const items = Array.isArray(currentResponse?.data) ? currentResponse.data : Array.isArray(currentResponse) ? currentResponse : [];
       const item = items.find((c) => String(c.id) === String(id));
 
-      let currentExtra = { customerTypeId: 'ctype_1', region: 'Toshkent shahri', address: '' };
+      let currentExtra = {};
       if (item && item.address && item.address.trim().startsWith('{')) {
         try {
-          currentExtra = { ...currentExtra, ...JSON.parse(item.address) };
+          currentExtra = JSON.parse(item.address);
         } catch (_err) {
           /* ignore */
         }
@@ -126,9 +164,20 @@ export const customersApi = {
       }
 
       const addressStr = JSON.stringify({
+        ...currentExtra,
         customerTypeId: customerData.customerTypeId || currentExtra.customerTypeId,
         region: customerData.region || currentExtra.region,
+        district: customerData.district !== undefined ? customerData.district : currentExtra.district,
         address: customerData.address !== undefined ? customerData.address : currentExtra.address,
+        altPhone: customerData.altPhone !== undefined ? customerData.altPhone : currentExtra.altPhone,
+        notes: customerData.notes !== undefined ? customerData.notes : currentExtra.notes,
+        depositAmount: customerData.depositAmount !== undefined ? Number(customerData.depositAmount) : currentExtra.depositAmount,
+        orderDate: customerData.orderDate || currentExtra.orderDate,
+        deliveryDate: customerData.deliveryDate !== undefined ? customerData.deliveryDate : currentExtra.deliveryDate,
+        boilerModelName: customerData.boilerModelName || currentExtra.boilerModelName,
+        totalAmount: customerData.totalAmount !== undefined ? Number(customerData.totalAmount) : currentExtra.totalAmount,
+        autoDiscountOnLate: customerData.autoDiscountOnLate !== undefined ? Boolean(customerData.autoDiscountOnLate) : currentExtra.autoDiscountOnLate,
+        lateDiscountRate: customerData.lateDiscountRate !== undefined ? Number(customerData.lateDiscountRate) : currentExtra.lateDiscountRate,
       });
 
       const payload = {

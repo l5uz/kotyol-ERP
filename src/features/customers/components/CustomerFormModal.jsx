@@ -8,7 +8,7 @@ import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { useFormDraftStore } from '@/store/useFormDraftStore';
 import { ROUTES } from '@/constants/routes.constants';
-import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck } from 'react-icons/lu';
+import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck, LuShoppingCart, LuCalendar, LuDollarSign, LuShieldAlert } from 'react-icons/lu';
 
 export const CustomerFormModal = ({
   isOpen,
@@ -25,6 +25,9 @@ export const CustomerFormModal = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isDraftRestored, setIsDraftRestored] = useState(false);
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const defaultDeliveryStr = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+
   const [formData, setFormData] = useState({
     customerTypeId: customerTypeOptions[0]?.value || '',
     customerName: '',
@@ -37,6 +40,13 @@ export const CustomerFormModal = ({
     district: '',
     address: '',
     notes: '',
+    boilerModelName: 'Kotyol K-50kW',
+    totalAmount: 18000000,
+    depositAmount: 5000000,
+    orderDate: todayStr,
+    deliveryDate: defaultDeliveryStr,
+    autoDiscountOnLate: true,
+    lateDiscountRate: 0.5,
     status: 'ACTIVE',
   });
 
@@ -54,6 +64,13 @@ export const CustomerFormModal = ({
         district: customer.district || '',
         address: customer.address || '',
         notes: customer.notes || '',
+        boilerModelName: customer.boilerModelName || 'Kotyol K-50kW',
+        totalAmount: customer.totalAmount !== undefined ? customer.totalAmount : 18000000,
+        depositAmount: customer.depositAmount !== undefined ? customer.depositAmount : 5000000,
+        orderDate: customer.orderDate || todayStr,
+        deliveryDate: customer.deliveryDate || defaultDeliveryStr,
+        autoDiscountOnLate: customer.autoDiscountOnLate !== undefined ? customer.autoDiscountOnLate : true,
+        lateDiscountRate: customer.lateDiscountRate !== undefined ? customer.lateDiscountRate : 0.5,
         status: customer.status || 'ACTIVE',
       });
       setIsDraftRestored(false);
@@ -75,6 +92,13 @@ export const CustomerFormModal = ({
           district: '',
           address: '',
           notes: '',
+          boilerModelName: 'Kotyol K-50kW',
+          totalAmount: 18000000,
+          depositAmount: 5000000,
+          orderDate: todayStr,
+          deliveryDate: defaultDeliveryStr,
+          autoDiscountOnLate: true,
+          lateDiscountRate: 0.5,
           status: 'ACTIVE',
         });
         setIsDraftRestored(false);
@@ -123,7 +147,7 @@ export const CustomerFormModal = ({
       onClose={onClose}
       title={
         <div className="d-flex align-items-center gap-2">
-          <span>{customer ? "Mijoz Ma'lumotlarini Tahrirlash" : "Yangi Mijoz Qo'shish"}</span>
+          <span>{customer ? "Mijoz Ma'lumotlarini Tahrirlash" : "Yangi Mijoz va Buyurtma Qo'shish"}</span>
           {isDraftRestored && (
             <span className="badge bg-success bg-opacity-10 text-success fs-8 d-flex align-items-center gap-1">
               <LuFileCheck /> 📝 Qoralama saqlangan ma'lumotdan tiklandi
@@ -138,7 +162,7 @@ export const CustomerFormModal = ({
             Bekor qilish
           </Button>
           <Button variant="primary" size="sm" onClick={handleSubmit}>
-            {customer ? 'Saqlash' : "Mijozni Saqlash"}
+            {customer ? 'Saqlash' : "Mijoz va Zakladni Saqlash"}
           </Button>
         </div>
       }
@@ -181,6 +205,97 @@ export const CustomerFormModal = ({
           </div>
         </div>
 
+        {/* Dedicated Order, Deposit & Delivery Dates Section */}
+        <div className="card glass-card p-3 mb-3 border-primary bg-primary bg-opacity-10">
+          <h6 className="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
+            <LuShoppingCart />
+            <span>Buyurtma, Zaklad va Muddatlar (Shartnoma):</span>
+          </h6>
+
+          <div className="row g-3">
+            <div className="col-12 col-md-4">
+              <Input
+                label="Kotyol Modeli"
+                placeholder="Kotyol K-50kW Premium"
+                value={formData.boilerModelName}
+                onChange={(e) => handleFieldChange('boilerModelName', e.target.value)}
+              />
+            </div>
+
+            <div className="col-12 col-md-4">
+              <Input
+                label="Kotyol Shartnoma Narxi"
+                type="number"
+                placeholder="18000000"
+                value={formData.totalAmount}
+                onChange={(e) => handleFieldChange('totalAmount', e.target.value)}
+              />
+            </div>
+
+            <div className="col-12 col-md-4">
+              <Input
+                label="💰 Zaklad Miqdori (Avans)"
+                type="number"
+                placeholder="5000000"
+                value={formData.depositAmount}
+                onChange={(e) => handleFieldChange('depositAmount', e.target.value)}
+              />
+            </div>
+
+            <div className="col-12 col-md-6">
+              <Input
+                label="📅 Zakaz Berilgan Sana"
+                type="date"
+                value={formData.orderDate}
+                onChange={(e) => handleFieldChange('orderDate', e.target.value)}
+              />
+            </div>
+
+            <div className="col-12 col-md-6">
+              <Input
+                label="🚚 Yetib Borishi Kerak Bo'lgan Sana (Reja)"
+                type="date"
+                value={formData.deliveryDate}
+                onChange={(e) => handleFieldChange('deliveryDate', e.target.value)}
+              />
+            </div>
+
+            {/* Late Delivery Automatic Discount Toggle */}
+            <div className="col-12">
+              <div className="p-3 rounded border bg-body-custom">
+                <div className="form-check form-switch d-flex align-items-center gap-2 mb-0">
+                  <input
+                    className="form-check-input ms-0 cursor-pointer"
+                    type="checkbox"
+                    id="autoDiscountSwitch"
+                    checked={formData.autoDiscountOnLate}
+                    onChange={(e) => handleFieldChange('autoDiscountOnLate', e.target.checked)}
+                  />
+                  <label className="form-check-label fw-semibold text-main cursor-pointer" htmlFor="autoDiscountSwitch">
+                    ⏱️ Sanadan o'tib ketsa avtomatik kotyol narxi arzonlashsin (Kechikish chegirmasi)
+                  </label>
+                </div>
+
+                {formData.autoDiscountOnLate && (
+                  <div className="mt-2 pt-2 border-top border-custom text-muted fs-8 d-flex align-items-center gap-2 flex-wrap">
+                    <LuShieldAlert className="text-warning fs-6" />
+                    <span>Belgilangan sanadan kechikkan har bir kun uchun chegirma:</span>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="form-control form-control-sm text-center fw-bold"
+                      style={{ width: '80px' }}
+                      value={formData.lateDiscountRate}
+                      onChange={(e) => handleFieldChange('lateDiscountRate', e.target.value)}
+                    />
+                    <span>% / kun (Misol: 0.5% chegirma / kun kechikishda kotyol narxidan ayiriladi).</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Collapsible Section for Progressive Disclosure */}
         <div className="border-custom rounded-3 p-2 mb-3 bg-body-custom">
           <button
@@ -190,7 +305,7 @@ export const CustomerFormModal = ({
           >
             <div className="d-flex align-items-center gap-2">
               <LuSlidersHorizontal className="text-primary" />
-              <span>Qo'shimcha Rekvizitlar</span>
+              <span>Qo'shimcha Rekvizitlar (Manzil, Pasport, Shartnoma Izohi)</span>
             </div>
             {showAdvanced ? <LuChevronUp /> : <LuChevronDown />}
           </button>

@@ -1,0 +1,289 @@
+import React, { useRef } from 'react';
+import { Modal } from '@/components/common/Modal/Modal';
+import { Button } from '@/components/common/Button/Button';
+import { formatCurrency, getActiveCurrency } from '@/utils/currency.utils';
+import { LuPrinter, LuCheckCircle2, LuTriangleAlert, LuCalendar, LuDollarSign, LuShieldCheck } from 'react-icons/lu';
+
+export const CustomerReceiptModal = ({
+  isOpen,
+  onClose,
+  customerData = null,
+}) => {
+  const printRef = useRef(null);
+
+  if (!customerData) return null;
+
+  const currency = getActiveCurrency();
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const orderDate = customerData.orderDate || todayStr;
+  const deliveryDate = customerData.deliveryDate || '';
+  const boilerModelName = customerData.boilerModelName || 'Isitish Kotyoli (Standart)';
+  const totalAmount = parseFloat(customerData.totalAmount) || 0;
+  const depositAmount = parseFloat(customerData.depositAmount) || 0;
+  const autoDiscountOnLate = customerData.autoDiscountOnLate !== false; // default true if selected
+  const lateDiscountRate = parseFloat(customerData.lateDiscountRate) || 0.5;
+
+  // Calculation of late delay
+  let daysLate = 0;
+  let isOverdue = false;
+  if (deliveryDate && deliveryDate < todayStr) {
+    const d1 = new Date(todayStr);
+    const d2 = new Date(deliveryDate);
+    const diffTime = Math.abs(d1 - d2);
+    daysLate = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    isOverdue = daysLate > 0;
+  }
+
+  const discountPercent = (autoDiscountOnLate && isOverdue) ? Math.min(50, daysLate * lateDiscountRate) : 0;
+  const lateDiscountAmount = Math.round((totalAmount * discountPercent) / 100);
+  const finalPrice = Math.max(0, totalAmount - lateDiscountAmount);
+  const remainingAmount = Math.max(0, finalPrice - depositAmount);
+
+  const receiptNumber = customerData.receiptNumber || `CHK-${Date.now().toString().slice(-6)}`;
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <div className="d-flex align-items-center gap-2">
+          <LuPrinter className="text-primary fs-5" />
+          <span>Mijoz uchun Buyurtma va Zaklad Cheki</span>
+        </div>
+      }
+      size="lg"
+      footer={
+        <div className="d-flex justify-content-between align-items-center w-100">
+          <span className="text-muted fs-8">Sana: {todayStr} | № {receiptNumber}</span>
+          <div className="d-flex gap-2">
+            <Button variant="outline-secondary" size="sm" onClick={onClose}>
+              Yopish
+            </Button>
+            <Button variant="primary" size="sm" icon={<LuPrinter />} onClick={handlePrint}>
+              Chekni Chop Etish
+            </Button>
+          </div>
+        </div>
+      }
+    >
+      {/* Printable Area with print-specific stylesheet */}
+      <div ref={printRef} className="customer-receipt-container p-4 bg-white text-dark rounded border shadow-sm position-relative">
+        <style>{`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .customer-receipt-container, .customer-receipt-container * {
+              visibility: visible;
+            }
+            .customer-receipt-container {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              border: none !important;
+              box-shadow: none !important;
+              padding: 0 !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}</style>
+
+        {/* Receipt Header */}
+        <div className="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+          <div>
+            <div className="d-flex align-items-center gap-2 mb-1">
+              <span className="fs-4 fw-bold text-primary">KOTYOL MANUFACTURING</span>
+              <span className="badge bg-primary text-white fs-9">RASMIY CHEK</span>
+            </div>
+            <p className="small text-secondary mb-0">Isitish kotyollari va sanoat uskunalarini ishlab chiqarish majmuasi</p>
+            <p className="small text-secondary mb-0">Manzil: Toshkent sh., Chilonzor tumani, 5-daha | Tel: +998 90 123-45-67</p>
+          </div>
+          <div className="text-end">
+            <div className="fw-bold fs-5 text-dark">CHEK № {receiptNumber}</div>
+            <div className="small text-muted">Zakaz Berilgan: <strong>{orderDate}</strong></div>
+            {deliveryDate && (
+              <div className="small text-muted">Reja Yetkazish: <strong className="text-primary">{deliveryDate}</strong></div>
+            )}
+          </div>
+        </div>
+
+        {/* Customer Information Block */}
+        <div className="bg-light p-3 rounded mb-3 border">
+          <h6 className="fw-bold text-dark mb-2 border-bottom pb-1">👤 Mijoz Ma'lumotlari:</h6>
+          <div className="row g-2 small">
+            <div className="col-6">
+              <span className="text-muted">F.I.SH / Korxona:</span> <strong className="text-dark">{customerData.customerName || customerData.name || 'Mijoz'}</strong>
+            </div>
+            <div className="col-6">
+              <span className="text-muted">Telefon:</span> <strong className="text-dark">{customerData.phone || 'Kiritilmagan'}</strong>
+            </div>
+            <div className="col-6">
+              <span className="text-muted">Hudud / Manzil:</span> <span>{customerData.region || 'Toshkent'}, {customerData.address || ''}</span>
+            </div>
+            <div className="col-6">
+              <span className="text-muted">Mijoz Turi:</span> <span>{customerData.customerTypeName || 'Jismoniy Shaxs'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Product / Boiler Details Table */}
+        <div className="table-responsive mb-3">
+          <table className="table table-bordered align-middle small mb-0">
+            <thead className="table-secondary">
+              <tr>
+                <th>Mahsulot / Kotyol Modeli</th>
+                <th className="text-center">Miqdor</th>
+                <th className="text-end">Birlik Narxi</th>
+                <th className="text-end">Jami Summa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div className="fw-bold text-dark">{boilerModelName}</div>
+                  <div className="text-muted fs-8">Kafolatli va sertifikatlangan isitish uskunasi</div>
+                </td>
+                <td className="text-center fw-bold">1 dona</td>
+                <td className="text-end">{formatCurrency(totalAmount)}</td>
+                <td className="text-end fw-bold">{formatCurrency(totalAmount)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Deadlines & Automatic Late Discount Terms */}
+        <div className="bg-light p-3 rounded mb-3 border">
+          <h6 className="fw-bold text-dark mb-2 d-flex align-items-center gap-1">
+            <LuCalendar className="text-primary" />
+            <span>Muddati va Kechikish Bo'yicha Shartlar:</span>
+          </h6>
+          <div className="row g-2 small">
+            <div className="col-6">
+              <span className="text-muted">Zakaz Berilgan Sana:</span> <strong className="text-dark">{orderDate}</strong>
+            </div>
+            <div className="col-6">
+              <span className="text-muted">Yetkazib Berish Sanasi:</span> <strong className="text-primary">{deliveryDate || 'Belgilanmagan'}</strong>
+            </div>
+            <div className="col-12 mt-2">
+              <div className="p-2 rounded border bg-white fs-8">
+                {autoDiscountOnLate ? (
+                  <div className="text-success d-flex align-items-center gap-1">
+                    <LuShieldCheck />
+                    <span><strong>Avtomatik chegirma faol:</strong> Belgilangan sanadan o'tib ketsa, har bir kechikkan kun uchun kotyol narxi kuniga {lateDiscountRate}% arzonlashadi.</span>
+                  </div>
+                ) : (
+                  <div className="text-muted">
+                    Kechikganda avtomatik arzonlashuv belgilanmagan (Standart shartnoma sharti).
+                  </div>
+                )}
+              </div>
+            </div>
+            {isOverdue && autoDiscountOnLate && (
+              <div className="col-12">
+                <div className="alert alert-warning py-1 px-2 mb-0 fs-8 d-flex align-items-center gap-2">
+                  <LuTriangleAlert className="text-warning fs-6" />
+                  <span>
+                    <strong>Kechikish aniqlandi:</strong> Rejadagi sanadan <strong>{daysLate} kun</strong> o'tdi. ({discountPercent}% chegirma = -{formatCurrency(lateDiscountAmount)})
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Financial Calculation Summary */}
+        <div className="row justify-content-end mb-4">
+          <div className="col-12 col-md-7">
+            <div className="border rounded p-3 bg-light">
+              <div className="d-flex justify-content-between small mb-1">
+                <span className="text-muted">Kotyol Boshlang'ich Narxi:</span>
+                <span>{formatCurrency(totalAmount)}</span>
+              </div>
+
+              {lateDiscountAmount > 0 && (
+                <div className="d-flex justify-content-between small mb-1 text-danger">
+                  <span>Kechikish Sababli Chegirma ({discountPercent}%):</span>
+                  <span>-{formatCurrency(lateDiscountAmount)}</span>
+                </div>
+              )}
+
+              <div className="d-flex justify-content-between fw-bold border-top pt-1 mb-2">
+                <span>Yakuniy Kotyol Narxi:</span>
+                <span className="text-dark">{formatCurrency(finalPrice)}</span>
+              </div>
+
+              <div className="d-flex justify-content-between align-items-center p-2 rounded bg-success bg-opacity-10 text-success fw-bold mb-2">
+                <span>💰 Zaklad Miqdori (Avans To'landi):</span>
+                <span className="fs-6">{formatCurrency(depositAmount)}</span>
+              </div>
+
+              <div className="d-flex justify-content-between align-items-center p-2 rounded bg-warning bg-opacity-25 text-dark fw-bold">
+                <span>📦 Qolgan Summa (Yetkazilganda):</span>
+                <span className="fs-6 text-danger">{formatCurrency(remainingAmount)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer, Signatures & Barcode */}
+        <div className="border-top pt-3 mt-3">
+          <div className="row align-items-center text-center">
+            <div className="col-4">
+              <div className="small text-muted mb-4">Sotuvchi Imzosi</div>
+              <div className="border-bottom mx-auto w-75"></div>
+              <div className="fs-8 text-muted mt-1">(Muhr va Imzo)</div>
+            </div>
+            <div className="col-4">
+              <div className="d-inline-block p-2 border rounded bg-light mb-1">
+                {/* SVG Barcode Graphic */}
+                <svg width="120" height="36" viewBox="0 0 120 36" fill="none">
+                  <rect x="5" y="4" width="2" height="28" fill="#000" />
+                  <rect x="9" y="4" width="4" height="28" fill="#000" />
+                  <rect x="15" y="4" width="1" height="28" fill="#000" />
+                  <rect x="18" y="4" width="3" height="28" fill="#000" />
+                  <rect x="23" y="4" width="2" height="28" fill="#000" />
+                  <rect x="27" y="4" width="5" height="28" fill="#000" />
+                  <rect x="34" y="4" width="1" height="28" fill="#000" />
+                  <rect x="37" y="4" width="3" height="28" fill="#000" />
+                  <rect x="42" y="4" width="2" height="28" fill="#000" />
+                  <rect x="46" y="4" width="4" height="28" fill="#000" />
+                  <rect x="52" y="4" width="2" height="28" fill="#000" />
+                  <rect x="56" y="4" width="1" height="28" fill="#000" />
+                  <rect x="59" y="4" width="3" height="28" fill="#000" />
+                  <rect x="64" y="4" width="4" height="28" fill="#000" />
+                  <rect x="70" y="4" width="2" height="28" fill="#000" />
+                  <rect x="74" y="4" width="1" height="28" fill="#000" />
+                  <rect x="77" y="4" width="3" height="28" fill="#000" />
+                  <rect x="82" y="4" width="2" height="28" fill="#000" />
+                  <rect x="86" y="4" width="5" height="28" fill="#000" />
+                  <rect x="93" y="4" width="1" height="28" fill="#000" />
+                  <rect x="96" y="4" width="3" height="28" fill="#000" />
+                  <rect x="101" y="4" width="2" height="28" fill="#000" />
+                  <rect x="105" y="4" width="4" height="28" fill="#000" />
+                  <rect x="111" y="4" width="2" height="28" fill="#000" />
+                </svg>
+              </div>
+              <div className="fs-9 text-muted">{receiptNumber}</div>
+            </div>
+            <div className="col-4">
+              <div className="small text-muted mb-4">Mijoz Imzosi</div>
+              <div className="border-bottom mx-auto w-75"></div>
+              <div className="fs-8 text-muted mt-1">(Tanishdim va Qabul Qildim)</div>
+            </div>
+          </div>
+          <div className="text-center mt-3 fs-9 text-muted">
+            Rahmat! Kotyol Manufacturing mahsulotlarini tanlaganingiz uchun tashakkur izhor etamiz!
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+};

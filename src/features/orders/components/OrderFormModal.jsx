@@ -66,8 +66,11 @@ export const OrderFormModal = ({
         customerId: order.customerId || (customerOptions[0]?.value || ''),
         boilerId: order.boilerId || (boilerOptions[0]?.value || ''),
         quantity: order.quantity || 1,
+        depositAmount: order.depositAmount !== undefined ? order.depositAmount : 5000000,
         priority: order.priority || 'MEDIUM',
         expectedDeliveryDate: order.expectedDeliveryDate || '',
+        autoDiscountOnLate: order.autoDiscountOnLate !== undefined ? order.autoDiscountOnLate : true,
+        lateDiscountRate: order.lateDiscountRate !== undefined ? order.lateDiscountRate : 0.5,
         notes: order.notes || '',
         isReserved: order.isReserved || false,
         status: order.status || 'PENDING',
@@ -89,8 +92,11 @@ export const OrderFormModal = ({
         customerId: firstCust ? firstCust.id : '',
         boilerId: firstBoil ? firstBoil.id : '',
         quantity: 1,
+        depositAmount: 5000000,
         priority: 'MEDIUM',
         expectedDeliveryDate: deliveryDateStr,
+        autoDiscountOnLate: true,
+        lateDiscountRate: 0.5,
         notes: '',
         isReserved: true,
         status: 'PENDING',
@@ -299,6 +305,47 @@ export const OrderFormModal = ({
             ]}
           />
         )}
+
+        {/* Deposit & Late Delivery Discount Card */}
+        <div className="card glass-card p-3 mb-3 border-success bg-success bg-opacity-10 fs-7">
+          <h6 className="fw-bold text-success mb-2 font-heading">💰 Zaklad va Kechikish Chegirmasi Shartlari:</h6>
+          <div className="row g-3 align-items-center">
+            <div className="col-12 col-md-6">
+              <Input
+                label="Zaklad Miqdori (Avans To'landi)"
+                type="number"
+                placeholder="5000000"
+                value={formData.depositAmount}
+                onChange={(e) => handleFieldChange('depositAmount', e.target.value)}
+              />
+            </div>
+            <div className="col-12 col-md-6">
+              <Input
+                label="Yetkazib Berish Sanasi (Reja)"
+                type="date"
+                value={formData.expectedDeliveryDate}
+                onChange={(e) => handleFieldChange('expectedDeliveryDate', e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-12">
+              <div className="p-2 bg-body-custom rounded border">
+                <div className="form-check form-switch d-flex align-items-center gap-2 mb-0">
+                  <input
+                    className="form-check-input ms-0 cursor-pointer"
+                    type="checkbox"
+                    id="autoDiscountOrderSwitch"
+                    checked={formData.autoDiscountOnLate}
+                    onChange={(e) => handleFieldChange('autoDiscountOnLate', e.target.checked)}
+                  />
+                  <label className="form-check-label fs-7 fw-semibold text-main cursor-pointer mb-0" htmlFor="autoDiscountOrderSwitch">
+                    ⏱️ Sanadan o'tib ketsa avtomatik kotyol narxi arzonlashsin (Kechikish chegirmasi: kuniga {formData.lateDiscountRate}%)
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Collapsible Section for Progressive Disclosure */}
         <div className="border-custom rounded-3 p-2 mb-3 bg-body-custom">

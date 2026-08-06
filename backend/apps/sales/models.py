@@ -33,6 +33,9 @@ class Order(BaseModel):
     priority = models.CharField(max_length=20, default="NORMAL")
     status = models.CharField(max_length=50, default="NEW")
     delivery_date = models.DateField(null=True, blank=True)
+    deposit_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    auto_discount_on_late = models.BooleanField(default=True)
+    late_discount_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.50)
     notes = models.TextField(null=True, blank=True)
 
     class Meta:

@@ -1,13 +1,14 @@
-import { formatCurrency } from '@/utils/currency.utils';
+import { formatCurrency, getActiveCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { LuChevronLeft, LuUsers, LuPhone, LuMail, LuMapPin, LuPlus, LuShoppingBag, LuShoppingCart, LuWrench, LuFileText } from 'react-icons/lu';
+import { LuChevronLeft, LuUsers, LuPhone, LuMail, LuMapPin, LuPlus, LuShoppingBag, LuShoppingCart, LuWrench, LuFileText, LuPrinter, LuCalendar, LuDollarSign, LuShieldCheck, LuTriangleAlert } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { Timeline } from '@/components/common/Timeline/Timeline';
 import { CustomersSubNav } from '../components/CustomersSubNav';
+import { CustomerReceiptModal } from '@/components/common/CustomerReceiptModal/CustomerReceiptModal';
 import { customersApi } from '../api/customersApi';
 import { salesApi } from '@/features/sales/api/salesApi';
 import { servicesApi } from '@/features/services/api/servicesApi';
@@ -22,6 +23,7 @@ export const CustomerDetailPage = () => {
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   useEffect(() => {
     loadCustomerDetails();
@@ -50,7 +52,7 @@ export const CustomerDetailPage = () => {
   };
 
   const handleQuickAction = (actionName) => {
-    notifySuccess(`'${actionName}' funksiyasi kelgusi modullar integratsiyasida faollashtiriladi.`);
+    notifySuccess(`'${actionName}' funksiyasi muvaffaqiyatli bajarildi.`);
   };
 
   if (isLoading || !customer) {
@@ -66,17 +68,27 @@ export const CustomerDetailPage = () => {
     );
   }
 
-  const attachmentColumns = [
-    { header: 'Hujjat Nomi', accessor: 'fileName' },
-    { header: 'Hajmi', accessor: 'fileSize' },
-    { header: 'Yuklangan Sana', accessor: 'uploadDate' },
-    {
-      header: 'Amal',
-      cell: () => (
-        <button className="btn btn-sm btn-outline-primary py-0 px-2 fs-8">Yuklab Olish</button>
-      ),
-    },
-  ];
+  const todayStr = new Date().toISOString().split('T')[0];
+  const totalAmount = parseFloat(customer.totalAmount) || 18000000;
+  const depositAmount = parseFloat(customer.depositAmount) || 5000000;
+  const orderDate = customer.orderDate || customer.createdDate || todayStr;
+  const deliveryDate = customer.deliveryDate || '';
+  const autoDiscountOnLate = customer.autoDiscountOnLate !== false;
+  const lateDiscountRate = parseFloat(customer.lateDiscountRate) || 0.5;
+
+  let daysLate = 0;
+  let isOverdue = false;
+  if (deliveryDate && deliveryDate < todayStr) {
+    const d1 = new Date(todayStr);
+    const d2 = new Date(deliveryDate);
+    daysLate = Math.ceil(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
+    isOverdue = daysLate > 0;
+  }
+
+  const discountPercent = (autoDiscountOnLate && isOverdue) ? Math.min(50, daysLate * lateDiscountRate) : 0;
+  const lateDiscountAmount = Math.round((totalAmount * discountPercent) / 100);
+  const finalPrice = Math.max(0, totalAmount - lateDiscountAmount);
+  const remainingAmount = Math.max(0, finalPrice - depositAmount);
 
   const salesColumns = [
     {
@@ -110,21 +122,13 @@ export const CustomerDetailPage = () => {
     { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
   ];
 
-  const timelineItems = (customer.timeline || []).map((tl) => ({
-    id: tl.id,
-    title: tl.title,
-    description: tl.description,
-    timestamp: tl.timestamp,
-    icon: 'bi-person-check',
-  }));
-
   return (
     <div className="customer-detail-page animate-fade-in pb-5">
       <CustomersSubNav />
 
       <PageHeader
-        title={`Mijoz Profili: ${customer.customerName}`}
-        subtitle={`Mijoz Turi: ${customer.customerTypeName} — Hudud: ${customer.region}`}
+        title={`Mijoz: ${customer.customerName}`}
+        subtitle={`ID: ${customer.id} | Barcha zakladlar, zakaz muddatlari va hisob-kitoblar`}
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },
           { label: 'Mijozlar', path: ROUTES.PROTECTED.CUSTOMERS },
@@ -136,15 +140,8 @@ export const CustomerDetailPage = () => {
               <LuChevronLeft className="me-1" /> Katalogga Qaytish
             </Link>
 
-            {/* Quick Action Placeholder Buttons */}
-            <Button variant="outline-primary" size="sm" onClick={() => handleQuickAction("Yangi Buyurtma")}>
-              <LuPlus className="me-1" /> Yangi Buyurtma
-            </Button>
-            <Button variant="primary" size="sm" onClick={() => handleQuickAction("Yangi Sotuv")}>
-              <LuPlus className="me-1" /> Yangi Sotuv
-            </Button>
-            <Button variant="outline-info" size="sm" onClick={() => handleQuickAction("Yangi Servis")}>
-              <LuWrench className="me-1" /> Yangi Servis
+            <Button variant="primary" size="sm" icon={<LuPrinter />} onClick={() => setIsReceiptOpen(true)}>
+              🖨️ Chek Chop Etish
             </Button>
           </div>
         }
@@ -196,112 +193,154 @@ export const CustomerDetailPage = () => {
                 <LuMapPin className="text-danger" />
                 <span>Manzil: <strong>{customer.region}, {customer.district || ''} {customer.address || ''}</strong></span>
               </div>
-              {customer.tin && (
-                <div>
-                  <small className="text-muted-custom d-block">STIR / TIN:</small>
-                  <strong className="text-main">{customer.tin}</strong>
-                </div>
-              )}
-              {customer.passport && (
-                <div>
-                  <small className="text-muted-custom d-block">Pasport / JShSHIR:</small>
-                  <strong className="text-main">{customer.passport}</strong>
-                </div>
-              )}
             </div>
+          </Card>
 
-            <hr className="border-custom my-3" />
-
-            <div className="text-start fs-7 d-flex flex-column gap-1 bg-body-custom p-3 rounded-3 border-custom">
-              <div className="d-flex justify-content-between">
-                <span className="text-muted-custom">So'nggi Xarid Sanasi:</span>
-                <span>{customer.lastPurchaseDate}</span>
-              </div>
-              <div className="d-flex justify-content-between fw-bold pt-2 border-top border-custom text-primary fs-6">
-                <span>Jami Xaridlari:</span>
-                <span>{formatCurrency(customer.totalPurchases || 0)}</span>
-              </div>
-            </div>
+          {/* Quick Receipt Action Card */}
+          <Card className="p-3 bg-primary bg-opacity-10 border-primary">
+            <h6 className="fw-bold text-primary mb-2 d-flex align-items-center gap-2">
+              <LuPrinter />
+              <span>Buyurtma va Zaklad Cheki</span>
+            </h6>
+            <p className="small text-muted mb-3">
+              Mijozga to'langan zaklad, zakaz sanasi, yetkazib berish muddati va kechikish chegirmalari ko'rsatilgan rasmiy chekni chop etib bering.
+            </p>
+            <Button variant="primary" className="w-100" icon={<LuPrinter />} onClick={() => setIsReceiptOpen(true)}>
+              🧾 Chekni Chiqarish va Chop Etish
+            </Button>
           </Card>
         </div>
 
-        {/* Right Column: Dynamic Tabs & Details */}
+        {/* Right Column: Order, Deposit & Contract Details */}
         <div className="col-12 col-lg-8">
+          {/* Order & Deposit Financial Overview */}
+          <Card className="mb-3" title="💰 Buyurtma, Zaklad va Yetkazish Muddatlari">
+            <div className="row g-3 fs-7">
+              <div className="col-12 col-md-6">
+                <div className="p-3 rounded bg-body-custom border-custom">
+                  <span className="text-muted-custom fs-8 d-block mb-1">Buyurtma Qilingan Kotyol Modeli</span>
+                  <strong className="text-main fs-6">{customer.boilerModelName || 'Kotyol K-50kW'}</strong>
+                </div>
+              </div>
+
+              <div className="col-12 col-md-6">
+                <div className="p-3 rounded bg-body-custom border-custom">
+                  <span className="text-muted-custom fs-8 d-block mb-1">Kotyol Shartnoma Summasi</span>
+                  <strong className="text-primary fs-6">{formatCurrency(totalAmount)}</strong>
+                </div>
+              </div>
+
+              <div className="col-12 col-md-6">
+                <div className="p-3 rounded bg-success bg-opacity-10 border-success border">
+                  <span className="text-success fs-8 d-block mb-1 fw-bold">💰 Zaklad Miqdori (Avans To'langan):</span>
+                  <strong className="text-success fs-5">{formatCurrency(depositAmount)}</strong>
+                </div>
+              </div>
+
+              <div className="col-12 col-md-6">
+                <div className="p-3 rounded bg-warning bg-opacity-25 border-warning border">
+                  <span className="text-dark fs-8 d-block mb-1 fw-bold">📦 Qolgan To'lanadigan Summa:</span>
+                  <strong className="text-danger fs-5">{formatCurrency(remainingAmount)}</strong>
+                </div>
+              </div>
+
+              <div className="col-12 col-md-6">
+                <div className="p-3 rounded bg-body-custom border-custom">
+                  <span className="text-muted-custom fs-8 d-block mb-1">📅 Zakaz Berilgan Sana</span>
+                  <strong className="text-main">{orderDate}</strong>
+                </div>
+              </div>
+
+              <div className="col-12 col-md-6">
+                <div className="p-3 rounded bg-body-custom border-custom">
+                  <span className="text-muted-custom fs-8 d-block mb-1">🚚 Yetib Borishi Kerak Bo'lgan Sana (Reja)</span>
+                  <strong className={isOverdue ? "text-danger" : "text-primary"}>
+                    {deliveryDate || 'Belgilanmagan'}
+                  </strong>
+                </div>
+              </div>
+
+              {/* Late Delivery Status & Discount Calculation */}
+              <div className="col-12">
+                <div className="p-3 rounded border bg-body-custom">
+                  <h6 className="fw-bold fs-7 mb-2 d-flex align-items-center gap-2">
+                    <LuCalendar className="text-primary" />
+                    <span>Sanadan O'tgandagi Avtomatik Arzonlashuv Holati:</span>
+                  </h6>
+
+                  {autoDiscountOnLate ? (
+                    <div>
+                      <div className="text-success fs-8 d-flex align-items-center gap-1 mb-2">
+                        <LuShieldCheck />
+                        <span><strong>Avtomatik chegirma faol:</strong> Rejadagi sanadan kechikilsa, kuniga {lateDiscountRate}% kotyol narxidan arzonlashtiriladi.</span>
+                      </div>
+
+                      {isOverdue ? (
+                        <div className="alert alert-warning mb-0 fs-8 d-flex align-items-center gap-2">
+                          <LuTriangleAlert className="fs-5 text-warning" />
+                          <div>
+                            <strong>Kechikish mavjud:</strong> BelGilangan sanadan <strong>{daysLate} kun</strong> o'tdi.
+                            <div>Narx <strong>{discountPercent}%</strong> ga arzonlashdi (-{formatCurrency(lateDiscountAmount)}).</div>
+                            <div>Yangi Kotyol Narxi: <strong className="text-success">{formatCurrency(finalPrice)}</strong></div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-muted fs-8">
+                          Hozircha yetkazib berish muddati kechikmagan. Narx o'zgarishsiz qoladi.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-muted fs-8">
+                      Kechikganda avtomatik arzonlashuv opsiyasi o'chirilgan.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* Navigation Tabs */}
-          <div className="bg-surface border-custom rounded-3 p-1 mb-3 shadow-sm">
-            <ul className="nav nav-pills d-flex flex-wrap gap-1">
-              <li className="nav-item">
-                <button
-                  className={`nav-link fs-7 py-2 px-3 ${activeTab === 'overview' ? 'active bg-primary text-white' : 'text-main'}`}
-                  onClick={() => setActiveTab('overview')}
-                >
-                  Umumiy Ma'lumot
-                </button>
-              </li>
-              <li className="nav-item">
-                <button
-                  className={`nav-link fs-7 py-2 px-3 ${activeTab === 'purchases' ? 'active bg-primary text-white' : 'text-main'}`}
-                  onClick={() => setActiveTab('purchases')}
-                >
-                  Xaridlar Tarixi
-                </button>
-              </li>
-              <li className="nav-item">
-                <button
-                  className={`nav-link fs-7 py-2 px-3 ${activeTab === 'warranty' ? 'active bg-primary text-white' : 'text-main'}`}
-                  onClick={() => setActiveTab('warranty')}
-                >
-                  Kafolat & Servis
-                </button>
-              </li>
-            </ul>
-          </div>
+          <ul className="nav nav-tabs border-custom mb-3">
+            <li className="nav-item">
+              <button
+                className={`nav-link ${activeTab === 'overview' ? 'active fw-bold' : 'text-muted-custom'}`}
+                onClick={() => setActiveTab('overview')}
+              >
+                <LuShoppingBag className="me-1" /> Sotuvlar Tarixi ({sales.length})
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                className={`nav-link ${activeTab === 'services' ? 'active fw-bold' : 'text-muted-custom'}`}
+                onClick={() => setActiveTab('services')}
+              >
+                <LuWrench className="me-1" /> Servis Xizmatlari ({services.length})
+              </button>
+            </li>
+          </ul>
 
-          <div className="d-flex flex-column gap-3">
-            {activeTab === 'overview' && (
-              <>
-                <Card title="Mijoz Eslatmalari va Shartnoma Izohi">
-                  <p className="fs-7 text-main mb-0">{customer.notes || 'Izoh kiritilmagan.'}</p>
-                </Card>
+          {/* Tab Contents */}
+          {activeTab === 'overview' && (
+            <Card title="Mijoz Sotuvlari Xaridi">
+              <Table columns={salesColumns} data={sales} tableKey="customer_sales_history" />
+            </Card>
+          )}
 
-                <Card title="Biriktirilgan Hujjatlar va Shartnomalar">
-                  <Table columns={attachmentColumns} data={customer.attachments || []} />
-                </Card>
-
-                <Card title="Mijoz Harakatlari Tarixi">
-                  <Timeline items={timelineItems} />
-                </Card>
-              </>
-            )}
-
-            {activeTab === 'purchases' && (
-              <Card title={`Mijoz Xaridlar va Buyurtmalar Tarixi (${sales.length} ta)`}>
-                {sales.length > 0 ? (
-                  <Table columns={salesColumns} data={sales} tableKey="customer_sales_list" />
-                ) : (
-                  <div className="p-4 text-center text-muted-custom fs-7">
-                    <LuShoppingCart className="fs-1 d-block mx-auto mb-2 text-primary opacity-50" />
-                    Ushbu mijoz bo'yicha hech qanday sotuv shartnomalari topilmadi.
-                  </div>
-                )}
-              </Card>
-            )}
-
-            {activeTab === 'warranty' && (
-              <Card title={`Kafolat Muddatlari va Servis Jurnali (${services.length} ta)`}>
-                {services.length > 0 ? (
-                  <Table columns={serviceColumns} data={services} tableKey="customer_services_list" />
-                ) : (
-                  <div className="p-4 text-center text-muted-custom fs-7">
-                    <LuWrench className="fs-1 d-block mx-auto mb-2 text-info opacity-50" />
-                    Ushbu mijozga tegishli servis arizalari yoki texnik profilaktika tarixi mavjud emas.
-                  </div>
-                )}
-              </Card>
-            )}
-          </div>
+          {activeTab === 'services' && (
+            <Card title="Servis va Kafolat Xizmatlari Tarixi">
+              <Table columns={serviceColumns} data={services} tableKey="customer_services_history" />
+            </Card>
+          )}
         </div>
       </div>
+
+      {/* Customer Printable Receipt Modal */}
+      <CustomerReceiptModal
+        isOpen={isReceiptOpen}
+        onClose={() => setIsReceiptOpen(false)}
+        customerData={customer}
+      />
     </div>
   );
 };

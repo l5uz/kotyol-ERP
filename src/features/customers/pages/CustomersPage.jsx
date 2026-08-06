@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LuPlus, LuEye, LuPencil, LuTrash2, LuUsers } from 'react-icons/lu';
+import { LuPlus, LuEye, LuPencil, LuTrash2, LuUsers, LuPrinter, LuCalendar, LuTriangleAlert } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
@@ -11,6 +11,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { CustomersSubNav } from '../components/CustomersSubNav';
 import { CustomerFilterBar } from '../components/CustomerFilterBar';
 import { CustomerFormModal } from '../components/CustomerFormModal';
+import { CustomerReceiptModal } from '@/components/common/CustomerReceiptModal/CustomerReceiptModal';
 import { customersApi } from '../api/customersApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { usePageAutoRefresh } from '@/hooks/usePageAutoRefresh';
@@ -28,9 +29,12 @@ export const CustomersPage = () => {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [deletingCustomer, setDeletingCustomer] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [receiptCustomer, setReceiptCustomer] = useState(null);
 
   const customerTypes = dynamicSettingsService.getCustomerTypes();
   const regions = dynamicSettingsService.getRegions();
+
+  const todayStr = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     loadCustomersData();
@@ -47,7 +51,7 @@ export const CustomersPage = () => {
   };
 
   // Background Auto-Refresh every 15s (Pauses while modal is open)
-  usePageAutoRefresh(loadCustomersData, { intervalMs: 15000, isEditing: isModalOpen || isConfirmOpen });
+  usePageAutoRefresh(loadCustomersData, { intervalMs: 15000, isEditing: isModalOpen || isConfirmOpen || !!receiptCustomer });
 
   const handleCreateOrUpdate = async (formData) => {
     if (editingCustomer) {
@@ -78,7 +82,7 @@ export const CustomersPage = () => {
 
   const columns = [
     {
-      header: 'Mijoz Nomi',
+      header: 'Mijoz va Kotyol',
       cell: (row) => (
         <div className="d-flex align-items-center gap-2">
           <div className="rounded-3 bg-info bg-opacity-10 text-info p-2 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
@@ -88,7 +92,7 @@ export const CustomersPage = () => {
             <Link to={`${ROUTES.PROTECTED.CUSTOMERS}/${row.id}`} className="fw-bold text-primary text-decoration-none fs-7">
               {row.customerName}
             </Link>
-            <small className="d-block text-muted-custom fs-8">{row.tin ? `STIR: ${row.tin}` : row.address}</small>
+            <small className="d-block text-muted-custom fs-8">{row.boilerModelName || 'Kotyol K-50kW'}</small>
           </div>
         </div>
       ),
@@ -98,26 +102,51 @@ export const CustomersPage = () => {
       cell: (row) => <strong className="text-main fs-7">{row.phone}</strong>,
     },
     {
+      header: '💰 Zaklad (Avans)',
+      cell: (row) => (
+        <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 fs-8 fw-bold">
+          {formatCurrency(row.depositAmount || 0)}
+        </span>
+      ),
+    },
+    {
+      header: '📅 Zakaz & Yetkazish',
+      cell: (row) => {
+        const isOverdue = row.deliveryDate && row.deliveryDate < todayStr;
+        return (
+          <div className="fs-8">
+            <div>Zakaz: <strong>{row.orderDate || row.createdDate || '-'}</strong></div>
+            <div>
+              Yetkazish: <strong className={isOverdue ? "text-danger" : "text-primary"}>{row.deliveryDate || '-'}</strong>
+              {isOverdue && row.autoDiscountOnLate && (
+                <span className="badge bg-danger ms-1" title="Muddati o'tgan - Avtomatik chegirma faol">
+                  <LuTriangleAlert /> Kechikkan
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
       header: 'Mijoz Turi',
       cell: (row) => <span className="badge bg-secondary bg-opacity-10 text-secondary fs-8">{row.customerTypeName}</span>,
-    },
-    { header: 'Viloyat / Hudud', accessor: 'region' },
-    {
-      header: 'So\'nggi Xarid',
-      cell: (row) => <span className="text-muted-custom fs-8">{row.lastPurchaseDate}</span>,
-    },
-    {
-      header: 'Jami Xaridlari ($)',
-      cell: (row) => <strong className="text-primary fs-7">{formatCurrency(row.totalPurchases || 0)}</strong>,
     },
     { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
     {
       header: 'Amallar',
       cell: (row) => (
         <div className="d-flex align-items-center gap-1">
+          <button
+            className="btn btn-sm btn-outline-primary p-1 border-0"
+            onClick={() => setReceiptCustomer(row)}
+            title="Chek chiqarish va Chop etish"
+          >
+            <LuPrinter />
+          </button>
           <Link
             to={`${ROUTES.PROTECTED.CUSTOMERS}/${row.id}`}
-            className="btn btn-sm btn-outline-primary p-1 border-0"
+            className="btn btn-sm btn-outline-info p-1 border-0"
             title="Tafsilotini ko'rish"
           >
             <LuEye />
@@ -152,8 +181,8 @@ export const CustomersPage = () => {
       <CustomersSubNav />
 
       <PageHeader
-        title="Mijozlar Boshqaruvi Moduli"
-        subtitle="Yuridik korxonalar hamda jismoniy xaridorlar reyestri, alohida profil va aloqa ma'lumotlari"
+        title="Mijozlar Boshqaruvi va Buyurtmalar Moduli"
+        subtitle="Yuridik hamda jismoniy xaridorlar reyestri, zaklad avanslari, muddatlar va chek chop etish"
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },
           { label: 'Mijozlar' },
@@ -167,7 +196,7 @@ export const CustomersPage = () => {
               setIsModalOpen(true);
             }}
           >
-            <LuPlus className="me-1" /> Yangi Mijoz Qo'shish
+            <LuPlus className="me-1" /> Yangi Mijoz va Zaklad Qo'shish
           </Button>
         }
       />
@@ -197,6 +226,12 @@ export const CustomersPage = () => {
         }}
         onSubmit={handleCreateOrUpdate}
         customer={editingCustomer}
+      />
+
+      <CustomerReceiptModal
+        isOpen={!!receiptCustomer}
+        onClose={() => setReceiptCustomer(null)}
+        customerData={receiptCustomer}
       />
 
       <ConfirmDialog

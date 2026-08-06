@@ -15,10 +15,18 @@ class OrderCreateSerializer(serializers.Serializer):
     unitPrice = serializers.FloatField(required=False, allow_null=True, default=0.0)
     total_amount = serializers.FloatField(required=False, allow_null=True, default=0.0)
     totalAmount = serializers.FloatField(required=False, allow_null=True, default=0.0)
+    deposit_amount = serializers.FloatField(required=False, allow_null=True, default=0.0)
+    depositAmount = serializers.FloatField(required=False, allow_null=True, default=0.0)
     priority = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="HIGH")
     status = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="NEW")
     delivery_date = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
     deliveryDate = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
+    expected_delivery_date = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
+    expectedDeliveryDate = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
+    auto_discount_on_late = serializers.BooleanField(required=False, default=True)
+    autoDiscountOnLate = serializers.BooleanField(required=False, default=True)
+    late_discount_rate = serializers.FloatField(required=False, allow_null=True, default=0.5)
+    lateDiscountRate = serializers.FloatField(required=False, allow_null=True, default=0.5)
     notes = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
 
 class OrderResponseSerializer(serializers.Serializer):
@@ -40,10 +48,18 @@ class OrderResponseSerializer(serializers.Serializer):
     unitPrice = serializers.SerializerMethodField()
     total_amount = serializers.FloatField()
     totalAmount = serializers.SerializerMethodField()
+    deposit_amount = serializers.SerializerMethodField()
+    depositAmount = serializers.SerializerMethodField()
     priority = serializers.CharField()
     status = serializers.CharField()
     delivery_date = serializers.SerializerMethodField()
     deliveryDate = serializers.SerializerMethodField()
+    expected_delivery_date = serializers.SerializerMethodField()
+    expectedDeliveryDate = serializers.SerializerMethodField()
+    auto_discount_on_late = serializers.SerializerMethodField()
+    autoDiscountOnLate = serializers.SerializerMethodField()
+    late_discount_rate = serializers.SerializerMethodField()
+    lateDiscountRate = serializers.SerializerMethodField()
     notes = serializers.CharField(allow_null=True, required=False)
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
@@ -91,8 +107,34 @@ class OrderResponseSerializer(serializers.Serializer):
     def get_totalAmount(self, obj):
         return float(obj.total_amount or 0.0)
 
+    def get_deposit_amount(self, obj):
+        return float(getattr(obj, 'deposit_amount', 0.0) or 0.0)
+
+    def get_depositAmount(self, obj):
+        return self.get_deposit_amount(obj)
+
     def get_delivery_date(self, obj):
-        return obj.delivery_date.isoformat() if getattr(obj, 'delivery_date', None) else ""
+        d = getattr(obj, 'delivery_date', None)
+        return d.isoformat() if d else ""
 
     def get_deliveryDate(self, obj):
         return self.get_delivery_date(obj)
+
+    def get_expected_delivery_date(self, obj):
+        return self.get_delivery_date(obj)
+
+    def get_expectedDeliveryDate(self, obj):
+        return self.get_delivery_date(obj)
+
+    def get_auto_discount_on_late(self, obj):
+        val = getattr(obj, 'auto_discount_on_late', True)
+        return True if val is None else bool(val)
+
+    def get_autoDiscountOnLate(self, obj):
+        return self.get_auto_discount_on_late(obj)
+
+    def get_late_discount_rate(self, obj):
+        return float(getattr(obj, 'late_discount_rate', 0.5) or 0.5)
+
+    def get_lateDiscountRate(self, obj):
+        return self.get_late_discount_rate(obj)

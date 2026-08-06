@@ -45,6 +45,9 @@ class OrderService:
                     "quantity": Decimal("2.000"),
                     "unit_price": Decimal("1500.00"),
                     "total_amount": Decimal("3000.00"),
+                    "deposit_amount": Decimal("1000.00"),
+                    "auto_discount_on_late": True,
+                    "late_discount_rate": Decimal("0.50"),
                     "priority": "HIGH",
                     "status": "NEW",
                 },
@@ -56,6 +59,9 @@ class OrderService:
                     "quantity": Decimal("1.000"),
                     "unit_price": Decimal("2500.00"),
                     "total_amount": Decimal("2500.00"),
+                    "deposit_amount": Decimal("500.00"),
+                    "auto_discount_on_late": True,
+                    "late_discount_rate": Decimal("0.50"),
                     "priority": "NORMAL",
                     "status": "IN_PRODUCTION",
                 }
@@ -93,10 +99,18 @@ class OrderService:
         qty = Decimal(str(data.get("quantity") or 1.0))
         price = Decimal(str(data.get("unit_price") or data.get("unitPrice") or 0.0))
         tot = Decimal(str(data.get("total_amount") or data.get("totalAmount") or (qty * price)))
+        dep = Decimal(str(data.get("deposit_amount") or data.get("depositAmount") or 0.0))
 
-        d_date = data.get("delivery_date") or data.get("deliveryDate")
+        d_date = data.get("expected_delivery_date") or data.get("expectedDeliveryDate") or data.get("delivery_date") or data.get("deliveryDate")
         if not d_date or str(d_date).strip() in ["undefined", "null"]:
             d_date = None
+
+        auto_disc = data.get("auto_discount_on_late")
+        if auto_disc is None:
+            auto_disc = data.get("autoDiscountOnLate", True)
+        auto_disc = bool(auto_disc)
+
+        late_rate = Decimal(str(data.get("late_discount_rate") or data.get("lateDiscountRate") or 0.5))
 
         order = Order.objects.create(
             order_number=num,
@@ -108,6 +122,9 @@ class OrderService:
             quantity=qty,
             unit_price=price,
             total_amount=tot,
+            deposit_amount=dep,
+            auto_discount_on_late=auto_disc,
+            late_discount_rate=late_rate,
             priority=data.get("priority") or "HIGH",
             status=data.get("status") or "NEW",
             delivery_date=d_date,
@@ -144,6 +161,24 @@ class OrderService:
             ta = data.get("total_amount") or data.get("totalAmount")
             if ta is not None:
                 order.total_amount = Decimal(str(ta))
+        if "deposit_amount" in data or "depositAmount" in data:
+            dep = data.get("deposit_amount") or data.get("depositAmount")
+            if dep is not None:
+                order.deposit_amount = Decimal(str(dep))
+
+        if "auto_discount_on_late" in data or "autoDiscountOnLate" in data:
+            ad = data.get("auto_discount_on_late") if "auto_discount_on_late" in data else data.get("autoDiscountOnLate")
+            if ad is not None:
+                order.auto_discount_on_late = bool(ad)
+
+        if "late_discount_rate" in data or "lateDiscountRate" in data:
+            lr = data.get("late_discount_rate") or data.get("lateDiscountRate")
+            if lr is not None:
+                order.late_discount_rate = Decimal(str(lr))
+
+        if "delivery_date" in data or "deliveryDate" in data or "expected_delivery_date" in data or "expectedDeliveryDate" in data:
+            dd = data.get("expected_delivery_date") or data.get("expectedDeliveryDate") or data.get("delivery_date") or data.get("deliveryDate")
+            order.delivery_date = dd if dd and str(dd).strip() not in ["undefined", "null"] else None
 
         if "priority" in data and data["priority"]:
             order.priority = data["priority"]

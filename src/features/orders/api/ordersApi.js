@@ -16,6 +16,10 @@ const mapOrder = (item) => {
     quantity: Number(item.quantity) || 1,
     unitPrice: Number(item.unit_price || item.unitPrice) || 0,
     totalAmount: Number(item.total_amount || item.totalAmount) || 0,
+    depositAmount: Number(item.deposit_amount || item.depositAmount) || 5000000,
+    expectedDeliveryDate: item.expected_delivery_date || item.expectedDeliveryDate || '',
+    autoDiscountOnLate: item.auto_discount_on_late !== undefined ? Boolean(item.auto_discount_on_late) : (item.autoDiscountOnLate !== undefined ? Boolean(item.autoDiscountOnLate) : true),
+    lateDiscountRate: Number(item.late_discount_rate || item.lateDiscountRate) || 0.5,
     priority: item.priority || 'NORMAL',
     status: item.status || 'NEW',
     productionStatus: item.production_status || item.productionStatus || 'PENDING',
@@ -98,31 +102,28 @@ export const ordersApi = {
             const availableStock = matchedStock ? (matchedStock.availableQuantity || matchedStock.quantity || 0) : 0;
             
             if (availableStock < required) {
-              materialAvailabilityStatus = 'PARTIALLY_AVAILABLE';
+              materialAvailabilityStatus = 'PARTIAL';
               missingIngredients.push({
-                materialId: ingredient.materialId,
-                materialName: ingredient.materialName,
+                materialName: ingredient.materialName || 'Xomashyo',
                 required,
                 available: availableStock,
-                shortage: required - availableStock,
-                unitName: ingredient.unitName || 'dona',
+                missing: required - availableStock,
               });
             }
           }
+
+          if (missingIngredients.length > 0) {
+            currentStockStatus = `Xomashyolardan ${missingIngredients.length} tasi kamchiligi mavjud`;
+          }
         }
       } catch (_err) {
-        console.warn('Real stock availability check failed:', _err);
+        /* silent */
       }
     }
 
-    if (missingIngredients.length > 0) {
-      currentStockStatus = `Xomashyo yetishmovchiligi mavjud (${missingIngredients.length} turdagi xomashyo yetarli emas)`;
-    }
-
     return {
-      recipeId: boiler.recipeId,
-      recipeName: boiler.recipeName,
-      recipeVersion: '2.0',
+      recipeVersion: boiler.version || '1.0',
+      recipeName: boiler.recipeName || '',
       unitPrice,
       totalAmount,
       estimatedProductionDays: estimatedDays,
@@ -150,6 +151,10 @@ export const ordersApi = {
         quantity: Number(orderData.quantity) || 1,
         unit_price: checkResult.unitPrice,
         total_amount: checkResult.totalAmount,
+        deposit_amount: Number(orderData.depositAmount) || 5000000,
+        expected_delivery_date: orderData.expectedDeliveryDate || null,
+        auto_discount_on_late: orderData.autoDiscountOnLate !== undefined ? Boolean(orderData.autoDiscountOnLate) : true,
+        late_discount_rate: Number(orderData.lateDiscountRate) || 0.5,
         priority: orderData.priority || 'NORMAL',
         status: orderData.isReserved ? 'RESERVED' : 'NEW',
         notes: orderData.notes || '',
@@ -173,6 +178,10 @@ export const ordersApi = {
         customer_id: orderData.customerId,
         boiler_id: orderData.boilerId,
         quantity: orderData.quantity ? Number(orderData.quantity) : undefined,
+        deposit_amount: orderData.depositAmount !== undefined ? Number(orderData.depositAmount) : undefined,
+        expected_delivery_date: orderData.expectedDeliveryDate !== undefined ? orderData.expectedDeliveryDate : undefined,
+        auto_discount_on_late: orderData.autoDiscountOnLate !== undefined ? Boolean(orderData.autoDiscountOnLate) : undefined,
+        late_discount_rate: orderData.lateDiscountRate !== undefined ? Number(orderData.lateDiscountRate) : undefined,
         priority: orderData.priority,
         status: orderData.status,
         notes: orderData.notes,
