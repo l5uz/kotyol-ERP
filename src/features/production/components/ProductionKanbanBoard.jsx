@@ -16,7 +16,7 @@ import {
   LuPencil,
   LuTrash2,
   LuPlus,
-  LuAlertTriangle,
+  LuTriangleAlert,
 } from 'react-icons/lu';
 import { settingsApi } from '@/features/settings/api/settingsApi';
 import { productionApi } from '@/features/production/api/productionApi';
