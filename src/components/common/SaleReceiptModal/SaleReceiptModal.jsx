@@ -116,6 +116,7 @@ export const SaleReceiptModal = ({
               }
               .customer-receipt-container, .customer-receipt-container * {
                 visibility: visible !important;
+                color: #000 !important;
               }
               .customer-receipt-container {
                 position: absolute !important;

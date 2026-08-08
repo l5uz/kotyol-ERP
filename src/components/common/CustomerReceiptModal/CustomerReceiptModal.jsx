@@ -102,7 +102,8 @@ export const CustomerReceiptModal = ({
               visibility: hidden;
             }
             .customer-receipt-container, .customer-receipt-container * {
-              visibility: visible;
+              visibility: visible !important;
+              color: #000 !important;
             }
             .customer-receipt-container {
               position: absolute;
@@ -112,6 +113,7 @@ export const CustomerReceiptModal = ({
               border: none !important;
               box-shadow: none !important;
               padding: 0 !important;
+              background-color: #fff !important;
             }
             .no-print {
               display: none !important;
