@@ -112,7 +112,7 @@ export const formatCurrency = (amount, customCurrency) => {
     return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
   if (code === 'UZS') {
-    return `${Math.round(num).toLocaleString('uz-UZ')} so'm`;
+    return `${Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} so'm`;
   }
   if (code === 'EUR') {
     return `€${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

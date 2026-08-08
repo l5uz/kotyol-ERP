@@ -17,6 +17,14 @@ class Sale(BaseModel):
     payment_status = models.CharField(max_length=20, default="UNPAID")
     delivery_status = models.CharField(max_length=20, default="PENDING")
 
+    assigned_employee_id = models.CharField(max_length=36, null=True, blank=True)
+    assigned_employee_name = models.CharField(max_length=255, null=True, blank=True)
+    warranty_period = models.CharField(max_length=50, null=True, blank=True)
+    warranty_start_date = models.DateField(null=True, blank=True)
+    warranty_end_date = models.DateField(null=True, blank=True)
+    delivery_location = models.CharField(max_length=255, null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+
     class Meta:
         db_table = 'sales'
 

@@ -121,7 +121,7 @@ export const Table = ({
               title="Ustunlar ko'rinishini moslashtirish"
             >
               <LuSlidersHorizontal className="fs-8" />
-              <span>⚙️ Ustunlar ({visibleColumns.length}/{columns.length})</span>
+              <span>Ustunlar ({visibleColumns.length}/{columns.length})</span>
             </button>
 
             {isColumnDropdownOpen && (

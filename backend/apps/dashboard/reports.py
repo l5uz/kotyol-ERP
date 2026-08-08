@@ -27,8 +27,15 @@ def get_general_report(request):
     purchase_res = Purchase.objects.aggregate(total=models.Sum('total_amount'))['total'] or 0.0
     total_purchases = float(purchase_res)
 
-    net_profit = total_sales * 0.24
-    ops_expenses = total_purchases * 0.15
+    # Calculate dynamically based on financial transactions
+    all_tx = FinancialTransaction.objects.all()
+    total_revenue = sum(float(tx.amount) for tx in all_tx if tx.type == "INCOME")
+    total_expenses = sum(float(tx.amount) for tx in all_tx if tx.type == "EXPENSE")
+    net_profit = total_revenue - total_expenses
+    ops_expenses = total_expenses
+
+    from apps.master_data.models import ServiceTicket
+    service_requests_count = ServiceTicket.objects.count()
 
     receivables_res = Sale.objects.filter(payment_status="UNPAID").aggregate(total=models.Sum('total_amount'))['total'] or 0.0
     receivables = float(receivables_res)
@@ -80,7 +87,7 @@ def get_general_report(request):
             "totalPurchasingAmount": total_purchases,
             "operationalExpenses": ops_expenses,
             "customerReceivables": receivables,
-            "serviceRequestsCount": 0
+            "serviceRequestsCount": service_requests_count
         },
         "chart": chart_data
     }
@@ -237,12 +244,23 @@ def get_production_report(request):
             completed_durations.append(max(1, duration))
     avg_days = int(sum(completed_durations) / len(completed_durations)) if completed_durations else 6
 
-    stage_breakdown = [
-        {"stage": "Metal kesish", "completedCount": completed_batches, "avgDays": 1.5},
-        {"stage": "Payvandlash", "completedCount": completed_batches, "avgDays": 2.0},
-        {"stage": "Yig'ish", "completedCount": completed_batches, "avgDays": 1.5},
-        {"stage": "Sinov va qadoqlash", "completedCount": completed_batches, "avgDays": 1.0},
-    ]
+    from apps.master_data.models import ProductionStage
+    stages = ProductionStage.objects.all().order_by('sequence')
+    stage_breakdown = []
+    for stage in stages:
+        completed_count = sum(1 for b in all_batches if b.status == stage.code)
+        stage_breakdown.append({
+            "stage": stage.name,
+            "completedCount": completed_count,
+            "avgDays": 1.5
+        })
+    if not stage_breakdown:
+        stage_breakdown = [
+            {"stage": "Metal kesish", "completedCount": completed_batches, "avgDays": 1.5},
+            {"stage": "Payvandlash", "completedCount": completed_batches, "avgDays": 2.0},
+            {"stage": "Yig'ish", "completedCount": completed_batches, "avgDays": 1.5},
+            {"stage": "Sinov va qadoqlash", "completedCount": completed_batches, "avgDays": 1.0},
+        ]
 
     data = {
         "completedBatches": completed_batches,
@@ -333,11 +351,29 @@ def get_finance_report(request):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def get_services_report(request):
+    from apps.master_data.models import ServiceTicket
+    all_tickets = ServiceTicket.objects.all()
+
+    completed = sum(1 for t in all_tickets if t.status == "COMPLETED")
+    warranty = sum(1 for t in all_tickets if t.is_under_warranty)
+    paid = sum(1 for t in all_tickets if not t.is_under_warranty)
+    pending = sum(1 for t in all_tickets if t.status not in ["COMPLETED", "CANCELLED"])
+
+    type_totals = {}
+    for t in all_tickets:
+        name = t.service_type_name or "Boshqa xizmat"
+        type_totals[name] = type_totals.get(name, 0) + 1
+
+    service_types_breakdown = [
+        {"name": name, "value": count}
+        for name, count in type_totals.items()
+    ]
+
     data = {
-        "completedServices": 0,
-        "warrantyServices": 0,
-        "paidServices": 0,
-        "pendingServices": 0,
-        "serviceTypesBreakdown": []
+        "completedServices": completed,
+        "warrantyServices": warranty,
+        "paidServices": paid,
+        "pendingServices": pending,
+        "serviceTypesBreakdown": service_types_breakdown
     }
     return Response({"success": True, "data": data})

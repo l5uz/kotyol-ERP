@@ -27,6 +27,9 @@ const mapService = (item) => {
     attachments: item.attachments || [],
     timeline: item.timeline || [],
     serviceCost: Number(item.service_cost || item.serviceCost) || 0,
+    saleId: item.sale_id || item.saleId || '',
+    saleInvoiceNumber: item.sale_invoice_number || item.saleInvoiceNumber || '',
+    employeeCost: Number(item.employee_cost || item.employeeCost) || 0,
   };
 };
 
@@ -93,6 +96,8 @@ export const servicesApi = {
         production_number: serviceData.productionNumber || null,
         notes: serviceData.notes || '',
         service_cost: Number(serviceData.serviceCost) || 0,
+        sale_id: serviceData.saleId || null,
+        sale_invoice_number: serviceData.saleInvoiceNumber || null,
       };
       const response = await axiosInstance.post('/master-data/services/create', payload).catch(async () => {
         return await axiosInstance.post('/master-data/services', payload);
@@ -142,6 +147,8 @@ export const servicesApi = {
         order_number: updatedData.orderNumber,
         production_number: updatedData.productionNumber,
         notes: updatedData.notes,
+        sale_id: updatedData.saleId || null,
+        sale_invoice_number: updatedData.saleInvoiceNumber || null,
       };
       const response = await axiosInstance.put(`/master-data/services/${id}`, payload);
       const itemData = response?.data || response;
@@ -174,9 +181,9 @@ export const servicesApi = {
 
   async getBoilersList() {
     try {
-      const response = await axiosInstance.get('/products');
+      const response = await axiosInstance.get('/master-data/boilers');
       const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-      return { success: true, data: items.map((b) => ({ id: b.id, modelName: b.name, name: b.name, internalCode: b.code || 'SKU' })) };
+      return { success: true, data: items.map((b) => ({ id: b.id, modelName: b.name || b.model_name || 'Kotyol', name: b.name || b.model_name || 'Kotyol', internalCode: b.model_code || b.code || 'SKU' })) };
     } catch (err) {
       return { success: false, data: [], error: err };
     }
@@ -232,14 +239,66 @@ export const servicesApi = {
   },
 
   async getServiceStatuses() {
-    return {
-      success: true,
-      data: [
-        { value: 'NEW', label: 'Yangi' },
-        { value: 'IN_PROGRESS', label: 'Jarayonda' },
-        { value: 'COMPLETED', label: 'Yakunlangan' },
-        { value: 'CANCELLED', label: 'Bekor qilingan' },
-      ],
-    };
+    try {
+      const response = await axiosInstance.get('/master-data/order-statuses');
+      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      return {
+        success: true,
+        data: items.map((s) => ({ value: s.code || s.id, label: s.name, code: s.code, name: s.name })),
+      };
+    } catch (err) {
+      return {
+        success: true,
+        data: [
+          { value: 'NEW', label: 'Yangi', code: 'NEW', name: 'Yangi' },
+          { value: 'IN_PROGRESS', label: 'Jarayonda', code: 'IN_PROGRESS', name: 'Jarayonda' },
+          { value: 'COMPLETED', label: 'Yakunlangan', code: 'COMPLETED', name: 'Yakunlangan' },
+          { value: 'CANCELLED', label: 'Bekor qilingan', code: 'CANCELLED', name: 'Bekor qilingan' },
+        ],
+      };
+    }
+  },
+
+  async getSalesList() {
+    try {
+      const res = await axiosInstance.get('/sales');
+      const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      return {
+        success: true,
+        data: items.map((item) => ({
+          id: item.id,
+          invoiceNumber: item.invoice_number,
+          customerId: item.customer_id,
+          customerName: item.customer_name || 'Mijoz',
+          boilerId: item.boiler_id || item.product_id,
+          boilerModelName: item.boiler_model_name || item.product_name || 'Kotyol Modeli',
+          assignedEmployeeId: item.assigned_employee_id,
+          assignedEmployeeName: item.assigned_employee_name,
+          warrantyPeriod: item.warranty_period,
+          warrantyStartDate: item.warranty_start_date,
+          warrantyEndDate: item.warranty_end_date,
+          deliveryLocation: item.delivery_location,
+          notes: item.notes,
+          saleDate: item.created_at?.split('T')[0] || '',
+        })),
+      };
+    } catch (err) {
+      return { success: false, data: [], error: err };
+    }
+  },
+
+  async completeService(id, completionData) {
+    try {
+      const payload = {
+        service_cost: Number(completionData.serviceCost) || 0,
+        employee_cost: Number(completionData.employeeCost) || 0,
+      };
+      const response = await axiosInstance.post(`/master-data/services/${id}/complete`, payload);
+      const itemData = response?.data || response;
+      return { success: true, data: mapService(itemData), message: "Servis muvaffaqiyatli yakunlandi." };
+    } catch (err) {
+      console.error("completeService error:", err);
+      return { success: false, error: err, message: "Servisni yakunlashda xatolik yuz berdi." };
+    }
   },
 };

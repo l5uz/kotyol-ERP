@@ -10,9 +10,10 @@ import { RecipesSubNav } from '../components/RecipesSubNav';
 import { RecipeFilterBar } from '../components/RecipeFilterBar';
 import { RecipeFormModal } from '../components/RecipeFormModal';
 import { recipesApi } from '../api/recipesApi';
-import { productsApi } from '@/features/products/api/productsApi';
+import { productsApi } from '@/features/warehouse/api/productsApi';
 import { notifySuccess } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
+import { formatCurrency } from '@/utils/currency.utils';
 
 export const RecipesPage = () => {
   const [recipes, setRecipes] = useState([]);
@@ -27,10 +28,10 @@ export const RecipesPage = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
-    loadRecipesData();
+    loadRecipes();
   }, [search, productFilter, statusFilter]);
 
-  const loadRecipesData = async () => {
+  const loadRecipes = async () => {
     const [recRes, prodRes] = await Promise.all([
       recipesApi.getRecipes({
         search,
@@ -43,32 +44,34 @@ export const RecipesPage = () => {
     if (prodRes.success) setProducts(prodRes.data);
   };
 
-  const handleCreateOrUpdate = async (formData) => {
+  const handleSaveRecipe = async (formData) => {
     if (editingRecipe) {
       const res = await recipesApi.updateRecipe(editingRecipe.id, formData);
-      notifySuccess(res.message);
+      if (res.success) notifySuccess(res.message);
     } else {
       const res = await recipesApi.createRecipe(formData);
-      notifySuccess(res.message);
+      if (res.success) notifySuccess(res.message);
     }
     setIsModalOpen(false);
     setEditingRecipe(null);
-    loadRecipesData();
+    loadRecipes();
   };
 
-  const handleActivateVersion = async (recipeId) => {
-    const res = await recipesApi.activateVersion(recipeId);
-    notifySuccess(res.message);
-    loadRecipesData();
+  const handleActivate = async (id) => {
+    const res = await recipesApi.activateVersion(id);
+    if (res.success) {
+      notifySuccess(res.message);
+      loadRecipes();
+    }
   };
 
   const handleDelete = async () => {
     if (deletingRecipe) {
       const res = await recipesApi.deleteRecipe(deletingRecipe.id);
-      notifySuccess(res.message);
+      if (res.success) notifySuccess(res.message);
       setIsConfirmOpen(false);
       setDeletingRecipe(null);
-      loadRecipesData();
+      loadRecipes();
     }
   };
 
@@ -84,7 +87,10 @@ export const RecipesPage = () => {
         </div>
       ),
     },
-    { header: 'Tayyor Mahsulot', accessor: 'productName' },
+    {
+      header: 'Tannarx (Xarajat)',
+      cell: (row) => <span className="fw-semibold text-main">{formatCurrency(row.estimatedTotalCost || 0)}</span>,
+    },
     {
       header: 'Versiya',
       cell: (row) => <span className="badge bg-secondary bg-opacity-10 text-secondary fs-8 fw-bold">v{row.version}</span>,
@@ -189,7 +195,7 @@ export const RecipesPage = () => {
           setIsModalOpen(false);
           setEditingRecipe(null);
         }}
-        onSubmit={handleCreateOrUpdate}
+        onSubmit={handleSaveRecipe}
         recipe={editingRecipe}
         products={products}
       />

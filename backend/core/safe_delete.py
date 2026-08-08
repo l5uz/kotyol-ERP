@@ -10,36 +10,43 @@ class SafeDeleteService:
         from apps.sales.models import Sale
         from apps.warehouse.models import WarehouseStock
 
+        # Normalize key to plural form
+        key = str(entity_key).lower().strip().replace('_', '-')
+        if key.endswith('y'):
+            key = key[:-1] + 'ies'
+        elif not key.endswith('s'):
+            key = key + 's'
+
         total_references = 0
         entity_name_uz = 'Ushbu resurs'
 
-        if entity_key == 'product-categories':
+        if key == 'product-categories':
             total_references = Product.objects.filter(category_id=entity_id).exclude(status='ARCHIVED').count()
             entity_name_uz = 'kategoriya'
 
-        elif entity_key == 'units':
+        elif key == 'units':
             total_references = Product.objects.filter(unit_id=entity_id).exclude(status='ARCHIVED').count()
             entity_name_uz = "o'lchov birligi"
 
-        elif entity_key == 'material-types':
+        elif key == 'material-types':
             total_references = Product.objects.filter(material_type_id=entity_id).exclude(status='ARCHIVED').count()
             entity_name_uz = 'material turi'
 
-        elif entity_key == 'suppliers':
+        elif key == 'suppliers':
             p_count = Product.objects.filter(supplier_id=entity_id).exclude(status='ARCHIVED').count()
             pur_count = PurchaseItem.objects.filter(product_id=entity_id).count()
             total_references = p_count + pur_count
             entity_name_uz = 'yetkazib beruvchi'
 
-        elif entity_key == 'customers':
+        elif key == 'customers':
             total_references = Sale.objects.filter(customer_id=entity_id).count()
             entity_name_uz = 'mijoz'
 
-        elif entity_key == 'warehouses':
+        elif key == 'warehouses':
             total_references = WarehouseStock.objects.filter(warehouse_id=entity_id).count()
             entity_name_uz = 'ombor'
 
-        elif entity_key == 'products':
+        elif key == 'products':
             r_count = RecipeItem.objects.filter(material_product_id=entity_id).count()
             pur_count = PurchaseItem.objects.filter(product_id=entity_id).count()
             sale_count = Sale.objects.filter(product_id=entity_id).count()

@@ -13,7 +13,6 @@ import { ChangePasswordPage } from '@/features/auth/pages/ChangePasswordPage';
 import { SessionExpiredPage } from '@/features/auth/pages/SessionExpiredPage';
 
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
-import { SystemPage } from '@/features/system';
 import { AuditLogPage, AuditDetailPage } from '@/features/audit';
 import { ActivitiesPage } from '@/features/activities';
 
@@ -42,8 +41,6 @@ import {
   WarehousePage,
   WarehousesListPage,
   StockDetailPage,
-  MovementsPage,
-  MovementDetailPage,
   RevaluationPage,
   InventoryCountPage,
 } from '@/features/warehouse';
@@ -52,8 +49,8 @@ import { CustomersPage, CustomerDetailPage } from '@/features/customers';
 import { LeadsPage, LeadDetailPage } from '@/features/leads';
 
 import { SuppliersPage, SupplierDetailPage } from '@/features/suppliers';
-import { ProductsPage } from '@/features/products/pages/ProductsPage';
-import { ProductDetailPage } from '@/features/products/pages/ProductDetailPage';
+import { ProductsPage } from '@/features/warehouse/pages/ProductsPage';
+import { ProductDetailPage } from '@/features/warehouse/pages/ProductDetailPage';
 
 import {
   EmployeesPage,
@@ -116,8 +113,7 @@ export const router = createBrowserRouter([
           { path: '/profile', element: <ProfilePage /> },
           { path: '/change-password', element: <ChangePasswordPage /> },
 
-          // System Administration & Audit Routes
-          { path: '/system', element: <SystemPage /> },
+          // Audit Routes
           { path: '/audit', element: <AuditLogPage /> },
           { path: '/audit/:id', element: <AuditDetailPage /> },
 
@@ -173,8 +169,6 @@ export const router = createBrowserRouter([
           { path: '/warehouse/list', element: <WarehousesListPage /> },
           { path: '/warehouse/stock', element: <ProductsPage /> },
           { path: '/warehouse/stock/:id', element: <ProductDetailPage /> },
-          { path: '/warehouse/movements', element: <MovementsPage /> },
-          { path: '/warehouse/movements/:id', element: <MovementDetailPage /> },
           { path: '/warehouse/revaluation', element: <RevaluationPage /> },
           { path: '/warehouse/inventory-count', element: <InventoryCountPage /> },
 

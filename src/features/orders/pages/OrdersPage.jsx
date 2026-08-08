@@ -45,6 +45,7 @@ export const OrdersPage = () => {
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [isBulkCalcOpen, setIsBulkCalcOpen] = useState(false);
   const [bulkCalcData, setBulkCalcData] = useState([]);
+  const [archiveTab, setArchiveTab] = useState('ACTIVE'); // 'ACTIVE' or 'ARCHIVED'
 
   const statuses = dynamicSettingsService.getOrderStatuses();
   const priorities = dynamicSettingsService.getOrderPriorities();
@@ -92,6 +93,18 @@ export const OrdersPage = () => {
   const handleStartProduction = async (orderId) => {
     const res = await ordersApi.startProductionOrder(orderId);
     notifySuccess(res.message);
+    loadOrdersData();
+  };
+
+  const handleArchive = async (order) => {
+    const res = await ordersApi.updateOrder(order.id, { ...order, status: 'ARCHIVED' });
+    notifySuccess("Buyurtma arxivlandi.");
+    loadOrdersData();
+  };
+
+  const handleRestore = async (order) => {
+    const res = await ordersApi.updateOrder(order.id, { ...order, status: 'PENDING' });
+    notifySuccess("Buyurtma arxivdan chiqarildi.");
     loadOrdersData();
   };
 
@@ -150,6 +163,14 @@ export const OrdersPage = () => {
     setBulkCalcData(result);
     setIsBulkCalcOpen(true);
   };
+
+  const displayedOrders = orders.filter((o) => {
+    if (archiveTab === 'ACTIVE') {
+      return o.status !== 'ARCHIVED';
+    } else {
+      return o.status === 'ARCHIVED';
+    }
+  });
 
   const columns = [
     {
@@ -224,7 +245,7 @@ export const OrdersPage = () => {
       header: 'Mas\'ul Xodim',
       cell: (row) => (
         <span className="text-main fs-8 fw-semibold">
-          {row.assignedEmployeeName ? `👤 ${row.assignedEmployeeName}` : <span className="text-muted fs-8">Biriktirilmagan</span>}
+          {row.assignedEmployeeName ? `${row.assignedEmployeeName}` : <span className="text-muted fs-8">Biriktirilmagan</span>}
         </span>
       ),
     },
@@ -237,59 +258,99 @@ export const OrdersPage = () => {
       header: 'Amallar',
       cell: (row) => (
         <div className="d-flex align-items-center gap-1">
-          <button
-            className="btn btn-sm btn-outline-primary p-1 border-0"
-            onClick={() => setReceiptOrder(row)}
-            title="Chek chiqarish va Chop etish"
-          >
-            <LuPrinter />
-          </button>
-          <button
-            className="btn btn-sm btn-outline-success p-1 border-0"
-            onClick={() => setInsuranceOrder(row)}
-            title="Sug'urta Polisi va Bepul Servis Qog'ozi"
-          >
-            <LuAward />
-          </button>
-          <Link
-            to={`${ROUTES.PROTECTED.ORDERS}/${row.id}`}
-            className="btn btn-sm btn-outline-info p-1 border-0"
-            title="Tafsilotni ko'rish"
-          >
-            <LuEye />
-          </Link>
-          {canEdit && (
-            <button
-              className="btn btn-sm btn-outline-secondary p-1 border-0"
-              onClick={() => {
-                setEditingOrder(row);
-                setIsModalOpen(true);
-              }}
-              title="Tahrirlash"
-            >
-              <LuPencil />
-            </button>
-          )}
-          {canEdit && row.status !== 'IN_PRODUCTION' && row.status !== 'COMPLETED' && (
-            <button
-              className="btn btn-sm btn-outline-success p-1 border-0"
-              onClick={() => handleStartProduction(row.id)}
-              title="Ishlab Chiqarishni Boshlash"
-            >
-              <LuPlay />
-            </button>
-          )}
-          {canDelete && (
-            <button
-              className="btn btn-sm btn-outline-danger p-1 border-0"
-              onClick={() => {
-                setDeletingOrder(row);
-                setIsConfirmOpen(true);
-              }}
-              title="Bekor qilish / O'chirish"
-            >
-              <LuTrash2 />
-            </button>
+          {row.status === 'ARCHIVED' ? (
+            <>
+              <Link
+                to={`${ROUTES.PROTECTED.ORDERS}/${row.id}`}
+                className="btn btn-sm btn-outline-info p-1 border-0"
+                title="Tafsilotni ko'rish"
+              >
+                <LuEye />
+              </Link>
+              <button
+                className="btn btn-sm btn-outline-success p-1 border-0"
+                onClick={() => handleRestore(row)}
+                title="Arxivdan chiqarish"
+              >
+                <i className="bi bi-arrow-counterclockwise"></i>
+              </button>
+              {canDelete && (
+                <button
+                  className="btn btn-sm btn-outline-danger p-1 border-0"
+                  onClick={() => {
+                    setDeletingOrder(row);
+                    setIsConfirmOpen(true);
+                  }}
+                  title="Butkul O'chirish"
+                >
+                  <LuTrash2 />
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <button
+                className="btn btn-sm btn-outline-primary p-1 border-0"
+                onClick={() => setReceiptOrder(row)}
+                title="Chek chiqarish va Chop etish"
+              >
+                <LuPrinter />
+              </button>
+              <button
+                className="btn btn-sm btn-outline-success p-1 border-0"
+                onClick={() => setInsuranceOrder(row)}
+                title="Sug'urta Polisi va Bepul Servis Qog'ozi"
+              >
+                <LuAward />
+              </button>
+              <Link
+                to={`${ROUTES.PROTECTED.ORDERS}/${row.id}`}
+                className="btn btn-sm btn-outline-info p-1 border-0"
+                title="Tafsilotni ko'rish"
+              >
+                <LuEye />
+              </Link>
+              {canEdit && (
+                <button
+                  className="btn btn-sm btn-outline-secondary p-1 border-0"
+                  onClick={() => {
+                    setEditingOrder(row);
+                    setIsModalOpen(true);
+                  }}
+                  title="Tahrirlash"
+                >
+                  <LuPencil />
+                </button>
+              )}
+              {canEdit && row.status !== 'IN_PRODUCTION' && row.status !== 'COMPLETED' && (
+                <button
+                  className="btn btn-sm btn-outline-success p-1 border-0"
+                  onClick={() => handleStartProduction(row.id)}
+                  title="Ishlab Chiqarishni Boshlash"
+                >
+                  <LuPlay />
+                </button>
+              )}
+              <button
+                className="btn btn-sm btn-outline-warning p-1 border-0"
+                onClick={() => handleArchive(row)}
+                title="Arxivlash"
+              >
+                <i className="bi bi-archive"></i>
+              </button>
+              {canDelete && (
+                <button
+                  className="btn btn-sm btn-outline-danger p-1 border-0"
+                  onClick={() => {
+                    setDeletingOrder(row);
+                    setIsConfirmOpen(true);
+                  }}
+                  title="Bekor qilish / O'chirish"
+                >
+                  <LuTrash2 />
+                </button>
+              )}
+            </>
           )}
         </div>
       ),
@@ -330,6 +391,15 @@ export const OrdersPage = () => {
         }
       />
 
+      <div className="btn-group mb-3">
+        <button className={`btn ${archiveTab === 'ACTIVE' ? 'btn-success' : 'btn-outline-success'}`} onClick={() => setArchiveTab('ACTIVE')}>
+          Faol Buyurtmalar
+        </button>
+        <button className={`btn ${archiveTab === 'ARCHIVED' ? 'btn-warning text-dark' : 'btn-outline-warning'}`} onClick={() => setArchiveTab('ARCHIVED')}>
+          Arxiv (Bekor Qilingan)
+        </button>
+      </div>
+
       <OrderFilterBar
         search={search}
         onSearchChange={setSearch}
@@ -344,7 +414,7 @@ export const OrdersPage = () => {
         priorities={priorities}
       />
 
-      <Card title={`Buyurtmalar Reyestri (${orders.length} ta)`}>
+      <Card title={`Buyurtmalar Reyestri (${displayedOrders.length} ta)`}>
         {/* Sticky Bulk Action Bar */}
         {selectedOrderIds.length > 0 && (
           <div className="card-custom border-primary bg-primary bg-opacity-10 p-3 rounded-3 d-flex align-items-center justify-content-between mb-3 shadow-sm animate-fade-in">
@@ -370,7 +440,7 @@ export const OrdersPage = () => {
             </div>
           </div>
         )}
-        <Table columns={columns} data={orders} tableKey="orders_list" />
+        <Table columns={columns} data={displayedOrders} tableKey="orders_list" />
       </Card>
 
       {canCreate && (

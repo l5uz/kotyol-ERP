@@ -132,7 +132,7 @@ export const OrderDetailPage = () => {
       <div className="row g-3">
         {/* Main Details Panel */}
         <div className="col-12 col-lg-8">
-          <Card className="p-4 mb-3" title="📋 Buyurtma va Shartnoma Ma'lumotlari">
+          <Card className="p-4 mb-3" title="Buyurtma va Shartnoma Ma'lumotlari">
             <div className="row g-3 fs-7">
               <div className="col-6 col-md-4">
                 <span className="text-muted-custom d-block">Buyurtmachi Mijoz:</span>
@@ -148,7 +148,7 @@ export const OrderDetailPage = () => {
               </div>
 
               <div className="col-6 col-md-4">
-                <span className="text-muted-custom d-block">👤 Mas'ul Xodim:</span>
+                <span className="text-muted-custom d-block">Mas'ul Xodim:</span>
                 <strong className="text-primary fs-6">
                   {order.assignedEmployeeName || 'Biriktirilmagan'}
                 </strong>
@@ -161,25 +161,25 @@ export const OrderDetailPage = () => {
 
               <div className="col-6 col-md-4">
                 <div className="p-2 rounded bg-success bg-opacity-10 border border-success">
-                  <span className="text-success fs-8 d-block fw-bold">💰 Zaklad (Avans):</span>
+                  <span className="text-success fs-8 d-block fw-bold">Zaklad (Avans):</span>
                   <strong className="text-success fs-6">{formatCurrency(depositAmount)}</strong>
                 </div>
               </div>
 
               <div className="col-6 col-md-4">
                 <div className="p-2 rounded bg-warning bg-opacity-25 border border-warning">
-                  <span className="text-dark fs-8 d-block fw-bold">📦 Qolgan Summa:</span>
+                  <span className="text-dark fs-8 d-block fw-bold">Qolgan Summa:</span>
                   <strong className="text-danger fs-6">{formatCurrency(remainingAmount)}</strong>
                 </div>
               </div>
 
               <div className="col-6 col-md-4">
-                <span className="text-muted-custom d-block">📅 Buyurtma Sanasi:</span>
+                <span className="text-muted-custom d-block">Buyurtma Sanasi:</span>
                 <strong className="text-main">{order.orderDate}</strong>
               </div>
 
               <div className="col-6 col-md-4">
-                <span className="text-muted-custom d-block">🚚 Yetkazish Sanasi (Reja):</span>
+                <span className="text-muted-custom d-block">Yetkazish Sanasi (Reja):</span>
                 <strong className={isOverdue ? "text-danger" : "text-primary"}>
                   {deliveryDate || 'Belgilanmagan'}
                 </strong>
@@ -242,11 +242,11 @@ export const OrderDetailPage = () => {
               Mijozga zaklad summasi, yetkazish kuni va kechikish shartlari aks etgan rasmiy kvitansiya chekini chiqarib bering.
             </p>
             <Button variant="primary" className="w-100" icon={<LuPrinter />} onClick={() => setIsReceiptOpen(true)}>
-              🧾 Chekni Chiqarish
+              Chekni Chiqarish
             </Button>
           </Card>
 
-          <Card title="⏱️ Buyurtma Jarayoni Tarixi (Timeline)">
+          <Card title="Buyurtma Jarayoni Tarixi (Timeline)">
             <Timeline items={timelineItems} />
           </Card>
         </div>

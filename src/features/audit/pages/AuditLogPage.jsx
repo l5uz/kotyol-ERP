@@ -16,6 +16,7 @@ export const AuditLogPage = () => {
   const [actionFilter, setActionFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     loadAuditData();
@@ -29,27 +30,38 @@ export const AuditLogPage = () => {
       startDate,
       endDate,
     });
-    if (res.success) setAuditLogs(res.data);
+    if (res.success) {
+      setAuditLogs(res.data);
+      setTotalCount(res.pagination?.total || res.data.length);
+    }
   };
 
   usePageAutoRefresh(loadAuditData, { intervalMs: 15000 });
 
   const moduleOptions = [
     { value: '', label: 'Barcha Modullar' },
-    { value: 'sales', label: 'Sotuv' },
-    { value: 'production', label: 'Ishlab Chiqarish' },
-    { value: 'services', label: 'Servis' },
-    { value: 'warehouse', label: 'Ombor' },
-    { value: 'finance', label: 'Moliya' },
-    { value: 'orders', label: 'Buyurtmalar' },
+    { value: 'Sale', label: 'Sotuv' },
+    { value: 'Lead', label: 'Lid' },
+    { value: 'Order', label: 'Buyurtma' },
+    { value: 'ServiceTicket', label: 'Servis' },
+    { value: 'Product', label: 'Mahsulot' },
+    { value: 'Boiler', label: 'Kotyol' },
+    { value: 'Customer', label: 'Mijoz' },
+    { value: 'User', label: 'Foydalanuvchi' },
+    { value: 'FinanceTransaction', label: 'Moliya' },
+    { value: 'ProductionOrder', label: 'Ishlab Chiqarish' },
   ];
 
   const actionOptions = [
     { value: '', label: 'Barcha Amallar' },
     { value: 'CREATE', label: 'Yaratildi' },
-    { value: 'STAGE_UPDATE', label: 'Bosqich O\'zgartirildi' },
+    { value: 'UPDATE', label: 'Yangilandi' },
+    { value: 'DELETE', label: "O'chirildi" },
+    { value: 'LOGIN', label: 'Tizimga kirildi' },
+    { value: 'STAGE_UPDATE', label: "Bosqich O'zgartirildi" },
     { value: 'ASSIGN_EMPLOYEE', label: 'Xodim Biriktirildi' },
     { value: 'STOCK_MOVEMENT', label: 'Ombor Kirimi' },
+    { value: 'COMPLETE', label: 'Yakunlandi' },
   ];
 
   const handleReset = () => {
@@ -83,7 +95,7 @@ export const AuditLogPage = () => {
       cell: (row) => <span className="fw-semibold text-main fs-7">{row.actionLabel}</span>,
     },
     {
-      header: 'Tegishli Hujjat / Ob\'yekt',
+      header: "Tegishli Hujjat / Ob'yekt",
       cell: (row) => (
         <Link to={row.linkPath} className="fw-bold text-primary text-decoration-none fs-7">
           {row.affectedRecord}
@@ -143,7 +155,7 @@ export const AuditLogPage = () => {
         onReset={handleReset}
       />
 
-      <Card title={`Audit Jurnali Yozuvlari (${auditLogs.length} ta)`}>
+      <Card title={`Audit Jurnali Yozuvlari (${totalCount} ta)`}>
         <Table columns={columns} data={auditLogs} tableKey="audit_log_list" />
       </Card>
     </div>

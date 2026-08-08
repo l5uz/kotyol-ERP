@@ -16,13 +16,13 @@ export const RecipeFormModal = ({
   recipe = null,
   products = [],
 }) => {
-  const [productOptions, setProductOptions] = useState(products.filter((p) => p.type === 'FINISHED_GOOD' || p.type === undefined).map((p) => ({ value: p.id || p.productId, label: p.name || p.productName })));
+  const [productOptions, setProductOptions] = useState(products.map((p) => ({ value: p.id || p.productId, label: p.name || p.productName })));
   const [productList, setProductList] = useState(products);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
-    setProductOptions(products.filter((p) => p.type === 'FINISHED_GOOD' || p.type === undefined).map((p) => ({ value: p.id || p.productId, label: p.name || p.productName })));
+    setProductOptions(products.map((p) => ({ value: p.id || p.productId, label: p.name || p.productName })));
     setProductList(products);
   }, [products]);
 
@@ -47,29 +47,15 @@ export const RecipeFormModal = ({
       });
       setItems(recipe.items || []);
     } else if (isOpen) {
-      const firstProd = productList[0];
       setFormData({
-        recipeName: firstProd ? `${firstProd.name || firstProd.productName} Resepturasi` : '',
-        productId: firstProd ? (firstProd.id || firstProd.productId) : '',
+        recipeName: '',
+        productId: '',
         version: '1.0',
         status: 'ACTIVE',
         description: '',
       });
 
-      setItems([
-        {
-          id: `ritem_${Date.now()}`,
-          materialId: firstProd ? (firstProd.id || firstProd.productId) : '',
-          materialName: firstProd ? (firstProd.name || firstProd.productName) : '',
-          materialTypeName: firstProd ? (firstProd.materialTypeName || 'Po\'lat') : 'Po\'lat',
-          unitName: firstProd ? (firstProd.unitName || 'dona') : 'dona',
-          requiredQuantity: 10,
-          wastePercent: 2,
-          unitPrice: firstProd ? (firstProd.purchasePrice || firstProd.unitPrice || 0) : 0,
-          totalCost: firstProd ? ((firstProd.purchasePrice || 0) * 10 * 1.02) : 0,
-          notes: '',
-        },
-      ]);
+      setItems([]);
       setShowAdvanced(false);
     }
   }, [recipe, isOpen]);
@@ -131,25 +117,12 @@ export const RecipeFormModal = ({
       <form onSubmit={handleSubmit}>
         {/* Core Mandatory Header Fields */}
         <div className="row g-3 mb-3">
-          <div className="col-12 col-md-6">
+          <div className="col-12">
             <Input
               label="Retsept Nomi"
               placeholder="Sanoat Gidravlik Klapani 150mm Resepturasi"
               value={formData.recipeName}
               onChange={(e) => setFormData({ ...formData, recipeName: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="col-12 col-md-6">
-            <DynamicSelect
-              label="Tayyor Mahsulot"
-              value={formData.productId}
-              onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
-              options={productOptions}
-              managePath={ROUTES.PROTECTED.PRODUCTS}
-              onAddNew={handleAddNewProduct}
-              entityTitle="Tayyor Mahsulot"
               required
             />
           </div>

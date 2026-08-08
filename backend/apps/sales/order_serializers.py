@@ -123,7 +123,11 @@ class OrderResponseSerializer(serializers.Serializer):
 
     def get_delivery_date(self, obj):
         d = getattr(obj, 'delivery_date', None)
-        return d.isoformat() if d else ""
+        if not d:
+            return ""
+        if isinstance(d, str):
+            return d
+        return d.isoformat() if hasattr(d, 'isoformat') else str(d)
 
     def get_deliveryDate(self, obj):
         return self.get_delivery_date(obj)

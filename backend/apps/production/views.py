@@ -88,3 +88,41 @@ def production_batch_detail_view(request, id):
         request=request
     )
     return Response({"success": True, "data": {"id": id, "deleted": True}})
+
+@api_view(['PUT'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def complete_operation_view(request, op_id):
+    from apps.production.models import ProductionOperation
+    try:
+        op = ProductionOperation.objects.get(id=op_id)
+    except ProductionOperation.DoesNotExist:
+        raise CustomAppException(message="Operatsiya topilmadi", status_code=404)
+        
+    op.status = "COMPLETED"
+    op.save()
+    
+    # Generate financial transaction for worker salary if rate > 0
+    if op.rate > 0:
+        from apps.finance.models import FinancialTransaction
+        from apps.master_data.models import ExpenseType
+        import datetime
+        import uuid
+        
+        salary_exp_type, _ = ExpenseType.objects.get_or_create(
+            code="salary",
+            defaults={"name": "Ish haqi xarajatlari"}
+        )
+        
+        FinancialTransaction.objects.create(
+            transaction_number=f"SAL-OP-{datetime.datetime.now().strftime('%y%m%d%H%M%S')}-{str(uuid.uuid4())[:4].upper()}",
+            type="EXPENSE",
+            expense_type=salary_exp_type,
+            amount=op.rate,
+            currency="USD",
+            reference_id=str(op.id),
+            transaction_date=datetime.date.today(),
+            notes=f"Usta ish haqi (Operatsiya yakunlandi): {op.worker_name or 'Usta'} — Operatsiya: {op.operation_name}"
+        )
+        
+    return Response({"success": True, "message": "Operatsiya muvaffaqiyatli yakunlandi!"})

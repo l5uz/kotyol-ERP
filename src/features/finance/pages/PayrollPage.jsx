@@ -172,7 +172,7 @@ export const PayrollPage = () => {
       cell: (row) => <span className="text-main fs-7">{row.phone || '-'}</span>,
     },
     {
-      header: '💰 Hisoblangan Pul (Puli bor)',
+      header: 'Hisoblangan Pul (Puli bor)',
       cell: (row) => (
         <strong className="text-dark fs-7">
           {formatCurrency(row.earnedAmount)}
@@ -180,7 +180,7 @@ export const PayrollPage = () => {
       ),
     },
     {
-      header: '✅ To\'langan Summa',
+      header: 'To\'langan Summa',
       cell: (row) => (
         <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 fs-8 fw-bold">
           {formatCurrency(row.paidAmount)}
@@ -188,7 +188,7 @@ export const PayrollPage = () => {
       ),
     },
     {
-      header: '📦 Qolgan Qarzdorlik Balansi',
+      header: 'Qolgan Qarzdorlik Balansi',
       cell: (row) => (
         <strong className={row.remainingAmount > 0 ? "text-danger fs-7" : "text-success fs-7"}>
           {formatCurrency(row.remainingAmount)}
@@ -215,7 +215,7 @@ export const PayrollPage = () => {
       <FinanceSubNav />
 
       <PageHeader
-        title="💼 Xodimlar Ish Haqi va Maosh Boshqaruvi"
+        title="Xodimlar Ish Haqi va Maosh Boshqaruvi"
         subtitle="Har bir xodimlarning pul balansi, to'langan summasi va maosh to'lash reestri"
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },
@@ -288,7 +288,7 @@ export const PayrollPage = () => {
         <Modal
           isOpen={isPayModalOpen}
           onClose={() => setIsPayModalOpen(false)}
-          title={`💰 Ish Haqi To'lash: ${selectedEmployee.fullName}`}
+          title={`Ish Haqi To'lash: ${selectedEmployee.fullName}`}
           size="md"
           footer={
             <div className="d-flex justify-content-end gap-2 w-100">

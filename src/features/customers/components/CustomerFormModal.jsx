@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
@@ -8,7 +8,8 @@ import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { useFormDraftStore } from '@/store/useFormDraftStore';
 import { ROUTES } from '@/constants/routes.constants';
-import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck, LuShoppingCart, LuCalendar, LuDollarSign, LuShieldAlert } from 'react-icons/lu';
+import { boilersApi } from '@/features/boilers';
+import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuFileCheck, LuShoppingCart, LuCalendar, LuDollarSign, LuShieldAlert, LuSearch } from 'react-icons/lu';
 
 export const CustomerFormModal = ({
   isOpen,
@@ -25,6 +26,12 @@ export const CustomerFormModal = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isDraftRestored, setIsDraftRestored] = useState(false);
 
+  // Boiler selector states
+  const [boilerOptions, setBoilerOptions] = useState([]);
+  const [isBoilerDropdownOpen, setIsBoilerDropdownOpen] = useState(false);
+  const [boilerSearch, setBoilerSearch] = useState('');
+  const boilerRef = useRef(null);
+
   const todayStr = new Date().toISOString().split('T')[0];
   const defaultDeliveryStr = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
 
@@ -40,15 +47,35 @@ export const CustomerFormModal = ({
     district: '',
     address: '',
     notes: '',
-    boilerModelName: 'Kotyol K-50kW',
-    totalAmount: 18000000,
-    depositAmount: 5000000,
+    boilerModelName: '',
+    totalAmount: '',
+    depositAmount: '',
     orderDate: todayStr,
     deliveryDate: defaultDeliveryStr,
     autoDiscountOnLate: true,
     lateDiscountRate: 0.5,
     status: 'ACTIVE',
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      boilersApi.getBoilers().then((res) => {
+        if (res?.success) {
+          setBoilerOptions(res.data || []);
+        }
+      });
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (boilerRef.current && !boilerRef.current.contains(event.target)) {
+        setIsBoilerDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (customer) {
@@ -64,9 +91,9 @@ export const CustomerFormModal = ({
         district: customer.district || '',
         address: customer.address || '',
         notes: customer.notes || '',
-        boilerModelName: customer.boilerModelName || 'Kotyol K-50kW',
-        totalAmount: customer.totalAmount !== undefined ? customer.totalAmount : 18000000,
-        depositAmount: customer.depositAmount !== undefined ? customer.depositAmount : 5000000,
+        boilerModelName: customer.boilerModelName || '',
+        totalAmount: customer.totalAmount !== undefined ? customer.totalAmount : '',
+        depositAmount: customer.depositAmount !== undefined ? customer.depositAmount : '',
         orderDate: customer.orderDate || todayStr,
         deliveryDate: customer.deliveryDate || defaultDeliveryStr,
         autoDiscountOnLate: customer.autoDiscountOnLate !== undefined ? customer.autoDiscountOnLate : true,
@@ -83,7 +110,7 @@ export const CustomerFormModal = ({
         setFormData({
           customerTypeId: customerTypeOptions[0]?.value || '',
           customerName: '',
-          phone: '+998 ',
+          phone: '',
           altPhone: '',
           email: '',
           tin: '',
@@ -92,9 +119,9 @@ export const CustomerFormModal = ({
           district: '',
           address: '',
           notes: '',
-          boilerModelName: 'Kotyol K-50kW',
-          totalAmount: 18000000,
-          depositAmount: 5000000,
+          boilerModelName: '',
+          totalAmount: '',
+          depositAmount: '',
           orderDate: todayStr,
           deliveryDate: defaultDeliveryStr,
           autoDiscountOnLate: true,
@@ -141,6 +168,24 @@ export const CustomerFormModal = ({
     });
   };
 
+  const selectedBoilers = formData.boilerModelName
+    ? formData.boilerModelName.split(', ').filter(Boolean)
+    : [];
+
+  const handleToggleBoiler = (modelName) => {
+    let updated;
+    if (selectedBoilers.includes(modelName)) {
+      updated = selectedBoilers.filter((name) => name !== modelName);
+    } else {
+      updated = [...selectedBoilers, modelName];
+    }
+    handleFieldChange('boilerModelName', updated.join(', '));
+  };
+
+  const filteredBoilers = boilerOptions.filter((b) =>
+    (b.modelName || '').toLowerCase().includes(boilerSearch.toLowerCase())
+  );
+
   return (
     <Modal
       isOpen={isOpen}
@@ -150,7 +195,7 @@ export const CustomerFormModal = ({
           <span>{customer ? "Mijoz Ma'lumotlarini Tahrirlash" : "Yangi Mijoz va Buyurtma Qo'shish"}</span>
           {isDraftRestored && (
             <span className="badge bg-success bg-opacity-10 text-success fs-8 d-flex align-items-center gap-1">
-              <LuFileCheck /> 📝 Qoralama saqlangan ma'lumotdan tiklandi
+              <LuFileCheck /> Qoralama saqlangan ma'lumotdan tiklandi
             </span>
           )}
         </div>
@@ -177,7 +222,7 @@ export const CustomerFormModal = ({
               value={formData.customerTypeId}
               onChange={(e) => handleFieldChange('customerTypeId', e.target.value)}
               options={customerTypeOptions}
-              managePath={ROUTES.PROTECTED.SETTINGS}
+              managePath={`${ROUTES.PROTECTED.MASTER_DATA}?type=customerTypes`}
               onAddNew={handleAddNewCustomerType}
               entityTitle="Mijoz Turi"
               required
@@ -197,6 +242,7 @@ export const CustomerFormModal = ({
           <div className="col-12 col-md-3">
             <Input
               label="Asosiy Telefon Raqami"
+              type="tel"
               placeholder="+998 90 123 45 67"
               value={formData.phone}
               onChange={(e) => handleFieldChange('phone', e.target.value)}
@@ -213,13 +259,92 @@ export const CustomerFormModal = ({
           </h6>
 
           <div className="row g-3">
-            <div className="col-12 col-md-4">
-              <Input
-                label="Kotyol Modeli"
-                placeholder="Kotyol K-50kW Premium"
-                value={formData.boilerModelName}
-                onChange={(e) => handleFieldChange('boilerModelName', e.target.value)}
-              />
+            <div className="col-12 col-md-4 position-relative" ref={boilerRef}>
+              <label className="form-label fs-7 fw-medium text-main mb-1">
+                Kotyol Modellari
+              </label>
+              <button
+                type="button"
+                className="form-control text-start fs-7 d-flex align-items-center justify-content-between border-custom bg-body-custom text-main"
+                onClick={() => setIsBoilerDropdownOpen(!isBoilerDropdownOpen)}
+                style={{
+                  height: '40px',
+                  paddingLeft: '0.85rem',
+                  paddingRight: '0.85rem',
+                  cursor: 'pointer',
+                }}
+              >
+                <span className="text-truncate">
+                  {selectedBoilers.length > 0
+                    ? selectedBoilers.join(', ')
+                    : "Kotyol tanlang..."}
+                </span>
+                <LuChevronDown className="fs-6 text-muted-custom flex-shrink-0 ms-2" />
+              </button>
+
+              {isBoilerDropdownOpen && (
+                <div
+                  className="dropdown-menu show w-100 p-2 shadow-lg border-custom bg-body-custom animate-fade-in"
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    zIndex: 1070,
+                  }}
+                >
+                  {/* Sticky Search Bar inside Dropdown */}
+                  <div className="input-group input-group-sm mb-2">
+                    <span className="input-group-text bg-body-custom border-custom text-muted-custom">
+                      <LuSearch className="fs-7" />
+                    </span>
+                    <input
+                      type="text"
+                      className="form-control bg-body-custom text-main border-custom fs-8"
+                      placeholder="Qidirish..."
+                      value={boilerSearch}
+                      onChange={(e) => setBoilerSearch(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* Scrollable Checklist Options */}
+                  <div className="options-list" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {filteredBoilers.length > 0 ? (
+                      filteredBoilers.map((boiler) => {
+                        const isChecked = selectedBoilers.includes(boiler.modelName);
+                        return (
+                          <div
+                            key={boiler.id}
+                            className="d-flex align-items-center gap-2 dropdown-item rounded-2 py-2 px-3 fs-7 mb-1 text-main"
+                            onClick={() => handleToggleBoiler(boiler.modelName)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <input
+                              type="checkbox"
+                              className="form-check-input-custom"
+                              checked={isChecked}
+                              readOnly
+                              style={{
+                                cursor: 'pointer',
+                                width: '15px',
+                                height: '15px',
+                                accentColor: 'var(--bs-primary)',
+                              }}
+                            />
+                            <span className="text-truncate text-main" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                              {boiler.modelName}
+                            </span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-center py-3 text-muted-custom fs-8">
+                        Ma'lumot topilmadi
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="col-12 col-md-4">
@@ -234,7 +359,7 @@ export const CustomerFormModal = ({
 
             <div className="col-12 col-md-4">
               <Input
-                label="💰 Zaklad Miqdori (Avans)"
+                label="Zaklad Miqdori (Avans)"
                 type="number"
                 placeholder="5000000"
                 value={formData.depositAmount}
@@ -244,7 +369,7 @@ export const CustomerFormModal = ({
 
             <div className="col-12 col-md-6">
               <Input
-                label="📅 Zakaz Berilgan Sana"
+                label="Zakaz Berilgan Sana"
                 type="date"
                 value={formData.orderDate}
                 onChange={(e) => handleFieldChange('orderDate', e.target.value)}
@@ -253,7 +378,7 @@ export const CustomerFormModal = ({
 
             <div className="col-12 col-md-6">
               <Input
-                label="🚚 Yetib Borishi Kerak Bo'lgan Sana (Reja)"
+                label="Yetib Borishi Kerak Bo'lgan Sana (Reja)"
                 type="date"
                 value={formData.deliveryDate}
                 onChange={(e) => handleFieldChange('deliveryDate', e.target.value)}
@@ -272,7 +397,7 @@ export const CustomerFormModal = ({
                     onChange={(e) => handleFieldChange('autoDiscountOnLate', e.target.checked)}
                   />
                   <label className="form-check-label fw-semibold text-main cursor-pointer" htmlFor="autoDiscountSwitch">
-                    ⏱️ Sanadan o'tib ketsa avtomatik kotyol narxi arzonlashsin (Kechikish chegirmasi)
+                    Sanadan o'tib ketsa avtomatik kotyol narxi arzonlashsin (Kechikish chegirmasi)
                   </label>
                 </div>
 
@@ -315,6 +440,7 @@ export const CustomerFormModal = ({
               <div className="col-12 col-md-6">
                 <Input
                   label="Qo'shimcha Telefon Raqami"
+                  type="tel"
                   placeholder="+998 71 200 11 22"
                   value={formData.altPhone}
                   onChange={(e) => handleFieldChange('altPhone', e.target.value)}

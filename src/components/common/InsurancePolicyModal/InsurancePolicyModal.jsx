@@ -167,7 +167,7 @@ export const InsurancePolicyModal = ({
           {/* Certificate Title Banner */}
           <div className="text-center bg-primary text-white py-2 rounded-2 mb-4 shadow-sm">
             <h5 className="mb-0 fw-bold text-uppercase tracking-wider">
-              🛡️ RASMIY SUG'URTA POLISI VA BEPUL SERVIS GUVOHNOMASI
+              RASMIY SUG'URTA POLISI VA BEPUL SERVIS GUVOHNOMASI
             </h5>
             <small className="opacity-90">Ushbu hujjat mijozga sotilgan kotyolning bepul servis muddati va texnik sug'urtasini tasdiqlaydi</small>
           </div>
@@ -239,7 +239,7 @@ export const InsurancePolicyModal = ({
             <div className="mt-2 pt-2 border-top border-success border-opacity-25 fs-8 text-success d-flex align-items-center gap-1">
               <LuCircleCheck />
               <span>
-                <strong>Kafolat Holati:</strong> {isCurrentlyFree ? `🟢 BEPUL KAFOLATLI SERVIS FAOL (${freeServiceUntilDate} gacha 100% BEPUL)` : `🔴 Kafolat muddati tugagan`}
+                <strong>Kafolat Holati:</strong> {isCurrentlyFree ? `BEPUL KAFOLATLI SERVIS FAOL (${freeServiceUntilDate} gacha 100% BEPUL)` : `Kafolat muddati tugagan`}
               </span>
             </div>
           </div>
@@ -266,7 +266,7 @@ export const InsurancePolicyModal = ({
 
               <div className="col-12">
                 <div className="p-3 bg-white rounded border fs-8 text-secondary">
-                  <strong className="text-dark d-block mb-1">📜 Sug'urta va Bepul Servis Qoidalari:</strong>
+                  <strong className="text-dark d-block mb-1">Sug'urta va Bepul Servis Qoidalari:</strong>
                   <ol className="mb-0 ps-3">
                     <li className="mb-1">Kafolat muddati ({freeServiceUntilDate} gacha) davomida uskunadagi har qanday zavod defekti yoki nosozliklar bo'yicha barcha ehtiyot qismlar va ustalar mehnati <strong>100% BEPUL</strong> almashtiriladi.</li>
                     <li className="mb-1">Servis chaqiruvi tushgandan so'ng, servis brigadasi 24 soat ichida ob'ektga yetib borishi kafolatlanadi.</li>

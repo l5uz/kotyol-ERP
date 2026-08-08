@@ -239,7 +239,8 @@ export const warehouseApi = {
         productName: m.product_name || m.productName || 'Mahsulot',
         warehouseName: m.warehouse_name || m.warehouseName || 'Asosiy Ombor',
         quantity: Number(m.quantity) || 0,
-        unitName: 'dona',
+        unitName: m.unit_name || m.unitName || 'dona',
+        unitPrice: Number(m.avg_unit_cost || m.avgUnitCost || m.purchase_price || m.purchasePrice || 0),
         movementTypeName: 'Kirim',
         movementTypeCode: 'PURCHASE',
         reason: m.notes || m.reason || 'Ombor Kirimi',
@@ -326,13 +327,13 @@ export const warehouseApi = {
           const catList = Array.isArray(catRes?.data) ? catRes.data : Array.isArray(catRes) ? catRes : [];
           const unitList = Array.isArray(unitRes?.data) ? unitRes.data : Array.isArray(unitRes) ? unitRes : [];
 
-          const catId = catList[0]?.id;
-          const unitId = unitList[0]?.id;
+          const catId = isValidUUID(movementData.categoryId) ? movementData.categoryId : catList[0]?.id;
+          const unitId = isValidUUID(movementData.unitId) ? movementData.unitId : unitList[0]?.id;
 
           if (catId && unitId) {
             const createProdRes = await axiosInstance.post('/products', {
               name: movementData.productName,
-              code: `PRD-${Date.now().toString().slice(-6)}`,
+              code: movementData.internalCode || `PRD-${Date.now().toString().slice(-6)}`,
               type: 'FINISHED_GOOD',
               category_id: catId,
               unit_id: unitId,

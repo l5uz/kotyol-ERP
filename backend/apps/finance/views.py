@@ -6,6 +6,42 @@ from core.audit_helper import record_audit_log
 from apps.finance.models import FinancialTransaction
 from apps.finance.serializers import TransactionCreateSerializer, TransactionResponseSerializer
 
+def resolve_expense_type_id(exp_type_id):
+    if not exp_type_id or not str(exp_type_id).strip() or str(exp_type_id).strip() in ["undefined", "null"]:
+        return None
+    
+    from apps.master_data.models import ExpenseType
+    from django.db import models
+    import uuid
+    
+    val = str(exp_type_id).strip()
+    is_uuid = False
+    try:
+        uuid.UUID(val)
+        is_uuid = True
+    except ValueError:
+        pass
+        
+    if is_uuid:
+        obj = ExpenseType.objects.filter(id=val).first()
+        if obj:
+            return obj.id
+            
+    # Try finding by code or name
+    obj = ExpenseType.objects.filter(
+        models.Q(code__iexact=val) | models.Q(name__icontains=val)
+    ).first()
+    if obj:
+        return obj.id
+        
+    # Auto-create
+    code_val = val.upper()
+    name_val = val.capitalize()
+    if code_val == "SALARY":
+        name_val = "Ish haqi"
+    obj = ExpenseType.objects.create(code=code_val, name=name_val)
+    return obj.id
+
 @api_view(['GET', 'POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -43,9 +79,7 @@ def financial_transactions_view(request):
     if not t_date:
         t_date = datetime.date.today()
 
-    exp_type_id = (body_data.get("expense_type_id") or "").strip()
-    if not exp_type_id or exp_type_id in ["undefined", "null"]:
-        exp_type_id = None
+    exp_type_id = resolve_expense_type_id(body_data.get("expense_type_id"))
 
     notes = body_data.get("notes") or body_data.get("description") or ""
 
@@ -90,7 +124,9 @@ def transaction_detail_view(request, id):
         body_data = serializer.validated_data
         for k, v in body_data.items():
             if hasattr(tx, k) and v is not None:
-                if k in ['expense_type_id', 'reference_id'] and (not v or v in ['undefined', 'null']):
+                if k == 'expense_type_id':
+                    v = resolve_expense_type_id(v)
+                elif k == 'reference_id' and (not v or v in ['undefined', 'null']):
                     v = None
                 if k == 'notes' and not v:
                     v = body_data.get('description') or ''

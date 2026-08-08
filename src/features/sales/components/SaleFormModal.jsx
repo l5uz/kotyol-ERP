@@ -15,6 +15,7 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
   const [customers, setCustomers] = useState([]);
   const [boilers, setBoilers] = useState([]);
   const [salesStatuses, setSalesStatuses] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
   const [formData, setFormData] = useState({
     invoiceNumber: '',
@@ -26,6 +27,13 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
     taxRate: 12,
     status: 'COMPLETED',
     saleDate: new Date().toISOString().split('T')[0],
+    assignedEmployeeId: '',
+    assignedEmployeeName: '',
+    warrantyPeriod: '24 oy',
+    warrantyStartDate: new Date().toISOString().split('T')[0],
+    warrantyEndDate: '',
+    deliveryLocation: '',
+    notes: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -46,9 +54,21 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
         taxRate: sale.taxRate || 12,
         status: sale.status || 'COMPLETED',
         saleDate: sale.saleDate || new Date().toISOString().split('T')[0],
+        assignedEmployeeId: sale.assignedEmployeeId || '',
+        assignedEmployeeName: sale.assignedEmployeeName || '',
+        warrantyPeriod: sale.warrantyPeriod || '24 oy',
+        warrantyStartDate: sale.warrantyStartDate || sale.saleDate || new Date().toISOString().split('T')[0],
+        warrantyEndDate: sale.warrantyEndDate || '',
+        deliveryLocation: sale.deliveryLocation || '',
+        notes: sale.notes || '',
       });
     } else {
       const autoNumber = documentNumberingService.generateNumber('SALES');
+      const today = new Date().toISOString().split('T')[0];
+      const twoYearsLater = new Date();
+      twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+      const twoYearsLaterStr = twoYearsLater.toISOString().split('T')[0];
+
       setFormData({
         invoiceNumber: autoNumber,
         customerId: '',
@@ -58,22 +78,31 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
         discountAmount: 0,
         taxRate: 12,
         status: 'COMPLETED',
-        saleDate: new Date().toISOString().split('T')[0],
+        saleDate: today,
+        assignedEmployeeId: '',
+        assignedEmployeeName: '',
+        warrantyPeriod: '24 oy',
+        warrantyStartDate: today,
+        warrantyEndDate: twoYearsLaterStr,
+        deliveryLocation: '',
+        notes: '',
       });
     }
     setErrors({});
   }, [sale, isOpen]);
 
   const loadSelectData = async () => {
-    const [custRes, boilRes, stRes] = await Promise.all([
+    const [custRes, boilRes, stRes, empRes] = await Promise.all([
       salesApi.getCustomersList(),
       salesApi.getBoilersList(),
       salesApi.getSalesStatuses(),
+      salesApi.getEmployeesList(),
     ]);
 
     if (custRes.success) setCustomers(custRes.data);
     if (boilRes.success) setBoilers(boilRes.data);
     if (stRes.success) setSalesStatuses(stRes.data);
+    if (empRes.success) setEmployees(empRes.data);
   };
 
   const selectedBoiler = boilers.find((b) => b.id === formData.boilerId);
@@ -83,6 +112,74 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
       setFormData((prev) => ({ ...prev, unitPrice: selectedBoiler.basePrice }));
     }
   }, [formData.boilerId, selectedBoiler, sale]);
+
+  useEffect(() => {
+    if (formData.customerId && customers.length > 0 && boilers.length > 0 && !sale) {
+      const selectedCust = customers.find((c) => c.id === formData.customerId);
+      if (selectedCust && selectedCust.boilerModelName) {
+        const assignedNames = selectedCust.boilerModelName.split(', ').filter(Boolean);
+        if (assignedNames.length > 0) {
+          const matchingBoiler = boilers.find((b) =>
+            assignedNames.some((name) => (b.name || b.modelName || '').toLowerCase().includes(name.toLowerCase()))
+          );
+          if (matchingBoiler) {
+            setFormData((prev) => ({ 
+              ...prev, 
+              boilerId: matchingBoiler.id,
+              unitPrice: matchingBoiler.basePrice || prev.unitPrice 
+            }));
+          }
+        }
+      }
+    }
+  }, [formData.customerId, customers, boilers, sale]);
+
+  const selectedCustomerObj = customers.find((c) => c.id === formData.customerId);
+
+  useEffect(() => {
+    if (selectedCustomerObj && !sale) {
+      setFormData((prev) => ({
+        ...prev,
+        deliveryLocation: selectedCustomerObj.address || selectedCustomerObj.region || prev.deliveryLocation,
+      }));
+    }
+  }, [formData.customerId, selectedCustomerObj, sale]);
+
+  const handleStartDateChange = (dateVal) => {
+    setFormData((prev) => {
+      const start = new Date(dateVal);
+      let durationMonths = 24;
+      if (prev.warrantyPeriod.toLowerCase().includes('12')) durationMonths = 12;
+      else if (prev.warrantyPeriod.toLowerCase().includes('36')) durationMonths = 36;
+      else if (prev.warrantyPeriod.toLowerCase().includes('6')) durationMonths = 6;
+      
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + durationMonths);
+      return {
+        ...prev,
+        warrantyStartDate: dateVal,
+        warrantyEndDate: end.toISOString().split('T')[0],
+      };
+    });
+  };
+
+  const handlePeriodChange = (periodVal) => {
+    setFormData((prev) => {
+      const start = prev.warrantyStartDate ? new Date(prev.warrantyStartDate) : new Date();
+      let durationMonths = 24;
+      if (periodVal.toLowerCase().includes('12')) durationMonths = 12;
+      else if (periodVal.toLowerCase().includes('36')) durationMonths = 36;
+      else if (periodVal.toLowerCase().includes('6')) durationMonths = 6;
+      
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + durationMonths);
+      return {
+        ...prev,
+        warrantyPeriod: periodVal,
+        warrantyEndDate: end.toISOString().split('T')[0],
+      };
+    });
+  };
 
   const subtotal = formData.quantity * formData.unitPrice;
   const financialTotals = businessRulesService.calculateFinancialTotals({
@@ -124,8 +221,6 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
     onSave();
     onClose();
   };
-
-  const selectedCustomerObj = customers.find((c) => c.id === formData.customerId);
 
   return (
     <Modal
@@ -180,7 +275,18 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
               value={formData.boilerId}
               onChange={(e) => setFormData({ ...formData, boilerId: e.target.value })}
               error={errors.boilerId}
-              options={boilers.map((b) => ({ value: b.id, label: b.name || b.modelName }))}
+              options={(() => {
+                const selectedCust = customers.find((c) => c.id === formData.customerId);
+                const assignedNames = selectedCust?.boilerModelName?.split(', ').filter(Boolean) || [];
+                const filtered = boilers.filter((b) => {
+                  if (assignedNames.length === 0) return true;
+                  return assignedNames.some((name) =>
+                    (b.name || b.modelName || '').toLowerCase().includes(name.toLowerCase())
+                  );
+                });
+                const finalBoilers = filtered.length > 0 ? filtered : boilers;
+                return finalBoilers.map((b) => ({ value: b.id, label: b.name || b.modelName }));
+              })()}
               placeholder="Kotyol modelini tanlang"
               required
               managePath="/boilers"
@@ -225,6 +331,81 @@ export const SaleFormModal = ({ isOpen, onClose, sale, onSave }) => {
               value={formData.discountAmount}
               onChange={(e) => setFormData({ ...formData, discountAmount: Number(e.target.value) })}
             />
+          </div>
+        </div>
+
+        <div className="row g-2 border-top border-custom pt-3 mt-2">
+          <h6 className="fw-semibold text-main font-heading mb-1 col-12">Mas'ul va Kafolat Tafsilotlari</h6>
+          
+          <div className="col-12 col-md-6">
+            <Select
+              label="Sotuvga mas'ul xodim"
+              value={formData.assignedEmployeeId}
+              onChange={(e) => {
+                const emp = employees.find((emp) => emp.id === e.target.value);
+                setFormData({
+                  ...formData,
+                  assignedEmployeeId: e.target.value,
+                  assignedEmployeeName: emp ? emp.fullName : '',
+                });
+              }}
+              options={[
+                { value: '', label: 'Xodimni tanlang' },
+                ...employees.map((e) => ({ value: e.id, label: `${e.fullName} (${e.positionName})` }))
+              ]}
+            />
+          </div>
+
+          <div className="col-12 col-md-6">
+            <Input
+              label="Yetkazib berish manzili"
+              value={formData.deliveryLocation}
+              onChange={(e) => setFormData({ ...formData, deliveryLocation: e.target.value })}
+              placeholder="Faktura bo'yicha manzil..."
+            />
+          </div>
+
+          <div className="col-12 col-md-4">
+            <Select
+              label="Kafolat muddati"
+              value={formData.warrantyPeriod}
+              onChange={(e) => handlePeriodChange(e.target.value)}
+              options={[
+                { value: '6 oy', label: '6 oy' },
+                { value: '12 oy', label: '12 oy (1 yil)' },
+                { value: '24 oy', label: '24 oy (2 yil)' },
+                { value: '36 oy', label: '36 oy (3 yil)' },
+              ]}
+            />
+          </div>
+
+          <div className="col-12 col-md-4">
+            <Input
+              label="Kafolat boshlanish sanasi"
+              type="date"
+              value={formData.warrantyStartDate}
+              onChange={(e) => handleStartDateChange(e.target.value)}
+            />
+          </div>
+
+          <div className="col-12 col-md-4">
+            <Input
+              label="Kafolat tugash sanasi"
+              type="date"
+              value={formData.warrantyEndDate}
+              onChange={(e) => setFormData({ ...formData, warrantyEndDate: e.target.value })}
+            />
+          </div>
+
+          <div className="col-12">
+            <label className="form-label fs-7 fw-medium text-main">Sotuv bo'yicha maxsus izoh yoki shartlar</label>
+            <textarea
+              className="form-control fs-7"
+              rows="2"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Shartnoma shartlari, to'lov rejasi yoki boshqa eslatmalar..."
+            ></textarea>
           </div>
         </div>
 

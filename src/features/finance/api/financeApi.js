@@ -33,21 +33,26 @@ export const financeApi = {
       const txs = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
       const incomes = txs.filter((t) => t.type === 'INCOME').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
       const expenses = txs.filter((t) => t.type === 'EXPENSE').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+      
+      const profit = incomes - expenses;
+      const efficiencyVal = incomes > 0 ? Math.max(0, Math.min(100, (profit / incomes) * 100)) : 0;
+      const roiVal = expenses > 0 ? (profit / expenses) * 100 : 0;
+
       return {
         success: true,
         data: {
           totalRevenue: `$${incomes.toLocaleString()}`,
           totalExpenses: `$${expenses.toLocaleString()}`,
-          netProfit: `$${(incomes - expenses).toLocaleString()}`,
-          efficiencyScore: "94.2%",
-          roiRate: "+18.4%",
+          netProfit: `$${profit.toLocaleString()}`,
+          efficiencyScore: `${efficiencyVal.toFixed(1)}%`,
+          roiRate: `${roiVal >= 0 ? '+' : ''}${roiVal.toFixed(1)}%`,
         }
       };
     } catch (err) {
       console.error("getMetrics error:", err);
       return {
         success: false,
-        data: { totalRevenue: "$0", totalExpenses: "$0", netProfit: "$0", efficiencyScore: "100%", roiRate: "0%" },
+        data: { totalRevenue: "$0", totalExpenses: "$0", netProfit: "$0", efficiencyScore: "0.0%", roiRate: "0.0%" },
         error: err,
       };
     }

@@ -145,6 +145,14 @@ export const ServiceDetailPage = () => {
             <hr className="border-custom my-3" />
 
             <div className="text-start fs-7 d-flex flex-column gap-1 bg-body-custom p-3 rounded-3 border-custom">
+              {service.saleInvoiceNumber && (
+                <div className="d-flex justify-content-between">
+                  <span className="text-muted-custom">Sotuv Fakturasi №:</span>
+                  <Link to={`${ROUTES.PROTECTED.SALES}/${service.saleId}`} className="fw-bold text-primary text-decoration-none">
+                    {service.saleInvoiceNumber}
+                  </Link>
+                </div>
+              )}
               <div className="d-flex justify-content-between">
                 <span className="text-muted-custom">Tegishli Buyurtma №:</span>
                 <span className="fw-bold text-primary">{service.orderNumber}</span>

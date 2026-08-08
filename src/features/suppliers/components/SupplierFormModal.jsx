@@ -123,6 +123,7 @@ export const SupplierFormModal = ({ isOpen, onClose, supplier, onSave }) => {
           <div className="col-12 col-md-6">
             <Input
               label="Telefon Raqami"
+              type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               error={errors.phone}

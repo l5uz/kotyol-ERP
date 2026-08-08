@@ -175,6 +175,7 @@ export const BranchesManagementPage = () => {
           />
           <Input
             label="Telefon Raqami"
+            type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="Masalan, +998931234567"

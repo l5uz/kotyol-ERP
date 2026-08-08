@@ -19,7 +19,8 @@ class Product(BaseModel):
 
 class Recipe(BaseModel):
     recipe_number = models.CharField(max_length=50, unique=True)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, db_column='product_id', related_name='recipes')
+    recipe_name = models.CharField(max_length=255, default="Nomsiz Retseptura")
+    product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, blank=True, db_column='product_id', related_name='recipes')
     version = models.CharField(max_length=20, default="v1.0")
     estimated_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
 

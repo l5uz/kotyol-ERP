@@ -149,11 +149,11 @@ export const CustomerDetailPage = () => {
             </Link>
 
             <Button variant="primary" size="sm" icon={<LuPrinter />} onClick={() => setIsReceiptOpen(true)}>
-              🖨️ Chek Chop Etish
+              Chek Chop Etish
             </Button>
 
             <Button variant="outline-success" size="sm" icon={<LuAward />} onClick={() => setIsInsuranceModalOpen(true)}>
-              🛡️ Sug'urta Polisi
+              Sug'urta Polisi
             </Button>
           </div>
         }
@@ -218,7 +218,7 @@ export const CustomerDetailPage = () => {
               Mijozga to'langan zaklad, zakaz sanasi, yetkazib berish muddati va kechikish chegirmalari ko'rsatilgan rasmiy chekni chop etib bering.
             </p>
             <Button variant="primary" className="w-100" icon={<LuPrinter />} onClick={() => setIsReceiptOpen(true)}>
-              🧾 Chekni Chiqarish va Chop Etish
+              Chekni Chiqarish va Chop Etish
             </Button>
           </Card>
         </div>
@@ -226,7 +226,7 @@ export const CustomerDetailPage = () => {
         {/* Right Column: Order, Deposit & Contract Details */}
         <div className="col-12 col-lg-8">
           {/* Order & Deposit Financial Overview */}
-          <Card className="mb-3" title="💰 Buyurtma, Zaklad va Yetkazish Muddatlari">
+          <Card className="mb-3" title="Buyurtma, Zaklad va Yetkazish Muddatlari">
             <div className="row g-3 fs-7">
               <div className="col-12 col-md-6">
                 <div className="p-3 rounded bg-body-custom border-custom">
@@ -244,28 +244,28 @@ export const CustomerDetailPage = () => {
 
               <div className="col-12 col-md-6">
                 <div className="p-3 rounded bg-success bg-opacity-10 border-success border">
-                  <span className="text-success fs-8 d-block mb-1 fw-bold">💰 Zaklad Miqdori (Avans To'langan):</span>
+                  <span className="text-success fs-8 d-block mb-1 fw-bold">Zaklad Miqdori (Avans To'langan):</span>
                   <strong className="text-success fs-5">{formatCurrency(depositAmount)}</strong>
                 </div>
               </div>
 
               <div className="col-12 col-md-6">
                 <div className="p-3 rounded bg-warning bg-opacity-25 border-warning border">
-                  <span className="text-dark fs-8 d-block mb-1 fw-bold">📦 Qolgan To'lanadigan Summa:</span>
+                  <span className="text-dark fs-8 d-block mb-1 fw-bold">Qolgan To'lanadigan Summa:</span>
                   <strong className="text-danger fs-5">{formatCurrency(remainingAmount)}</strong>
                 </div>
               </div>
 
               <div className="col-12 col-md-6">
                 <div className="p-3 rounded bg-body-custom border-custom">
-                  <span className="text-muted-custom fs-8 d-block mb-1">📅 Zakaz Berilgan Sana</span>
+                  <span className="text-muted-custom fs-8 d-block mb-1">Zakaz Berilgan Sana</span>
                   <strong className="text-main">{orderDate}</strong>
                 </div>
               </div>
 
               <div className="col-12 col-md-6">
                 <div className="p-3 rounded bg-body-custom border-custom">
-                  <span className="text-muted-custom fs-8 d-block mb-1">🚚 Yetib Borishi Kerak Bo'lgan Sana (Reja)</span>
+                  <span className="text-muted-custom fs-8 d-block mb-1">Yetib Borishi Kerak Bo'lgan Sana (Reja)</span>
                   <strong className={isOverdue ? "text-danger" : "text-primary"}>
                     {deliveryDate || 'Belgilanmagan'}
                   </strong>
@@ -298,7 +298,7 @@ export const CustomerDetailPage = () => {
                         </div>
                       ) : (
                         <div className="alert alert-info mb-0 fs-8 d-flex align-items-center gap-2">
-                          <span>🚚 <strong>Yetkazib berish vaqti:</strong> Rejadagi sanagacha dinamik <strong>{daysRemaining} kun</strong> qoldi.</span>
+                          <span><strong>Yetkazib berish vaqti:</strong> Rejadagi sanagacha dinamik <strong>{daysRemaining} kun</strong> qoldi.</span>
                         </div>
                       )}
                     </div>

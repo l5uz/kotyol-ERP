@@ -3,6 +3,7 @@ import { getActiveCurrency } from '@/utils/currency.utils';
 import { warehouseApi } from '@/features/warehouse/api/warehouseApi';
 import { recipesApi } from '@/features/recipes/api/recipesApi';
 import { boilersApi } from '@/features/boilers/api/boilersApi';
+import { customersApi } from '@/features/customers/api/customersApi';
 
 const isValidUUID = (str) =>
   typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -22,7 +23,7 @@ const mapSale = (item) => {
     customerId: item.customer_id || '',
     customerName: item.customer_name || 'Xaridor',
     boilerId: item.boiler_id || '',
-    boilerModelName: item.product_name || 'Kotyol Modeli',
+    boilerModelName: item.boiler_model_name || item.product_name || 'Kotyol Modeli',
     quantity: qty,
     unitPrice: price,
     totalAmount: total,
@@ -40,8 +41,14 @@ const mapSale = (item) => {
     deliveryStatus: item.delivery_status || 'PENDING',
     paymentMethod: 'Naqd / Bank',
     currency: getActiveCurrency(),
-    status: 'COMPLETED',
-    notes: '',
+    status: item.status || 'ACTIVE',
+    assignedEmployeeId: item.assigned_employee_id || '',
+    assignedEmployeeName: item.assigned_employee_name || '',
+    warrantyPeriod: item.warranty_period || '',
+    warrantyStartDate: item.warranty_start_date || '',
+    warrantyEndDate: item.warranty_end_date || '',
+    deliveryLocation: item.delivery_location || '',
+    notes: item.notes || '',
     timeline: [],
   };
 };
@@ -121,6 +128,13 @@ export const salesApi = {
         discount_amount: Number(saleData.discountAmount) || 0.0,
         tax_amount: Number(saleData.taxAmount) || 0.0,
         exchange_rate_at_creation: 1.0,
+        assigned_employee_id: saleData.assignedEmployeeId || null,
+        assigned_employee_name: saleData.assignedEmployeeName || null,
+        warranty_period: saleData.warrantyPeriod || null,
+        warranty_start_date: saleData.warrantyStartDate || null,
+        warranty_end_date: saleData.warrantyEndDate || null,
+        delivery_location: saleData.deliveryLocation || null,
+        notes: saleData.notes || '',
       };
 
       const response = await axiosInstance.post('/sales', payload);
@@ -179,6 +193,14 @@ export const salesApi = {
         discount_amount: Number(updatedData.discountAmount) || 0.0,
         tax_amount: Number(updatedData.taxAmount) || 0.0,
         exchange_rate_at_creation: 1.0,
+        status: updatedData.status || undefined,
+        assigned_employee_id: updatedData.assignedEmployeeId || null,
+        assigned_employee_name: updatedData.assignedEmployeeName || null,
+        warranty_period: updatedData.warrantyPeriod || null,
+        warranty_start_date: updatedData.warrantyStartDate || null,
+        warranty_end_date: updatedData.warrantyEndDate || null,
+        delivery_location: updatedData.deliveryLocation || null,
+        notes: updatedData.notes || '',
       };
 
       const response = await axiosInstance.put(`/sales/${id}`, payload);
@@ -201,9 +223,11 @@ export const salesApi = {
 
   async getCustomersList() {
     try {
-      const response = await axiosInstance.get('/master-data/customers');
-      const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-      return { success: true, data: items.map((c) => ({ id: c.id, name: c.name })) };
+      const res = await customersApi.getCustomers();
+      if (res.success) {
+        return { success: true, data: res.data };
+      }
+      return { success: false, data: [] };
     } catch (err) {
       return { success: false, data: [], error: err };
     }
@@ -211,9 +235,38 @@ export const salesApi = {
 
   async getBoilersList() {
     try {
-      const response = await axiosInstance.get('/products');
+      const res = await boilersApi.getBoilers();
+      if (res.success) {
+        return {
+          success: true,
+          data: (res.data || []).map((b) => ({
+            id: b.id,
+            name: b.modelName,
+            modelName: b.modelName,
+            basePrice: b.basePrice || b.costBreakdown?.totalCost || 0,
+          })),
+        };
+      }
+      return { success: false, data: [] };
+    } catch (err) {
+      return { success: false, data: [], error: err };
+    }
+  },
+
+  async getEmployeesList() {
+    try {
+      const response = await axiosInstance.get('/auth/employees');
       const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-      return { success: true, data: items.map((b) => ({ id: b.id, name: b.name, basePrice: b.unit_price || 0 })) };
+      return {
+        success: true,
+        data: items.map((e) => ({
+          id: e.id,
+          firstName: e.full_name?.split(' ')[0] || 'Usta',
+          lastName: e.full_name?.split(' ').slice(1).join(' ') || '',
+          fullName: e.full_name || '',
+          positionName: e.position_name || e.role || 'Xodim',
+        })),
+      };
     } catch (err) {
       return { success: false, data: [], error: err };
     }

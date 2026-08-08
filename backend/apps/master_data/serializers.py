@@ -47,6 +47,10 @@ class MasterDataCreateSerializer(serializers.Serializer):
     order_number = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     production_number = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     notes = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    sale_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    sale_invoice_number = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    service_cost = serializers.FloatField(required=False, default=0.0)
+    employee_cost = serializers.FloatField(required=False, default=0.0)
 
 class MasterDataUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
@@ -90,6 +94,10 @@ class MasterDataUpdateSerializer(serializers.Serializer):
     order_number = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     production_number = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     notes = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    sale_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    sale_invoice_number = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    service_cost = serializers.FloatField(required=False)
+    employee_cost = serializers.FloatField(required=False)
 
 class MasterDataResponseSerializer(serializers.Serializer):
     id = serializers.CharField()
@@ -135,8 +143,31 @@ class MasterDataResponseSerializer(serializers.Serializer):
     order_number = serializers.CharField(allow_null=True, required=False)
     production_number = serializers.CharField(allow_null=True, required=False)
     notes = serializers.CharField(allow_null=True, required=False)
+    sale_id = serializers.CharField(allow_null=True, required=False)
+    sale_invoice_number = serializers.CharField(allow_null=True, required=False)
+    service_cost = serializers.FloatField(required=False)
+    employee_cost = serializers.FloatField(required=False)
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # Dynamic mapping for Unit symbol -> short_name
+        if hasattr(instance, 'symbol'):
+            ret['short_name'] = instance.symbol
+            ret['shortName'] = instance.symbol
+
+        # Dynamic mapping for Currency exchange_rate -> rate_to_usd
+        if hasattr(instance, 'exchange_rate'):
+            ret['rate_to_usd'] = float(instance.exchange_rate)
+            ret['exchange_rate'] = float(instance.exchange_rate)
+
+        # Dynamic mapping for WarrantyType months -> duration
+        if hasattr(instance, 'months'):
+            ret['duration'] = int(instance.months)
+            ret['duration_months'] = int(instance.months)
+
+        return ret
 
 
 class CompanyUpdateSerializer(serializers.Serializer):

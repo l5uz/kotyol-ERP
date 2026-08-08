@@ -1,5 +1,5 @@
 import { axiosInstance } from '@/api/axiosInstance';
-import { productsApi } from '@/features/products/api/productsApi';
+import { productsApi } from '@/features/warehouse/api/productsApi';
 
 const mapRecipe = (item) => {
   if (!item) return null;
@@ -31,8 +31,8 @@ const mapRecipe = (item) => {
   return {
     id: item.id,
     recipeName: item.recipe_name || item.recipeName || 'Nomsiz Retseptura',
-    productId: item.product_id || item.productId,
-    productName: item.product_name || item.productName || 'Mahsulot',
+    productId: item.product_id || item.productId || null,
+    productName: item.product_name || item.productName || '-',
     version: item.version || '1.0',
     status: item.status || 'ACTIVE',
     description: item.description || '',
@@ -112,17 +112,17 @@ export const recipesApi = {
     try {
       const payload = {
         recipe_name: recipeData.recipeName,
-        product_id: recipeData.productId,
+        product_id: recipeData.productId || null,
         version: recipeData.version || '1.0',
         status: recipeData.status || 'ACTIVE',
         description: recipeData.description || '',
-        items: (recipeData.items || []).map((ing) => ({
-          material_id: ing.materialId,
-          required_quantity: ing.requiredQuantity,
-          waste_percent: ing.wastePercent || 0,
-          unit_price: ing.unitPrice || 0,
-          notes: ing.notes || '',
-        })),
+        items: (recipeData.items || [])
+          .filter((ing) => ing.materialId)
+          .map((ing) => ({
+            material_product_id: ing.materialId,
+            quantity: Number(ing.requiredQuantity) || 0,
+            waste_percentage: Number(ing.wastePercent) || 0,
+          })),
       };
       const response = await axiosInstance.post('/products/recipes', payload).catch(async () => {
         return await axiosInstance.post('/products/recipes/create', payload);
@@ -137,18 +137,17 @@ export const recipesApi = {
     try {
       const payload = {
         recipe_name: recipeData.recipeName,
-        product_id: recipeData.productId || id,
+        product_id: recipeData.productId || null,
         version: recipeData.version || '1.0',
         status: recipeData.status || 'ACTIVE',
         description: recipeData.description || '',
-        items: (recipeData.items || []).map((ing) => ({
-          id: ing.id,
-          material_id: ing.materialId,
-          required_quantity: ing.requiredQuantity,
-          waste_percent: ing.wastePercent || 0,
-          unit_price: ing.unitPrice || 0,
-          notes: ing.notes || '',
-        })),
+        items: (recipeData.items || [])
+          .filter((ing) => ing.materialId)
+          .map((ing) => ({
+            material_product_id: ing.materialId,
+            quantity: Number(ing.requiredQuantity) || 0,
+            waste_percentage: Number(ing.wastePercent) || 0,
+          })),
       };
       const response = await axiosInstance.put(`/products/recipes/${id}`, payload);
       return { success: true, data: mapRecipe(response.data), message: "Retsept ma'lumotlari yangilandi." };

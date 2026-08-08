@@ -24,6 +24,10 @@ class ProductionService:
 
         target_qty = data.get("target_quantity") or data.get("quantity") or 1
 
+        assigned_emp = ""
+        if "assigned_employees" in data and isinstance(data["assigned_employees"], list) and len(data["assigned_employees"]) > 0:
+            assigned_emp = data["assigned_employees"][0]
+
         batch = ProductionBatch.objects.create(
             batch_number=b_num,
             boiler_id=boiler_id,
@@ -33,6 +37,7 @@ class ProductionService:
             start_date=data.get("start_date"),
             end_date=data.get("end_date"),
             status="PLANNED",
+            assigned_employee=assigned_emp,
             created_by_id=created_by_id
         )
         return batch
@@ -44,9 +49,21 @@ class ProductionService:
         except ProductionBatch.DoesNotExist:
             raise CustomAppException(message="Ishlab chiqarish partiyasi topilmadi", status_code=404)
 
-        for field, value in data.items():
-            if value is not None and hasattr(batch, field):
-                setattr(batch, field, value)
+        # Map keys before updating
+        b_num = data.get("batch_number") or data.get("production_number")
+        if b_num is not None:
+            batch.batch_number = b_num.strip()
+
+        target_qty = data.get("target_quantity") or data.get("quantity")
+        if target_qty is not None:
+            batch.target_quantity = target_qty
+
+        for field in ["boiler_id", "completed_quantity", "defect_quantity", "start_date", "end_date", "status"]:
+            if field in data and data[field] is not None:
+                setattr(batch, field, data[field])
+
+        if "assigned_employees" in data and isinstance(data["assigned_employees"], list):
+            batch.assigned_employee = data["assigned_employees"][0] if len(data["assigned_employees"]) > 0 else ""
 
         batch.updated_by_id = updated_by_id
         batch.save()

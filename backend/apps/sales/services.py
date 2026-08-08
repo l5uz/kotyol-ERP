@@ -61,7 +61,14 @@ class SalesService:
             exchange_rate_at_creation=Decimal(str(data.get("exchange_rate_at_creation", 1.0) or 1.0)),
             payment_status="UNPAID",
             delivery_status="PENDING",
-            created_by_id=created_by_id
+            created_by_id=created_by_id,
+            assigned_employee_id=data.get("assigned_employee_id"),
+            assigned_employee_name=data.get("assigned_employee_name"),
+            warranty_period=data.get("warranty_period"),
+            warranty_start_date=data.get("warranty_start_date") or None,
+            warranty_end_date=data.get("warranty_end_date") or None,
+            delivery_location=data.get("delivery_location"),
+            notes=data.get("notes")
         )
         return sale
 
@@ -112,6 +119,17 @@ class SalesService:
         # Recalculate totals
         sale.subtotal = sale.quantity * sale.unit_price
         sale.total_amount = sale.subtotal - sale.discount_amount + sale.tax_amount
+
+        # Update additional fields
+        for field in ['assigned_employee_id', 'assigned_employee_name', 'warranty_period', 'warranty_start_date', 'warranty_end_date', 'delivery_location', 'notes']:
+            if field in data:
+                val = data[field]
+                if val == "":
+                    val = None
+                setattr(sale, field, val)
+
+        if 'status' in data and data['status'] is not None:
+            sale.status = str(data['status'])
 
         sale.updated_by_id = updated_by_id
         sale.save()

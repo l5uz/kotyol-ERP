@@ -77,6 +77,59 @@ class MasterDataService:
     def get_multi(cls, entity_key: str, include_archived: bool = False):
         model = cls.get_model(entity_key)
         
+        # Auto seed Priority if empty
+        if model == Priority and not model.objects.exists():
+            default_priorities = [
+                {"code": "LOW", "name": "Past"},
+                {"code": "NORMAL", "name": "Oddiy"},
+                {"code": "HIGH", "name": "Yuqori"},
+                {"code": "URGENT", "name": "Shoshilinch"},
+            ]
+            for p in default_priorities:
+                model.objects.create(**p)
+
+        # Auto seed OrderStatus if empty
+        if model == OrderStatus and not model.objects.exists():
+            default_statuses = [
+                {"code": "NEW", "name": "Yangi"},
+                {"code": "RESERVED", "name": "Rezervda"},
+                {"code": "IN_PRODUCTION", "name": "Ishlab Chiqarishda"},
+                {"code": "COMPLETED", "name": "Tayyor"},
+                {"code": "CANCELLED", "name": "Bekor Qilingan"},
+            ]
+            for st in default_statuses:
+                model.objects.create(**st)
+
+        # Auto seed CustomerType if empty
+        if model == CustomerType and not model.objects.exists():
+            default_ctypes = [
+                {"code": "INDIVIDUAL", "name": "Jismoniy Shaxs"},
+                {"code": "CORPORATE", "name": "Yuridik Shaxs"},
+                {"code": "WHOLESALE", "name": "Ulgurji Xaridor"},
+            ]
+            for ct in default_ctypes:
+                model.objects.create(**ct)
+
+        # Auto seed Warehouse if empty
+        if model == Warehouse and not model.objects.exists():
+            default_whs = [
+                {"code": "WH-MAIN", "name": "Asosiy Ombor", "location": "Toshkent"},
+            ]
+            for wh in default_whs:
+                model.objects.create(**wh)
+
+        # Auto seed SupplierCategory if empty
+        if model == SupplierCategory and not model.objects.exists():
+            default_scats = [
+                {"code": "RAW-MATERIALS", "name": "Xom ashyo", "description": "Xom ashyo materiallari"},
+                {"code": "COMPONENTS", "name": "Ehtiyot qismlar", "description": "Ehtiyot qismlar va butlovchilar"},
+                {"code": "EQUIPMENT", "name": "Uskunalar", "description": "Dastgohlar va uskunalar"},
+                {"code": "SERVICES", "name": "Xizmatlar", "description": "Tashqi xizmatlar"},
+                {"code": "LOGISTICS", "name": "Logistika", "description": "Transport va logistika"},
+            ]
+            for sc in default_scats:
+                model.objects.create(**sc)
+
         # Auto seed ProductionStage if empty
         if model == ProductionStage and not model.objects.exists():
             default_stages = [
@@ -176,9 +229,27 @@ class MasterDataService:
             name_val = "Yangi Yozuv"
         data["name"] = name_val
 
+        model_fields = {f.name for f in model._meta.get_fields()}
+
+        # Normalize fields based on available model fields
+        if "months" in model_fields:
+            m_val = data.get("months") or data.get("duration") or data.get("duration_months")
+            if m_val is not None:
+                data["months"] = int(float(m_val))
+
+        if "symbol" in model_fields:
+            s_val = data.get("symbol") or data.get("short_name") or data.get("shortName")
+            if s_val is not None:
+                data["symbol"] = str(s_val)
+
+        if "exchange_rate" in model_fields:
+            e_val = data.get("exchange_rate") or data.get("rate_to_usd") or data.get("rateToUSD")
+            if e_val is not None:
+                data["exchange_rate"] = float(e_val)
+
         # 2. Resolve code
-        code_val = data.get("code")
-        if code_val and str(code_val).strip() and str(code_val).strip() not in ["undefined", "null"]:
+        code_val = data.get("code") or data.get("symbol") or data.get("short_name") or data.get("shortName")
+        if code_val and str(code_val).strip() and str(code_val).strip() not in ["undefined", "null", ""]:
             code_val = str(code_val).strip()
             if model.objects.filter(code=code_val).exists():
                 import uuid
@@ -189,7 +260,6 @@ class MasterDataService:
             name_prefix = name_val.upper().replace(" ", "_")[:15]
             data["code"] = f"{name_prefix}_{str(uuid.uuid4())[:6]}"
         
-        model_fields = {f.name for f in model._meta.get_fields()}
         valid_data = {k: v for k, v in data.items() if k in model_fields and v is not None}
 
         if created_by_id and "created_by_id" in model_fields:
@@ -212,6 +282,23 @@ class MasterDataService:
             data["name"] = name_val
 
         model_fields = {f.name for f in model._meta.get_fields()}
+
+        # Normalize fields based on available model fields
+        if "months" in model_fields:
+            m_val = data.get("months") or data.get("duration") or data.get("duration_months")
+            if m_val is not None:
+                data["months"] = int(float(m_val))
+
+        if "symbol" in model_fields:
+            s_val = data.get("symbol") or data.get("short_name") or data.get("shortName")
+            if s_val is not None:
+                data["symbol"] = str(s_val)
+
+        if "exchange_rate" in model_fields:
+            e_val = data.get("exchange_rate") or data.get("rate_to_usd") or data.get("rateToUSD")
+            if e_val is not None:
+                data["exchange_rate"] = float(e_val)
+
         for k, v in data.items():
             if k in model_fields and v is not None and hasattr(item, k):
                 setattr(item, k, v)

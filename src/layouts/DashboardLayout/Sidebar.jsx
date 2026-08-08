@@ -54,7 +54,7 @@ const SETTINGS_SUB_PAGES = [
 
 const WAREHOUSE_SUB_PAGES = [
   { label: 'Omborlar Ro\'yxati', path: ROUTES.PROTECTED.WAREHOUSE_LIST, icon: LuStore },
-  { label: 'Ombor Harakatlari', path: ROUTES.PROTECTED.WAREHOUSE_MOVEMENTS, icon: LuActivity },
+  { label: 'Mahsulotlar', path: ROUTES.PROTECTED.PRODUCTS, icon: LuBoxes },
   { label: 'Qayta Baholash', path: ROUTES.PROTECTED.WAREHOUSE_REVALUATION, icon: LuBadgeDollarSign },
   { label: 'Inventarizatsiya', path: ROUTES.PROTECTED.WAREHOUSE_INVENTORY_COUNT, icon: LuClipboardList },
 ];
@@ -116,7 +116,6 @@ const MENU_CATEGORIES = [
     icon: LuWarehouse,
     items: [
       { label: 'Omborxona', path: ROUTES.PROTECTED.WAREHOUSE_LIST, icon: LuWarehouse, isParent: true },
-      { label: 'Mahsulotlar', path: ROUTES.PROTECTED.PRODUCTS, icon: LuBoxes },
       { label: 'Xaridlar', path: ROUTES.PROTECTED.PURCHASING, icon: LuShoppingBag },
       { label: 'Ta\'minotchilar', path: ROUTES.PROTECTED.SUPPLIERS, icon: LuTruck },
     ],
@@ -156,7 +155,6 @@ const MENU_CATEGORIES = [
     label: 'Sozlamalar',
     icon: LuSlidersHorizontal,
     items: [
-      { label: 'Tizim Injini', path: ROUTES.PROTECTED.SYSTEM, icon: LuServer },
       { label: 'Audit Jurnali', path: ROUTES.PROTECTED.AUDIT, icon: LuShieldCheck },
       { label: 'Master Data Boshqaruvi', path: ROUTES.PROTECTED.MASTER_DATA, icon: LuBoxes, isParent: true },
       { label: 'Sozlamalar', path: ROUTES.PROTECTED.SETTINGS_COMPANY, icon: LuSlidersHorizontal, isParent: true },
@@ -292,19 +290,24 @@ export const Sidebar = () => {
       (selectedCatId === 'dashboard' && location.pathname.startsWith('/reports'))
     );
 
+    const isBaseModulePath = ['/finance', '/warehouse', '/production', '/settings', '/reports'].includes(item.path);
+
     return (
       <NavLink
         key={item.path}
         to={item.path}
-        end={item.path === ROUTES.PROTECTED.DASHBOARD || isSettingsHub}
+        end={isBaseModulePath || item.path === ROUTES.PROTECTED.DASHBOARD || isSettingsHub}
         onClick={(e) => handleItemClick(item, e)}
-        className={({ isActive }) =>
-          `d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-decoration-none transition-all ${
-            isActive || isActiveParent
+        className={({ isActive }) => {
+          const isReallyActive = item.path.includes('?')
+            ? (location.pathname + location.search) === item.path
+            : isActive;
+          return `d-flex align-items-center justify-content-between px-3 py-2 rounded-3 text-decoration-none transition-all ${
+            isReallyActive || isActiveParent
               ? 'bg-primary text-white shadow-sm fw-medium'
               : 'text-white-50 hover-bg-dark hover-text-white'
-          }`
-        }
+          }`;
+        }}
       >
         <div className="d-flex align-items-center gap-2 text-truncate me-2">
           {ItemIcon && <ItemIcon className="fs-5 flex-shrink-0" />}

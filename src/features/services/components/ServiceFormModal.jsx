@@ -9,6 +9,8 @@ import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { documentNumberingService } from '@/services/documentNumbering.service';
 import { useFormDraftStore } from '@/store/useFormDraftStore';
 import { ROUTES } from '@/constants/routes.constants';
+import { servicesApi } from '../api/servicesApi';
+import { axiosInstance } from '@/api/axiosInstance';
 import { LuChevronDown, LuChevronUp, LuSlidersHorizontal, LuShieldCheck, LuFileCheck, LuFlame } from 'react-icons/lu';
 
 export const ServiceFormModal = ({
@@ -34,6 +36,7 @@ export const ServiceFormModal = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isDraftRestored, setIsDraftRestored] = useState(false);
   const [selectedBoilerPreview, setSelectedBoilerPreview] = useState(null);
+  const [sales, setSales] = useState([]);
 
   const [formData, setFormData] = useState({
     serviceNumber: '',
@@ -45,6 +48,8 @@ export const ServiceFormModal = ({
     priority: 'NORMAL',
     status: 'NEW',
     notes: '',
+    saleId: '',
+    saleInvoiceNumber: '',
   });
 
   useEffect(() => {
@@ -64,14 +69,16 @@ export const ServiceFormModal = ({
     if (serviceRecord) {
       setFormData({
         serviceNumber: serviceRecord.serviceNumber || '',
-        customerId: serviceRecord.customerId || (customerOptions[0]?.value || ''),
-        boilerId: serviceRecord.boilerId || (boilerOptions[0]?.value || ''),
+        customerId: serviceRecord.customerId || '',
+        boilerId: serviceRecord.boilerId || '',
         serviceTypeId: serviceRecord.serviceTypeId || (serviceTypeOptions[0]?.value || ''),
         assignedEmployeeId: serviceRecord.assignedEmployeeId || '',
         serviceDate: serviceRecord.serviceDate || new Date().toISOString().split('T')[0],
         priority: serviceRecord.priority || 'NORMAL',
         status: serviceRecord.status || 'NEW',
         notes: serviceRecord.notes || '',
+        saleId: serviceRecord.saleId || '',
+        saleInvoiceNumber: serviceRecord.saleInvoiceNumber || '',
       });
       setIsDraftRestored(false);
     } else if (isOpen) {
@@ -82,14 +89,16 @@ export const ServiceFormModal = ({
       } else {
         setFormData({
           serviceNumber: documentNumberingService.generateNumber('SERVICE'),
-          customerId: customerOptions[0]?.value || '',
-          boilerId: boilerOptions[0]?.value || '',
+          customerId: '',
+          boilerId: '',
           serviceTypeId: serviceTypeOptions[0]?.value || '',
-          assignedEmployeeId: employeeOptions[0]?.value || '',
+          assignedEmployeeId: '',
           serviceDate: new Date().toISOString().split('T')[0],
           priority: 'NORMAL',
           status: 'NEW',
           notes: '',
+          saleId: '',
+          saleInvoiceNumber: '',
         });
         setIsDraftRestored(false);
       }
@@ -97,23 +106,123 @@ export const ServiceFormModal = ({
     }
   }, [serviceRecord, isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      servicesApi.getSalesList().then((res) => {
+        if (res.success) setSales(res.data);
+      });
+
+      axiosInstance.get('/master-data/priorities')
+        .then((res) => {
+          const items = Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
+          if (items.length > 0) {
+            setPriorityOptions(items.map((p) => ({ value: p.code || p.id, label: p.name })));
+          }
+        })
+        .catch(() => {});
+
+      axiosInstance.get('/master-data/order-statuses')
+        .then((res) => {
+          const items = Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
+          if (items.length > 0) {
+            setStatusOptions(items.map((s) => ({ value: s.code || s.id, label: s.name })));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
+
   // Read-only automatic preview card when selecting a Boiler
   useEffect(() => {
-    if (isOpen && formData.boilerId) {
+    if (isOpen) {
+      const selectedSale = sales.find((s) => s.id === formData.saleId);
       const foundBoiler = boilers.find((b) => b.id === formData.boilerId);
       const foundCust = customers.find((c) => c.id === formData.customerId);
 
-      setSelectedBoilerPreview({
-        boilerName: foundBoiler?.modelName || 'Sanoat Kotyoli Heavy KV-200',
-        customerName: foundCust?.customerName || 'Samarqand Issiqlik Manbai MChJ',
-        saleDate: '2026-07-20',
-        isUnderWarranty: true,
-        warrantyText: 'Zavod Kafolati Ostida (24 oy)',
-        orderNumber: 'ORD-2026-8801',
-        productionNumber: 'PRD-2026-9001',
-      });
+      if (selectedSale) {
+        const serviceDateObj = new Date(formData.serviceDate);
+        let isUnderWarranty = false;
+        if (selectedSale.warrantyStartDate && selectedSale.warrantyEndDate) {
+          const start = new Date(selectedSale.warrantyStartDate);
+          const end = new Date(selectedSale.warrantyEndDate);
+          isUnderWarranty = serviceDateObj >= start && serviceDateObj <= end;
+        }
+
+        setSelectedBoilerPreview({
+          boilerName: selectedSale.boilerModelName || foundBoiler?.modelName || 'Sanoat Kotyoli',
+          customerName: selectedSale.customerName || foundCust?.customerName || 'Mijoz',
+          saleDate: selectedSale.saleDate || '',
+          isUnderWarranty: isUnderWarranty,
+          warrantyText: isUnderWarranty 
+            ? `Kafolat Ostida (${selectedSale.warrantyPeriod || '24 oy'})` 
+            : `Kafolat Tugagan (Muddati: ${selectedSale.warrantyEndDate || ''})`,
+          orderNumber: selectedSale.invoiceNumber,
+          productionNumber: selectedSale.deliveryLocation || '',
+        });
+      } else if (formData.boilerId) {
+        setSelectedBoilerPreview({
+          boilerName: foundBoiler?.modelName || 'Sanoat Kotyoli',
+          customerName: foundCust?.customerName || 'Mijoz',
+          saleDate: '2026-07-20',
+          isUnderWarranty: true,
+          warrantyText: 'Zavod Kafolati Ostida (24 oy)',
+          orderNumber: 'ORD-2026-8801',
+          productionNumber: 'PRD-2026-9001',
+        });
+      } else {
+        setSelectedBoilerPreview(null);
+      }
     }
-  }, [formData.boilerId, formData.customerId, boilers, customers, isOpen]);
+  }, [formData.boilerId, formData.customerId, formData.saleId, formData.serviceDate, boilers, customers, sales, isOpen]);
+
+  const handleSaleChange = (saleIdVal) => {
+    const selectedSale = sales.find((s) => s.id === saleIdVal);
+    if (selectedSale) {
+      const serviceDateObj = new Date(formData.serviceDate);
+      let isUnderWarranty = false;
+      if (selectedSale.warrantyStartDate && selectedSale.warrantyEndDate) {
+        const start = new Date(selectedSale.warrantyStartDate);
+        const end = new Date(selectedSale.warrantyEndDate);
+        isUnderWarranty = serviceDateObj >= start && serviceDateObj <= end;
+      }
+
+      const updated = {
+        ...formData,
+        saleId: selectedSale.id,
+        saleInvoiceNumber: selectedSale.invoiceNumber,
+        customerId: selectedSale.customerId || formData.customerId,
+        boilerId: selectedSale.boilerId || formData.boilerId,
+        assignedEmployeeId: selectedSale.assignedEmployeeId || formData.assignedEmployeeId,
+      };
+      setFormData(updated);
+
+      setSelectedBoilerPreview({
+        boilerName: selectedSale.boilerModelName || 'Kotyol Modeli',
+        customerName: selectedSale.customerName || 'Mijoz',
+        saleDate: selectedSale.saleDate || '',
+        isUnderWarranty: isUnderWarranty,
+        warrantyText: isUnderWarranty 
+          ? `Kafolat Ostida (${selectedSale.warrantyPeriod || '24 oy'})` 
+          : `Kafolat Tugagan (Muddati: ${selectedSale.warrantyEndDate || ''})`,
+        orderNumber: selectedSale.invoiceNumber,
+        productionNumber: selectedSale.deliveryLocation || '',
+      });
+
+      if (!serviceRecord) {
+        saveDraft(FORM_KEY, updated);
+      }
+    } else {
+      const updated = {
+        ...formData,
+        saleId: '',
+        saleInvoiceNumber: '',
+      };
+      setFormData(updated);
+      if (!serviceRecord) {
+        saveDraft(FORM_KEY, updated);
+      }
+    }
+  };
 
   const handleFieldChange = (field, value) => {
     const updated = { ...formData, [field]: value };
@@ -179,7 +288,7 @@ export const ServiceFormModal = ({
           <span>{serviceRecord ? "Servis Arizasini Tahrirlash" : "Yangi Servis Arizasi Rasmiylashtirish"}</span>
           {isDraftRestored && (
             <span className="badge bg-success bg-opacity-10 text-success fs-8 d-flex align-items-center gap-1">
-              <LuFileCheck /> 📝 Qoralama tiklandi
+              <LuFileCheck /> Qoralama tiklandi
             </span>
           )}
         </div>
@@ -199,7 +308,7 @@ export const ServiceFormModal = ({
       <form onSubmit={handleSubmit}>
         {/* Core Header Fields */}
         <div className="row g-3 mb-3">
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-3">
             <Input
               label="Servis Hujjati №"
               placeholder="SRV-2026-000601"
@@ -209,7 +318,19 @@ export const ServiceFormModal = ({
             />
           </div>
 
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-3">
+            <Select
+              label="Sotuv Shartnomasi / Faktura"
+              value={formData.saleId}
+              onChange={(e) => handleSaleChange(e.target.value)}
+              options={[
+                { value: '', label: 'Sotuvni tanlang (Ixtiyoriy)' },
+                ...sales.map((s) => ({ value: s.id, label: `${s.invoiceNumber} - ${s.customerName}` }))
+              ]}
+            />
+          </div>
+
+          <div className="col-12 col-md-3">
             <DynamicSelect
               label="Mijoz Korxona"
               value={formData.customerId}
@@ -222,7 +343,7 @@ export const ServiceFormModal = ({
             />
           </div>
 
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-3">
             <DynamicSelect
               label="Kotyol Modeli"
               value={formData.boilerId}

@@ -63,10 +63,18 @@ export const LoginPage = () => {
               <i className="bi bi-telephone-fill"></i>
             </span>
             <input
-              type="text"
+              type="tel"
               className={`form-control ${errors.username ? 'is-invalid' : ''}`}
               placeholder="+998901234567"
               {...register('username', { required: "Telefon raqami kiritilishi shart" })}
+              onInput={(e) => {
+                let clean = e.target.value.replace(/[^\d+]/g, '');
+                if (clean.includes('+')) {
+                  const hasLeading = clean.startsWith('+');
+                  clean = (hasLeading ? '+' : '') + clean.replace(/\+/g, '');
+                }
+                e.target.value = clean;
+              }}
             />
             {errors.username && <div className="invalid-feedback">{errors.username.message}</div>}
           </div>

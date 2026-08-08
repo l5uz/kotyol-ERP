@@ -22,7 +22,7 @@ export const EmployeesPage = () => {
   const [salaryTypes, setSalaryTypes] = useState([]);
   const [search, setSearch] = useState('');
   const [positionFilter, setPositionFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ACTIVE');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -58,6 +58,18 @@ export const EmployeesPage = () => {
     notifySuccess(res.message);
     setIsModalOpen(false);
     setEditingEmployee(null);
+    loadEmployeesData();
+  };
+
+  const handleArchiveClick = async (row) => {
+    const res = await employeesApi.updateEmployee(row.id, { ...row, status: 'INACTIVE' });
+    notifySuccess("Xodim arxivlandi.");
+    loadEmployeesData();
+  };
+
+  const handleRestoreClick = async (row) => {
+    const res = await employeesApi.updateEmployee(row.id, { ...row, status: 'ACTIVE' });
+    notifySuccess("Xodim arxivdan chiqarildi.");
     loadEmployeesData();
   };
 
@@ -152,6 +164,25 @@ export const EmployeesPage = () => {
             >
               <i className={`bi ${ERP_ICONS.EDIT}`}></i>
             </button>
+            {row.status === 'INACTIVE' ? (
+              <button
+                className="btn btn-sm btn-outline-success p-1 border-0"
+                onClick={() => handleRestoreClick(row)}
+                title="Arxivdan chiqarish"
+              >
+                <i className="bi bi-arrow-counterclockwise"></i>
+              </button>
+            ) : (
+              <button
+                className="btn btn-sm btn-outline-warning p-1 border-0"
+                onClick={() => handleArchiveClick(row)}
+                disabled={isSelfOrOwner}
+                title={isSelfOrOwner ? "O'zingizni arxivlay olmaysiz" : "Arxivlash"}
+                style={{ opacity: isSelfOrOwner ? 0.4 : 1 }}
+              >
+                <i className="bi bi-archive"></i>
+              </button>
+            )}
             <button
               className="btn btn-sm btn-outline-danger p-1 border-0"
               onClick={() => setDeletingId(row.id)}

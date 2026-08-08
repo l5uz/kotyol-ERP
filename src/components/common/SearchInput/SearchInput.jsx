@@ -10,11 +10,12 @@ export const SearchInput = ({
   return (
     <div className={`position-relative ${className}`}>
       <i
-        className={`bi ${ERP_ICONS.SEARCH} position-absolute top-50 start-0 translate-middle-y ms-3 text-muted-custom`}
+        className={`bi ${ERP_ICONS.SEARCH} position-absolute top-50 translate-middle-y text-muted-custom`}
+        style={{ left: '12px', pointerEvents: 'none' }}
       ></i>
       <input
         type="text"
-        className="form-control ps-5 pe-4"
+        className="form-control pe-4 search-input-field"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}

@@ -94,7 +94,7 @@ export const CustomersPage = () => {
             <Link to={`${ROUTES.PROTECTED.CUSTOMERS}/${row.id}`} className="fw-bold text-primary text-decoration-none fs-7">
               {row.customerName}
             </Link>
-            <small className="d-block text-muted-custom fs-8">{row.boilerModelName || 'Kotyol K-50kW'}</small>
+            <small className="d-block text-muted-custom fs-8">{row.boilerModelName || '—'}</small>
           </div>
         </div>
       ),
@@ -104,7 +104,7 @@ export const CustomersPage = () => {
       cell: (row) => <strong className="text-main fs-7">{row.phone}</strong>,
     },
     {
-      header: '💰 Zaklad (Avans)',
+      header: 'Zaklad (Avans)',
       cell: (row) => (
         <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 fs-8 fw-bold">
           {formatCurrency(row.depositAmount || 0)}
@@ -112,7 +112,7 @@ export const CustomersPage = () => {
       ),
     },
     {
-      header: '📅 Zakaz & Yetkazish',
+      header: 'Zakaz & Yetkazish',
       cell: (row) => {
         const isOverdue = row.deliveryDate && row.deliveryDate < todayStr;
         return (

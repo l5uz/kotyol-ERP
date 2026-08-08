@@ -1,5 +1,6 @@
 import { formatCurrency } from '@/utils/currency.utils';
 import React, { useState, useEffect } from 'react';
+import { axiosInstance } from '@/api/axiosInstance';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
@@ -53,10 +54,37 @@ export const OrderFormModal = ({
     setCustomerList(customers);
     setBoilerOptions(boilers.map((b) => ({ value: b.id, label: `${b.modelName} v${b.version}` })));
     setBoilerList(boilers);
-
-    setPriorityOptions(dynamicSettingsService.getOrderPriorityOptions());
-    setStatusOptions(dynamicSettingsService.getOrderStatusOptions());
   }, [customers, boilers]);
+
+  useEffect(() => {
+    if (isOpen) {
+      axiosInstance.get('/master-data/priorities')
+        .then((res) => {
+          const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+          if (items.length > 0) {
+            setPriorityOptions(items.map((p) => ({ value: p.code || p.id, label: p.name })));
+          } else {
+            setPriorityOptions(dynamicSettingsService.getOrderPriorityOptions());
+          }
+        })
+        .catch(() => {
+          setPriorityOptions(dynamicSettingsService.getOrderPriorityOptions());
+        });
+
+      axiosInstance.get('/master-data/order-statuses')
+        .then((res) => {
+          const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+          if (items.length > 0) {
+            setStatusOptions(items.map((st) => ({ value: st.code || st.id, label: st.name })));
+          } else {
+            setStatusOptions(dynamicSettingsService.getOrderStatusOptions());
+          }
+        })
+        .catch(() => {
+          setStatusOptions(dynamicSettingsService.getOrderStatusOptions());
+        });
+    }
+  }, [isOpen]);
 
   const [formData, setFormData] = useState({
     orderNumber: '',
@@ -187,7 +215,7 @@ export const OrderFormModal = ({
 
   const selectedBoiler = boilerList.find((b) => b.id === formData.boilerId);
   const rawTotal = (availabilityCheck?.totalAmount) || ((selectedBoiler?.basePrice || 15000) * formData.quantity);
-  const taxBreakdown = businessRulesService.calculateOrderTotal(rawTotal, 0, true);
+
 
   return (
     <Modal
@@ -230,11 +258,13 @@ export const OrderFormModal = ({
           </div>
 
           <div className="col-12 col-md-4">
-            <Select
+            <DynamicSelect
               label="Buyurtma Statusi"
               value={formData.status}
               onChange={(e) => handleFieldChange('status', e.target.value)}
               options={statusOptions}
+              managePath={`${ROUTES.PROTECTED.MASTER_DATA}?type=orderStatuses`}
+              entityTitle="Status"
             />
           </div>
         </div>
@@ -284,7 +314,7 @@ export const OrderFormModal = ({
         <div className="row g-3 mb-3">
           <div className="col-12 col-md-6">
             <DynamicSelect
-              label="👤 Biriktirilgan Mas'ul Xodim"
+              label="Biriktirilgan Mas'ul Xodim"
               value={formData.assignedEmployeeId}
               onChange={(e) => {
                 const empId = e.target.value;
@@ -302,11 +332,13 @@ export const OrderFormModal = ({
           </div>
 
           <div className="col-12 col-md-6">
-            <Select
+            <DynamicSelect
               label="Prioritet"
               value={formData.priority}
               onChange={(e) => handleFieldChange('priority', e.target.value)}
               options={priorityOptions}
+              managePath={`${ROUTES.PROTECTED.MASTER_DATA}?type=priorities`}
+              entityTitle="Prioritet"
             />
           </div>
         </div>
@@ -346,7 +378,7 @@ export const OrderFormModal = ({
 
         {/* Deposit & Late Delivery Discount Card */}
         <div className="card glass-card p-3 mb-3 border-success bg-success bg-opacity-10 fs-7">
-          <h6 className="fw-bold text-success mb-2 font-heading">💰 Zaklad va Kechikish Chegirmasi Shartlari:</h6>
+          <h6 className="fw-bold text-success mb-2 font-heading">Zaklad va Kechikish Chegirmasi Shartlari:</h6>
           <div className="row g-3 align-items-center">
             <div className="col-12 col-md-6">
               <Input
@@ -377,7 +409,7 @@ export const OrderFormModal = ({
                     onChange={(e) => handleFieldChange('autoDiscountOnLate', e.target.checked)}
                   />
                   <label className="form-check-label fs-7 fw-semibold text-main cursor-pointer mb-0" htmlFor="autoDiscountOrderSwitch">
-                    ⏱️ Sanadan o'tib ketsa avtomatik kotyol narxi arzonlashsin (Kechikish chegirmasi: kuniga {formData.lateDiscountRate}%)
+                    Sanadan o'tib ketsa avtomatik kotyol narxi arzonlashsin (Kechikish chegirmasi: kuniga {formData.lateDiscountRate}%)
                   </label>
                 </div>
               </div>

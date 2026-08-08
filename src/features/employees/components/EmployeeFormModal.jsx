@@ -131,6 +131,7 @@ export const EmployeeFormModal = ({
           <div className="col-12 col-md-6">
             <Input
               label="Telefon Raqami *"
+              type="tel"
               placeholder="+998 90 123 45 67"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}

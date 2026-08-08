@@ -10,6 +10,8 @@ import { documentNumberingService } from '@/services/documentNumbering.service';
 import { useFormDraftStore } from '@/store/useFormDraftStore';
 import { settingsApi } from '@/features/settings/api/settingsApi';
 import { employeesApi } from '@/features/employees/api/employeesApi';
+import { ordersApi } from '@/features/orders/api/ordersApi';
+import { boilersApi } from '@/features/boilers/api/boilersApi';
 import { formatCurrency } from '@/utils/currency.utils';
 import { notifyError } from '@/services/notification.service';
 import { ROUTES } from '@/constants/routes.constants';
@@ -22,16 +24,20 @@ export const ProductionFormModal = ({
   productionOrder = null,
   orders = [],
   employees = [],
+  isReadOnly = false,
 }) => {
   const FORM_KEY = productionOrder ? `draft_production_${productionOrder.id}` : 'draft_production_new';
   const { saveDraft, getDraft, clearDraft } = useFormDraftStore();
+
+  const [ordersList, setOrdersList] = useState([]);
+  const [boilersList, setBoilersList] = useState([]);
 
   const [orderOptions, setOrderOptions] = useState(
     orders.map((o) => ({ value: o.id, label: `${o.orderNumber} — ${o.customerName} (${o.boilerModelName})` }))
   );
   const [employeeOptions, setEmployeeOptions] = useState(
     employees.map((e) => ({
-      value: `${e.firstName || e.fullName?.split(' ')[0]} ${e.lastName || ''}`.trim(),
+      value: e.fullName || `${e.firstName || ''} ${e.lastName || ''}`.trim(),
       label: `${e.fullName || `${e.firstName} ${e.lastName}`} (${e.positionName || 'Xodim'})`,
     }))
   );
@@ -46,6 +52,7 @@ export const ProductionFormModal = ({
   const [formData, setFormData] = useState({
     productionNumber: '',
     orderId: '',
+    boilerId: '',
     title: '',
     line: 'Liniya A-1 (Payvandlash sex)',
     quantity: 1,
@@ -59,118 +66,130 @@ export const ProductionFormModal = ({
     notes: '',
   });
 
-  // GET REAL Salary Types dynamically via backend REST API: GET /master-data/salary-types
+  // GET REAL Data (Orders, Boilers, Salary Types, Production Stages) dynamically
   useEffect(() => {
-    const fetchRealSalaryTypesApi = async () => {
+    const fetchRealData = async () => {
       try {
-        const [salRes, stageRes] = await Promise.all([
+        const [ordersRes, boilersRes, salRes, stageRes] = await Promise.all([
+          ordersApi.getOrders(),
+          boilersApi.getBoilers(),
           employeesApi.getSalaryTypes(),
           settingsApi.getProductionStages(),
         ]);
 
-        let combinedOptions = [];
+        let combinedSalOptions = [];
+        let fetchedOrders = [];
+        let fetchedBoilers = [];
+
+        if (ordersRes.success) {
+          fetchedOrders = ordersRes.data || [];
+          setOrdersList(fetchedOrders);
+          setOrderOptions(
+            fetchedOrders.map((o) => ({
+              value: o.id,
+              label: `${o.orderNumber} — ${o.customerName} (${o.boilerModelName})`,
+              boilerId: o.boilerId,
+              boilerModelName: o.boilerModelName,
+            }))
+          );
+        }
+
+        if (boilersRes.success) {
+          fetchedBoilers = boilersRes.data || [];
+          setBoilersList(fetchedBoilers);
+        }
 
         // 1. Process backend REAL salary types from DB
         if (salRes.success && Array.isArray(salRes.data) && salRes.data.length > 0) {
           const salMapped = salRes.data.map((st) => ({
             value: st.id,
-            label: `💵 ${st.name} — ${st.amount ? formatCurrency(st.amount) : "Tarif kiritilmagan"} / dona`,
+            label: `${st.name} — ${st.amount ? formatCurrency(st.amount) : "Tarif kiritilmagan"} / dona`,
             price: Number(st.amount) || 0,
             name: st.name,
           }));
-          combinedOptions = [...combinedOptions, ...salMapped];
+          combinedSalOptions = [...combinedSalOptions, ...salMapped];
         }
 
         // 2. Process production stage tariffs from DB
         if (stageRes.success && Array.isArray(stageRes.data) && stageRes.data.length > 0) {
           const stageMapped = stageRes.data.map((stg) => ({
             value: stg.id || stg.code,
-            label: `⚙️ ${stg.name} (Bosqich) — ${stg.defaultPrice ? formatCurrency(stg.defaultPrice) : "Tarif kiritilmagan"} / dona`,
+            label: `${stg.name} (Bosqich) — ${stg.defaultPrice ? formatCurrency(stg.defaultPrice) : "Tarif kiritilmagan"} / dona`,
             price: Number(stg.defaultPrice) || 0,
             name: stg.name,
           }));
-          combinedOptions = [...combinedOptions, ...stageMapped];
+          combinedSalOptions = [...combinedSalOptions, ...stageMapped];
         }
 
-        // ZERO MOCK FALLBACKS: If DB is empty, array is empty!
-        setSalaryTypeOptions(combinedOptions);
+        setSalaryTypeOptions(combinedSalOptions);
 
-        if (!formData.salaryTypeId && combinedOptions.length > 0) {
-          setFormData((prev) => ({
-            ...prev,
-            salaryTypeId: combinedOptions[0].value,
-            salaryTypeName: combinedOptions[0].name,
-            stagePrice: combinedOptions[0].price,
-          }));
+        // Now initialize formData based on whether it is edit or create
+        if (productionOrder) {
+          setFormData({
+            productionNumber: productionOrder.productionNumber || '',
+            orderId: productionOrder.orderId || '',
+            boilerId: productionOrder.boilerId || '',
+            title: productionOrder.title || '',
+            line: productionOrder.line || 'Liniya A-1 (Payvandlash sex)',
+            quantity: productionOrder.quantity || 1,
+            priority: productionOrder.priority || 'NORMAL',
+            assignedEmployee: productionOrder.assignedEmployees?.[0] || '',
+            salaryTypeId: productionOrder.salaryTypeId || '',
+            salaryTypeName: productionOrder.salaryTypeName || '',
+            stagePrice: Number(productionOrder.stagePrice) || 0,
+            startDate: productionOrder.startDate || new Date().toISOString().split('T')[0],
+            expectedFinishDate: productionOrder.expectedFinishDate || new Date().toISOString().split('T')[0],
+            notes: productionOrder.notes || '',
+          });
+          setIsDraftRestored(false);
+        } else {
+          clearDraft(FORM_KEY);
+          const firstOrder = fetchedOrders[0]?.id || '';
+          const firstBoiler = fetchedOrders[0]?.boilerId || fetchedBoilers[0]?.id || '';
+          const firstEmp = employees.length > 0
+            ? `${employees[0].firstName || employees[0].fullName?.split(' ')[0]} ${employees[0].lastName || ''}`.trim()
+            : '';
+          const firstSal = combinedSalOptions[0];
+
+          setFormData({
+            productionNumber: documentNumberingService.generateNumber('PRODUCTION'),
+            orderId: firstOrder,
+            boilerId: firstBoiler,
+            title: fetchedOrders[0]?.boilerModelName || fetchedBoilers[0]?.modelName || '',
+            line: 'Liniya A-1 (Payvandlash sex)',
+            quantity: 1,
+            priority: 'NORMAL',
+            assignedEmployee: firstEmp,
+            salaryTypeId: firstSal?.value || '',
+            salaryTypeName: firstSal?.name || '',
+            stagePrice: firstSal?.price || 0,
+            startDate: new Date().toISOString().split('T')[0],
+            expectedFinishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+            notes: '',
+          });
+          setIsDraftRestored(false);
+          setShowAdvanced(false);
         }
       } catch (err) {
-        console.error("fetchRealSalaryTypesApi error:", err);
+        console.error("fetchRealData error in ProductionFormModal:", err);
       }
     };
 
     if (isOpen) {
-      fetchRealSalaryTypesApi();
+      fetchRealData();
     }
-  }, [isOpen]);
+  }, [isOpen, productionOrder]);
 
   useEffect(() => {
-    if (orders.length > 0) {
-      setOrderOptions(
-        orders.map((o) => ({ value: o.id, label: `${o.orderNumber} — ${o.customerName} (${o.boilerModelName})` }))
-      );
-    }
     if (employees.length > 0) {
       setEmployeeOptions(
         employees.map((e) => ({
-          value: `${e.firstName || e.fullName?.split(' ')[0]} ${e.lastName || ''}`.trim(),
+          value: e.fullName || `${e.firstName || ''} ${e.lastName || ''}`.trim(),
           label: `${e.fullName || `${e.firstName} ${e.lastName}`} (${e.positionName || 'Xodim'})`,
         }))
       );
     }
-  }, [orders.length, employees.length]);
-
-  useEffect(() => {
-    if (productionOrder) {
-      setFormData({
-        productionNumber: productionOrder.productionNumber || '',
-        orderId: productionOrder.orderId || orderOptions[0]?.value || '',
-        title: productionOrder.title || '',
-        line: productionOrder.line || 'Liniya A-1 (Payvandlash sex)',
-        quantity: productionOrder.quantity || 1,
-        priority: productionOrder.priority || 'NORMAL',
-        assignedEmployee: productionOrder.assignedEmployees?.[0] || employeeOptions[0]?.value || '',
-        salaryTypeId: productionOrder.salaryTypeId || '',
-        salaryTypeName: productionOrder.salaryTypeName || '',
-        stagePrice: Number(productionOrder.stagePrice) || 0,
-        startDate: productionOrder.startDate || new Date().toISOString().split('T')[0],
-        expectedFinishDate: productionOrder.expectedFinishDate || new Date().toISOString().split('T')[0],
-        notes: productionOrder.notes || '',
-      });
-      setIsDraftRestored(false);
-    } else if (isOpen) {
-      clearDraft(FORM_KEY);
-      const firstOrder = orderOptions[0]?.value || '';
-      const firstEmp = employeeOptions[0]?.value || '';
-      const firstSal = salaryTypeOptions[0];
-      setFormData({
-        productionNumber: documentNumberingService.generateNumber('PRODUCTION'),
-        orderId: firstOrder,
-        title: '',
-        line: 'Liniya A-1 (Payvandlash sex)',
-        quantity: 1,
-        priority: 'NORMAL',
-        assignedEmployee: firstEmp,
-        salaryTypeId: firstSal?.value || '',
-        salaryTypeName: firstSal?.name || '',
-        stagePrice: firstSal?.price || 0,
-        startDate: new Date().toISOString().split('T')[0],
-        expectedFinishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
-        notes: '',
-      });
-      setIsDraftRestored(false);
-      setShowAdvanced(false);
-    }
-  }, [productionOrder, isOpen]);
+  }, [employees.length]);
 
   const handleFieldChange = (field, value) => {
     let updated = { ...formData, [field]: value };
@@ -181,6 +200,21 @@ export const ProductionFormModal = ({
       if (selectedSalObj) {
         updated.stagePrice = selectedSalObj.price;
         updated.salaryTypeName = selectedSalObj.name;
+      }
+    }
+
+    if (field === 'orderId') {
+      const selectedOrd = ordersList.find((o) => o.id === value);
+      if (selectedOrd) {
+        updated.boilerId = selectedOrd.boilerId;
+        updated.title = selectedOrd.boilerModelName || updated.title;
+      }
+    }
+
+    if (field === 'boilerId') {
+      const selectedBoiler = boilersList.find((b) => b.id === value);
+      if (selectedBoiler) {
+        updated.title = selectedBoiler.modelName || updated.title;
       }
     }
 
@@ -206,7 +240,7 @@ export const ProductionFormModal = ({
 
   const handleAddNewSalaryType = (newRecord) => {
     const amt = Number(newRecord.amount) || 0;
-    const newSal = { value: `sal_${Date.now()}`, label: `💵 ${newRecord.name} — ${formatCurrency(amt)} / dona`, price: amt, name: newRecord.name };
+    const newSal = { value: `sal_${Date.now()}`, label: `${newRecord.name} — ${formatCurrency(amt)} / dona`, price: amt, name: newRecord.name };
     setSalaryTypeOptions((prev) => [...prev, newSal]);
     handleFieldChange('salaryTypeId', newSal.value);
     return newSal;
@@ -222,14 +256,16 @@ export const ProductionFormModal = ({
       return;
     }
 
-    const selectedOrd = orders.find((o) => o.id === formData.orderId);
+    const selectedOrd = ordersList.find((o) => o.id === formData.orderId) || orders.find((o) => o.id === formData.orderId);
+    const selectedBoiler = boilersList.find((b) => b.id === formData.boilerId);
 
     clearDraft(FORM_KEY);
     onSubmit({
       ...formData,
+      boilerId: formData.boilerId || selectedOrd?.boilerId || '',
       orderNumber: selectedOrd ? selectedOrd.orderNumber : 'ORD-2026-8801',
       customerName: selectedOrd ? selectedOrd.customerName : 'Mijoz MCHJ',
-      boilerModelName: selectedOrd ? selectedOrd.boilerModelName : 'Sanoat Kotyoli',
+      boilerModelName: selectedBoiler ? selectedBoiler.modelName : (selectedOrd ? selectedOrd.boilerModelName : 'Sanoat Kotyoli'),
       assignedEmployees: [formData.assignedEmployee.trim()],
       totalSalaryAmount: calculatedTotalSalary,
     });
@@ -248,7 +284,7 @@ export const ProductionFormModal = ({
           </span>
           {isDraftRestored && (
             <span className="badge bg-success bg-opacity-10 text-success fs-8 d-flex align-items-center gap-1">
-              <LuFileCheck /> 📝 Qoralama saqlangan ma'lumotdan tiklandi
+              <LuFileCheck /> Qoralama saqlangan ma'lumotdan tiklandi
             </span>
           )}
         </div>
@@ -257,11 +293,13 @@ export const ProductionFormModal = ({
       footer={
         <div className="d-flex justify-content-end gap-2 w-100">
           <Button variant="outline-secondary" size="sm" onClick={onClose}>
-            Bekor qilish
+            {isReadOnly ? "Yopish" : "Bekor qilish"}
           </Button>
-          <Button variant="primary" size="sm" onClick={handleSubmit}>
-            {productionOrder ? 'Saqlash' : "Ishlab Chiqarishni Biriktirish"}
-          </Button>
+          {!isReadOnly && (
+            <Button variant="primary" size="sm" onClick={handleSubmit}>
+              {productionOrder ? 'Saqlash' : "Ishlab Chiqarishni Biriktirish"}
+            </Button>
+          )}
         </div>
       }
     >
@@ -269,30 +307,43 @@ export const ProductionFormModal = ({
         {/* Core Primary Header Fields */}
         <div className="row g-3 mb-3">
           {/* Dynamic Order Select */}
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-3">
             <DynamicSelect
               label="Tegishli Buyurtma № (Mijoz Zakazi)"
               value={formData.orderId}
               onChange={(e) => handleFieldChange('orderId', e.target.value)}
-              options={orderOptions}
+              options={[{ value: '', label: "Buyurtmasiz (Sklad uchun)" }, ...orderOptions]}
               managePath={ROUTES.PROTECTED.ORDERS}
               onAddNew={handleAddNewOrder}
               entityTitle="Buyurtma"
-              required
+              disabled={isReadOnly}
             />
           </div>
 
-          <div className="col-12 col-md-5">
+          {/* Kotyol Modeli Select */}
+          <div className="col-12 col-md-3">
+            <Select
+              label="Kotyol Modeli"
+              value={formData.boilerId}
+              onChange={(e) => handleFieldChange('boilerId', e.target.value)}
+              options={boilersList.map((b) => ({ value: b.id, label: b.modelName }))}
+              required
+              disabled={isReadOnly}
+            />
+          </div>
+
+          <div className="col-12 col-md-4">
             <Input
               label="Texnologik Operatsiya va Mahsulot Nomi"
               placeholder="Masalan: Kotyol yig'ish va payvandlash"
               value={formData.title}
               onChange={(e) => handleFieldChange('title', e.target.value)}
               required
+              disabled={isReadOnly}
             />
           </div>
 
-          <div className="col-12 col-md-3">
+          <div className="col-12 col-md-2">
             <Input
               label="Reja Miqdori (dona)"
               type="number"
@@ -300,6 +351,7 @@ export const ProductionFormModal = ({
               value={formData.quantity}
               onChange={(e) => handleFieldChange('quantity', e.target.value)}
               required
+              disabled={isReadOnly}
             />
           </div>
         </div>
@@ -308,7 +360,7 @@ export const ProductionFormModal = ({
         <div className="row g-3 mb-3">
           <div className="col-12 col-md-4">
             <DynamicSelect
-              label="👤 Biriktirilgan Mas'ul Usta / Xodim (MAJBURIY)"
+              label="Biriktirilgan Mas'ul Usta / Xodim (MAJBURIY)"
               value={formData.assignedEmployee}
               onChange={(e) => handleFieldChange('assignedEmployee', e.target.value)}
               options={employeeOptions}
@@ -316,13 +368,14 @@ export const ProductionFormModal = ({
               onAddNew={handleAddNewEmployee}
               entityTitle="Xodim"
               required
+              disabled={isReadOnly}
             />
           </div>
 
           {/* REAL GET API Salary Type Selection: GET /master-data/salary-types */}
           <div className="col-12 col-md-5">
             <DynamicSelect
-              label="💵 Oylik va Ish Haqi Turlari (GET /master-data/salary-types API)"
+              label="Oylik va Ish Haqi Turlari (GET /master-data/salary-types API)"
               value={formData.salaryTypeId}
               onChange={(e) => handleFieldChange('salaryTypeId', e.target.value)}
               options={salaryTypeOptions}
@@ -330,6 +383,7 @@ export const ProductionFormModal = ({
               onAddNew={handleAddNewSalaryType}
               entityTitle="Maosh Turi"
               placeholder={salaryTypeOptions.length === 0 ? "Bazada maosh turi hali yaratilmagan — Yangi Qo'shing" : "Maosh turini tanlang"}
+              disabled={isReadOnly}
             />
           </div>
 
@@ -340,6 +394,7 @@ export const ProductionFormModal = ({
               value={formData.stagePrice}
               onChange={(e) => handleFieldChange('stagePrice', e.target.value)}
               placeholder="0"
+              disabled={isReadOnly}
             />
           </div>
         </div>
@@ -400,6 +455,7 @@ export const ProductionFormModal = ({
                   value={formData.line}
                   onChange={(e) => handleFieldChange('line', e.target.value)}
                   required
+                  disabled={isReadOnly}
                 />
               </div>
 
@@ -409,6 +465,7 @@ export const ProductionFormModal = ({
                   value={formData.priority}
                   onChange={(e) => handleFieldChange('priority', e.target.value)}
                   options={priorityOptions}
+                  disabled={isReadOnly}
                 />
               </div>
 
@@ -419,6 +476,7 @@ export const ProductionFormModal = ({
                   value={formData.startDate}
                   onChange={(e) => handleFieldChange('startDate', e.target.value)}
                   required
+                  disabled={isReadOnly}
                 />
               </div>
 
@@ -429,6 +487,7 @@ export const ProductionFormModal = ({
                   value={formData.expectedFinishDate}
                   onChange={(e) => handleFieldChange('expectedFinishDate', e.target.value)}
                   required
+                  disabled={isReadOnly}
                 />
               </div>
 
@@ -440,12 +499,13 @@ export const ProductionFormModal = ({
                   value={formData.notes}
                   onChange={(e) => handleFieldChange('notes', e.target.value)}
                   placeholder="Sex ustalari uchun maxsus yo'riqnoma..."
+                  disabled={isReadOnly}
                 ></textarea>
               </div>
 
               <div className="col-12">
                 <label className="form-label fs-7 fw-medium text-main">Chizmalar va Texnik Xaritalarni Yuklash</label>
-                <FileUpload label="Texnik chizmalarni yuklash" maxSizeMB={10} />
+                <FileUpload label="Texnik chizmalarni yuklash" maxSizeMB={10} disabled={isReadOnly} />
               </div>
             </div>
           )}

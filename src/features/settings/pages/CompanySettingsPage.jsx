@@ -104,24 +104,24 @@ export const CompanySettingsPage = () => {
             </div>
             <div className="col-12">
               <label className="text-muted-custom fs-8 d-block mb-1">Korxona Faoliyati Tavsifi</label>
-              <div className="fw-semibold text-main p-3 rounded bg-white bg-opacity-5 border-custom">
+              <div className="fw-semibold text-main p-3 rounded bg-body-custom border-custom">
                 {formData.description || 'Kiritilmagan'}
               </div>
             </div>
             <div className="col-12 col-md-4">
-              <div className="p-3 rounded bg-white bg-opacity-5 border-custom text-center">
+              <div className="p-3 rounded bg-body-custom border-custom text-center">
                 <label className="text-muted-custom fs-8 d-block mb-1">Asosiy Hisob Valyutasi</label>
                 <div className="fw-bold text-main fs-5">{formData.currency}</div>
               </div>
             </div>
             <div className="col-12 col-md-4">
-              <div className="p-3 rounded bg-white bg-opacity-5 border-custom text-center">
+              <div className="p-3 rounded bg-body-custom border-custom text-center">
                 <label className="text-muted-custom fs-8 d-block mb-1">Vaqt Mintaqasi</label>
                 <div className="fw-semibold text-main">{formData.timezone}</div>
               </div>
             </div>
             <div className="col-12 col-md-4">
-              <div className="p-3 rounded bg-white bg-opacity-5 border-custom text-center">
+              <div className="p-3 rounded bg-body-custom border-custom text-center">
                 <label className="text-muted-custom fs-8 d-block mb-1">Sana Formati</label>
                 <div className="fw-semibold text-main">{formData.dateFormat}</div>
               </div>

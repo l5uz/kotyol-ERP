@@ -18,8 +18,15 @@ const mapProductionOrder = (item) => {
     status: item.status || 'PLANNED',
     progressPercent: item.target_quantity > 0 ? Math.round(((item.completed_quantity || 0) / item.target_quantity) * 100) : 0,
     priority: 'NORMAL',
-    assignedEmployees: [],
+    assignedEmployees: item.assigned_employees || (item.assigned_employee ? [item.assigned_employee] : []),
     timeline: [],
+    operations: (item.operations || []).map((op) => ({
+      id: op.id,
+      name: op.operation_name,
+      workerName: op.worker_name,
+      rate: Number(op.rate) || 0,
+      status: op.status,
+    })),
   };
 };
 
@@ -61,7 +68,43 @@ export const productionApi = {
       const response = await axiosInstance.get('/production/batches');
       const items = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
       const item = items.find((p) => String(p.id) === String(id));
-      return { success: true, data: mapProductionOrder(item) };
+      const mapped = mapProductionOrder(item);
+
+      if (mapped && mapped.boilerId) {
+        try {
+          const boilRes = await boilersApi.getBoilerById(mapped.boilerId);
+          const recipeId = boilRes?.data?.recipeId;
+          if (recipeId) {
+            const recRes = await recipesApi.getRecipeById(recipeId);
+            if (recRes.success && recRes.data?.items) {
+              const qty = Number(mapped.quantity) || 1;
+              mapped.ingredients = recRes.data.items.map((ing) => ({
+                materialName: ing.materialName,
+                requiredQty: (ing.requiredQuantity || 0) * qty,
+                unit: ing.unit || 'dona',
+                cost: (ing.unitPrice || 0) * (ing.requiredQuantity || 0) * qty,
+              }));
+              mapped.estimatedCost = mapped.ingredients.reduce((sum, ing) => sum + ing.cost, 0);
+            }
+          }
+        } catch (_err) {
+          console.warn("Failed to fetch recipe ingredients dynamically:", _err);
+        }
+      }
+
+      if (mapped) {
+        mapped.timeline = [
+          { id: 't1', title: "Yaratildi", description: `Partiya rejalashtirildi. Rejadagi miqdor: ${mapped.quantity} dona. Boshlanish sanasi: ${mapped.startDate}`, timestamp: mapped.startDate || "2026-08-06" },
+          ...(mapped.status === 'IN_PROGRESS' || mapped.status === 'COMPLETED' ? [
+            { id: 't2', title: "Sexda Boshlandi", description: "Xomashyolar ombordan chiqarildi, yig'ish liniyasi ish boshladi.", timestamp: mapped.startDate || "2026-08-06" }
+          ] : []),
+          ...(mapped.status === 'COMPLETED' ? [
+            { id: 't3', title: "Yakunlandi", description: "Barcha texnik operatsiyalar bajarildi va sifat nazoratidan o'tdi.", timestamp: mapped.expectedFinishDate || "2026-08-06" }
+          ] : [])
+        ];
+      }
+
+      return { success: true, data: mapped };
     } catch (err) {
       console.error("getProductionOrderById error:", err);
       return { success: false, data: null, error: err };
@@ -87,6 +130,7 @@ export const productionApi = {
         target_quantity: Number(data.quantity) || 1,
         start_date: data.startDate || new Date().toISOString().split('T')[0],
         end_date: data.expectedFinishDate || null,
+        assigned_employees: data.assignedEmployees || [],
       };
 
       const response = await axiosInstance.post('/production/batches', payload);
@@ -101,9 +145,15 @@ export const productionApi = {
   updateProductionOrder: async (id, data) => {
     try {
       const payload = {
+        batch_number: data.productionNumber || undefined,
+        boiler_id: data.boilerId || undefined,
+        target_quantity: data.quantity !== undefined ? Number(data.quantity) : undefined,
         completed_quantity: data.completedQuantity !== undefined ? Number(data.completedQuantity) : undefined,
         defect_quantity: data.defectQuantity !== undefined ? Number(data.defectQuantity) : undefined,
         status: data.status || undefined,
+        start_date: data.startDate || undefined,
+        end_date: data.expectedFinishDate || undefined,
+        assigned_employees: data.assignedEmployees || undefined,
       };
 
       const response = await axiosInstance.put(`/production/batches/${id}`, payload);
@@ -171,6 +221,16 @@ export const productionApi = {
       return { success: true, message: "Ishlab chiqarish topshirig'i muvaffaqiyatli o'chirildi." };
     } catch (err) {
       return { success: false, error: err, message: "O'chirishda xatolik yuz berdi." };
+    }
+  },
+
+  completeOperation: async (opId) => {
+    try {
+      const response = await axiosInstance.put(`/production/operations/${opId}/complete`);
+      return { success: true, message: response.message || "Operatsiya bajarildi." };
+    } catch (err) {
+      console.error("completeOperation error:", err);
+      return { success: false, error: err, message: "Operatsiyani yakunlashda xatolik yuz berdi." };
     }
   },
 };

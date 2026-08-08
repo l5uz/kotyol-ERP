@@ -67,13 +67,18 @@ class RecipeItemResponseSerializer(serializers.Serializer):
     material_name = serializers.SerializerMethodField()
     quantity = serializers.FloatField()
     waste_percentage = serializers.FloatField()
+    unit_price = serializers.SerializerMethodField()
 
     def get_material_name(self, obj):
         return obj.material_product.name if getattr(obj, 'material_product', None) else None
 
+    def get_unit_price(self, obj):
+        return float(obj.material_product.unit_price or 0.0) if getattr(obj, 'material_product', None) else 0.0
+
 class RecipeCreateSerializer(serializers.Serializer):
     recipe_number = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="")
-    product_id = serializers.CharField()
+    recipe_name = serializers.CharField(required=False, allow_null=True, allow_blank=True, default="Nomsiz Retseptura")
+    product_id = serializers.CharField(required=False, allow_null=True, allow_blank=True, default=None)
     version = serializers.CharField(default="v1.0")
     estimated_cost = serializers.FloatField(default=0.0)
     items = RecipeItemSchemaSerializer(many=True, required=False, default=[])
@@ -81,7 +86,8 @@ class RecipeCreateSerializer(serializers.Serializer):
 class RecipeResponseSerializer(serializers.Serializer):
     id = serializers.CharField()
     recipe_number = serializers.CharField()
-    product_id = serializers.CharField()
+    recipe_name = serializers.CharField()
+    product_id = serializers.CharField(allow_null=True, required=False)
     version = serializers.CharField()
     estimated_cost = serializers.FloatField()
     status = serializers.CharField()

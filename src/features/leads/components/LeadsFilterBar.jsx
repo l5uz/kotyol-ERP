@@ -6,13 +6,13 @@ const LeadsFilterBar = ({ filter, setFilter }) => {
   };
 
   return (
-    <div className="card glass-card mb-4">
+    <div className="card border-custom mb-4">
       <div className="card-body">
         <div className="row g-3">
           <div className="col-md-4">
             <input 
               type="text" 
-              className="form-control glass-input" 
+              className="form-control" 
               placeholder="Qidirish (Ism, Kompaniya, Telefon)..." 
               name="search"
               value={filter.search || ''}
@@ -21,23 +21,31 @@ const LeadsFilterBar = ({ filter, setFilter }) => {
           </div>
           <div className="col-md-3">
             <select 
-              className="form-select glass-input" 
+              className="form-select" 
               name="status"
               value={filter.status || ''}
               onChange={handleChange}
             >
               <option value="">Barcha statuslar</option>
-              <option value="NEW">Yangi</option>
-              <option value="CONTACTED">Bog'lanildi</option>
-              <option value="OFFER">Taklif berildi</option>
-              <option value="NEGOTIATION">Muzokara</option>
-              <option value="WON">Yutilgan</option>
-              <option value="LOST">Yo'qotilgan</option>
+              {(() => {
+                const saved = localStorage.getItem('lead_kanban_columns');
+                const cols = saved ? JSON.parse(saved) : [
+                  { id: 'NEW', title: 'Yangi' },
+                  { id: 'CONTACTED', title: "Bog'lanildi" },
+                  { id: 'OFFER', title: 'Taklif berildi' },
+                  { id: 'NEGOTIATION', title: 'Muzokara' },
+                  { id: 'WON', title: 'Yutilgan' },
+                  { id: 'LOST', title: "Yo'qotilgan" }
+                ];
+                return cols.map((col) => (
+                  <option key={col.id} value={col.id}>{col.title}</option>
+                ));
+              })()}
             </select>
           </div>
           <div className="col-md-3">
             <select 
-              className="form-select glass-input" 
+              className="form-select" 
               name="source"
               value={filter.source || ''}
               onChange={handleChange}

@@ -200,6 +200,10 @@ class ServiceTicket(BaseModel):
     order_number = models.CharField(max_length=100, null=True, blank=True)
     production_number = models.CharField(max_length=100, null=True, blank=True)
     notes = models.TextField(null=True, blank=True)
+    sale_id = models.CharField(max_length=100, null=True, blank=True)
+    sale_invoice_number = models.CharField(max_length=100, null=True, blank=True)
+    service_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    employee_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0.00, null=True, blank=True)
 
     class Meta:
         db_table = 'service_tickets'

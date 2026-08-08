@@ -11,9 +11,7 @@ export const Modal = ({
 }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
+      // Escape bosilsa modal yopilmasin
     };
 
     if (isOpen) {
@@ -50,7 +48,7 @@ export const Modal = ({
       tabIndex="-1"
       role="dialog"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        // Backdrop click — modal yopilmasin, faqat X yoki Bekor qilish tugmasi orqali
       }}
     >
       <div className={`modal-dialog modal-dialog-centered ${sizeClass}`} role="document">

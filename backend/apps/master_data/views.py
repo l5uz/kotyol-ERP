@@ -158,3 +158,77 @@ def company_profile_view(request):
         request=request
     )
     return Response({"success": True, "data": CompanyResponseSerializer(company).data})
+
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def complete_service_ticket_view(request, id):
+    from apps.master_data.models import ServiceTicket
+    from apps.finance.models import FinancialTransaction
+    from apps.master_data.models import ExpenseType
+    from apps.accounts.models import User
+    import decimal
+    import datetime
+    import uuid
+
+    try:
+        ticket = ServiceTicket.objects.get(id=id)
+    except ServiceTicket.DoesNotExist:
+        raise CustomAppException(message="Servis topilmadi", status_code=404)
+
+    service_cost = decimal.Decimal(str(request.data.get('service_cost', 0.0) or 0.0))
+    employee_cost = decimal.Decimal(str(request.data.get('employee_cost', 0.0) or 0.0))
+
+    ticket.service_cost = service_cost
+    ticket.employee_cost = employee_cost
+    ticket.status = "COMPLETED"
+    ticket.save()
+
+    # Generate Income transaction
+    if service_cost > 0:
+        FinancialTransaction.objects.create(
+            transaction_number=f"SRV-REV-{datetime.datetime.now().strftime('%y%m%d%H%M%S')}-{str(uuid.uuid4())[:4].upper()}",
+            type="INCOME",
+            amount=service_cost,
+            currency="USD",
+            reference_id=str(ticket.id),
+            transaction_date=datetime.date.today(),
+            notes=f"Servis xizmati daromadi (Servis №{ticket.service_number}): {ticket.customer_name or 'Mijoz'}"
+        )
+
+    # Generate Expense transaction & add to employee salary
+    if employee_cost > 0 and ticket.assigned_employee_id:
+        salary_exp_type, _ = ExpenseType.objects.get_or_create(
+            code="salary",
+            defaults={"name": "Ish haqi xarajatlari"}
+        )
+        FinancialTransaction.objects.create(
+            transaction_number=f"SAL-SRV-{datetime.datetime.now().strftime('%y%m%d%H%M%S')}-{str(uuid.uuid4())[:4].upper()}",
+            type="EXPENSE",
+            expense_type=salary_exp_type,
+            amount=employee_cost,
+            currency="USD",
+            reference_id=str(ticket.id),
+            transaction_date=datetime.date.today(),
+            notes=f"Xodim servis ulushi (Servis №{ticket.service_number}): {ticket.assigned_employee_name or 'Xodim'}"
+        )
+
+        try:
+            emp = User.objects.get(id=ticket.assigned_employee_id)
+            curr = 0.0
+            if emp.salary_amount:
+                try:
+                    curr = float(emp.salary_amount)
+                except ValueError:
+                    pass
+            emp.salary_amount = str(curr + float(employee_cost))
+            emp.save()
+        except User.DoesNotExist:
+            pass
+
+    return Response({
+        "success": True, 
+        "message": "Servis muvaffaqiyatli yakunlandi, daromadlar va xodim maoshi yangilandi!",
+        "data": MasterDataResponseSerializer(ticket).data
+    })

@@ -60,7 +60,7 @@ export const RegisterPage = () => {
               <i className="bi bi-telephone-fill"></i>
             </span>
             <input
-              type="text"
+              type="tel"
               className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
               placeholder="+998901234567"
               {...register('phone', {
@@ -70,6 +70,14 @@ export const RegisterPage = () => {
                   message: "Noto'g'ri telefon raqami shakli",
                 }
               })}
+              onInput={(e) => {
+                let clean = e.target.value.replace(/[^\d+]/g, '');
+                if (clean.includes('+')) {
+                  const hasLeading = clean.startsWith('+');
+                  clean = (hasLeading ? '+' : '') + clean.replace(/\+/g, '');
+                }
+                e.target.value = clean;
+              }}
             />
             {errors.phone && <div className="invalid-feedback">{errors.phone.message}</div>}
           </div>

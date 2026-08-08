@@ -138,7 +138,7 @@ export const DebtorsPage = () => {
       cell: (row) => <span className="text-success fs-7 fw-semibold">{formatCurrency(row.paidAmount)}</span>,
     },
     {
-      header: '📦 Kompaniya Qarzi (Qolgan)',
+      header: 'Kompaniya Qarzi (Qolgan)',
       cell: (row) => (
         <strong className={row.remainingDebt > 0 ? "text-danger fs-7" : "text-success fs-7"}>
           {formatCurrency(row.remainingDebt)}
@@ -170,7 +170,7 @@ export const DebtorsPage = () => {
       cell: (row) => <span className="text-main fs-7">{formatCurrency(row.totalAmount)}</span>,
     },
     {
-      header: '💰 Zaklad (Avans To\'langan)',
+      header: 'Zaklad (Avans To\'langan)',
       cell: (row) => (
         <span className="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1 fs-8 fw-bold">
           {formatCurrency(row.depositAmount)}
@@ -178,7 +178,7 @@ export const DebtorsPage = () => {
       ),
     },
     {
-      header: '⚠️ Mijoz Qarzi (Yetkazib Berilganda)',
+      header: 'Mijoz Qarzi (Yetkazib Berilganda)',
       cell: (row) => (
         <strong className={row.remainingDebt > 0 ? "text-danger fs-7" : "text-success fs-7"}>
           {formatCurrency(row.remainingDebt)}
@@ -196,7 +196,7 @@ export const DebtorsPage = () => {
       <FinanceSubNav />
 
       <PageHeader
-        title="📊 Qarzdorliklar va Kreditorlik Reestri (Debtors & Payables)"
+        title="Qarzdorliklar va Kreditorlik Reestri (Debtors & Payables)"
         subtitle="Kompaniyaning ta'minotchilardan qarzdorligi va Mijozlarning kotyol shartnoma qarzlari"
         breadcrumbs={[
           { label: 'Bosh sahifa', path: '/' },
@@ -211,7 +211,7 @@ export const DebtorsPage = () => {
           <Card className="p-3 bg-danger bg-opacity-10 border-danger border-opacity-25">
             <div className="d-flex align-items-center justify-content-between">
               <div>
-                <small className="text-danger d-block fw-semibold mb-1">🏢 Kompaniya Qarzdorligi (Ta'minotchilarga):</small>
+                <small className="text-danger d-block fw-semibold mb-1">Kompaniya Qarzdorligi (Ta'minotchilarga):</small>
                 <h4 className="fw-bold text-danger mb-0 font-monospace">{formatCurrency(summary.totalCompanyDebt)}</h4>
               </div>
               <div className="p-3 bg-danger text-white rounded-3">
@@ -225,7 +225,7 @@ export const DebtorsPage = () => {
           <Card className="p-3 bg-warning bg-opacity-25 border-warning border-opacity-25">
             <div className="d-flex align-items-center justify-content-between">
               <div>
-                <small className="text-dark d-block fw-semibold mb-1">👤 Mijozlar Qarzdorligi (Kompaniyaga):</small>
+                <small className="text-dark d-block fw-semibold mb-1">Mijozlar Qarzdorligi (Kompaniyaga):</small>
                 <h4 className="fw-bold text-dark mb-0 font-monospace">{formatCurrency(summary.totalCustomerDebt)}</h4>
               </div>
               <div className="p-3 bg-warning text-dark rounded-3">
@@ -268,7 +268,7 @@ export const DebtorsPage = () => {
           onClick={() => setActiveTab('company_debts')}
         >
           <LuBuilding2 />
-          <span>🏢 Kompaniya Qarzi ({companyPayables.length} ta)</span>
+          <span>Kompaniya Qarzi ({companyPayables.length} ta)</span>
         </button>
 
         <button
@@ -276,7 +276,7 @@ export const DebtorsPage = () => {
           onClick={() => setActiveTab('customer_debts')}
         >
           <LuUsers />
-          <span>👤 Mijozlar Qarzi ({customerReceivables.length} ta)</span>
+          <span>Mijozlar Qarzi ({customerReceivables.length} ta)</span>
         </button>
       </div>
 

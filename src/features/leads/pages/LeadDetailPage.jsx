@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { leadsApi } from '../api/leadsApi';
 import LeadFormModal from '../components/LeadFormModal';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
+import { CustomerFormModal, customersApi } from '@/features/customers';
 
 const LeadDetailPage = () => {
   const { id } = useParams();
@@ -11,7 +12,7 @@ const LeadDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [showConvertConfirm, setShowConvertConfirm] = useState(false);
+  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
 
   const loadLead = async () => {
     try {
@@ -49,10 +50,12 @@ const LeadDetailPage = () => {
     }
   };
 
-  const handleConvert = async () => {
+  const handleConvertSubmit = async (customerData) => {
     try {
-      await leadsApi.convertLeadToCustomer(id);
-      navigate('/customers'); // Or navigate to new customer detail if id is known
+      await customersApi.createCustomer(customerData);
+      await leadsApi.updateLead(id, { ...lead, status: 'WON' });
+      setIsConvertModalOpen(false);
+      navigate('/customers');
     } catch (error) {
       console.error(error);
     }
@@ -60,8 +63,8 @@ const LeadDetailPage = () => {
 
   if (loading || !lead) {
     return (
-      <div className="container-fluid py-4 text-center text-white">
-        <div className="spinner-border"></div>
+      <div className="container-fluid py-4 text-center text-main">
+        <div className="spinner-border text-primary" role="status"></div>
       </div>
     );
   }
@@ -69,20 +72,20 @@ const LeadDetailPage = () => {
   return (
     <div className="container-fluid py-4">
       <div className="mb-4">
-        <button className="btn btn-outline-light glass-button" onClick={() => navigate('/leads')}>
+        <button className="btn btn-outline-primary" onClick={() => navigate('/leads')}>
           <i className="bi bi-arrow-left me-2"></i>Orqaga
         </button>
       </div>
 
       <div className="row g-4">
         <div className="col-md-4">
-          <div className="card glass-card">
+          <div className="card border-custom">
             <div className="card-body text-center pt-5">
               <div className="avatar-circle bg-primary text-white mx-auto mb-3" style={{width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px'}}>
                 {(lead.companyName || lead.fullName).charAt(0).toUpperCase()}
               </div>
-              <h4 className="text-white mb-1">{lead.companyName || lead.fullName}</h4>
-              <p className="text-muted">{lead.fullName !== lead.companyName ? lead.fullName : ''}</p>
+              <h4 className="text-main mb-1">{lead.companyName || lead.fullName}</h4>
+              <p className="text-muted-custom">{lead.fullName !== lead.companyName ? lead.fullName : ''}</p>
               
               <div className="d-flex justify-content-center gap-2 mb-4">
                 <span className="badge bg-info">{lead.status}</span>
@@ -90,15 +93,15 @@ const LeadDetailPage = () => {
               </div>
 
               <div className="d-grid gap-2">
-                <button className="btn btn-primary glass-button-primary" onClick={() => setShowModal(true)}>
+                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
                   <i className="bi bi-pencil me-2"></i>Tahrirlash
                 </button>
                 {lead.status !== 'WON' && (
-                  <button className="btn btn-success glass-button-success" onClick={() => setShowConvertConfirm(true)}>
+                  <button className="btn btn-success" onClick={() => setIsConvertModalOpen(true)}>
                     <i className="bi bi-check-circle me-2"></i>Mijozga aylantirish
                   </button>
                 )}
-                <button className="btn btn-danger glass-button-danger" onClick={() => setShowConfirm(true)}>
+                <button className="btn btn-danger" onClick={() => setShowConfirm(true)}>
                   <i className="bi bi-trash me-2"></i>O'chirish
                 </button>
               </div>
@@ -107,31 +110,31 @@ const LeadDetailPage = () => {
         </div>
 
         <div className="col-md-8">
-          <div className="card glass-card mb-4">
+          <div className="card border-custom mb-4">
             <div className="card-header border-bottom-0 pt-4 pb-0">
-              <h5 className="text-white mb-0">Lid Ma'lumotlari</h5>
+              <h5 className="text-main mb-0">Lid Ma'lumotlari</h5>
             </div>
             <div className="card-body">
               <div className="row g-3">
                 <div className="col-sm-6">
-                  <div className="text-muted small">Telefon</div>
-                  <div className="text-white fw-bold">{lead.phone}</div>
+                  <div className="text-muted-custom small">Telefon</div>
+                  <div className="text-main fw-bold">{lead.phone}</div>
                 </div>
                 <div className="col-sm-6">
-                  <div className="text-muted small">Email</div>
-                  <div className="text-white fw-bold">{lead.email || '-'}</div>
+                  <div className="text-muted-custom small">Email</div>
+                  <div className="text-main fw-bold">{lead.email || '-'}</div>
                 </div>
                 <div className="col-sm-6">
-                  <div className="text-muted small">Yaratilgan sana</div>
-                  <div className="text-white fw-bold">{lead.createdDate}</div>
+                  <div className="text-muted-custom small">Yaratilgan sana</div>
+                  <div className="text-main fw-bold">{lead.createdDate}</div>
                 </div>
                 <div className="col-sm-6">
-                  <div className="text-muted small">Keyingi aloqa</div>
-                  <div className="text-white fw-bold text-warning">{lead.nextContactDate || '-'}</div>
+                  <div className="text-muted-custom small">Keyingi aloqa</div>
+                  <div className="text-main fw-bold text-warning">{lead.nextContactDate || '-'}</div>
                 </div>
                 <div className="col-12">
-                  <div className="text-muted small">Izohlar</div>
-                  <div className="text-white p-3 rounded" style={{backgroundColor: 'rgba(0,0,0,0.2)'}}>
+                  <div className="text-muted-custom small">Izohlar</div>
+                  <div className="text-main p-3 rounded" style={{backgroundColor: 'var(--erp-bg-body)', border: '1px solid var(--erp-border-color)'}}>
                     {lead.notes || 'Izoh yo\'q'}
                   </div>
                 </div>
@@ -158,13 +161,17 @@ const LeadDetailPage = () => {
         />
       )}
 
-      {showConvertConfirm && (
-        <ConfirmDialog
-          isOpen={showConvertConfirm}
-          onClose={() => setShowConvertConfirm(false)}
-          onConfirm={handleConvert}
-          title="Mijozga aylantirish"
-          message="Lidni rasmiy mijozlar ro'yxatiga o'tkazmoqchimisiz? Uning statusi 'Yutilgan' bo'ladi."
+      {isConvertModalOpen && (
+        <CustomerFormModal
+          isOpen={isConvertModalOpen}
+          onClose={() => setIsConvertModalOpen(false)}
+          onSubmit={handleConvertSubmit}
+          customer={{
+            customerName: lead.companyName || lead.fullName || '',
+            phone: lead.phone || '',
+            email: lead.email || '',
+            notes: `Liddan aylantirildi. Izoh: ${lead.notes || ''}`
+          }}
         />
       )}
     </div>

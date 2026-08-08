@@ -515,3 +515,8 @@ textarea.form-control {
     max-width: calc(100vw - 80px) !important;
   }
 }
+
+/* Search Input Overlap Fix */
+.form-control.search-input-field {
+  padding-left: 2.5rem !important;
+}

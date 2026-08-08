@@ -51,7 +51,7 @@ export const SaleDetailPage = () => {
         actions={
           <div className="d-flex gap-2">
             <Button variant="success" size="sm" icon={<LuAward />} onClick={() => setIsInsuranceModalOpen(true)}>
-              🛡️ Sug'urta Polisi va Bepul Servis Qog'ozi
+              Sug'urta Polisi va Bepul Servis Qog'ozi
             </Button>
             <Link to={ROUTES.PROTECTED.SALES} className="btn btn-outline-secondary btn-sm">
               <LuChevronLeft className="me-1" /> Sotuvlar Ro'yxatiga Qaytish
@@ -101,8 +101,21 @@ export const SaleDetailPage = () => {
               </div>
 
               <div>
-                <small className="text-muted-custom d-block">Mas'ul Sotuvchi:</small>
-                <span className="text-main fw-medium">{sale.createdBy}</span>
+                <small className="text-muted-custom d-block">Sotuvchi Mas'ul:</small>
+                <span className="text-main fw-medium">{sale.assignedEmployeeName || sale.createdBy || 'Biriktirilmagan'}</span>
+              </div>
+
+              <div>
+                <small className="text-muted-custom d-block">Yetkazib Berilgan Manzil:</small>
+                <span className="text-main">{sale.deliveryLocation || 'Ko\'rsatilmagan'}</span>
+              </div>
+
+              <div>
+                <small className="text-muted-custom d-block">Kafolat Muddati:</small>
+                <span className="fw-bold text-success">
+                  {sale.warrantyPeriod || 'Kafolatsiz'} 
+                  {sale.warrantyStartDate && ` (${sale.warrantyStartDate} dan — ${sale.warrantyEndDate || 'muddatsiz'} gacha)`}
+                </span>
               </div>
             </div>
 
@@ -143,7 +156,7 @@ export const SaleDetailPage = () => {
 
         {/* Right Column - Financial Breakdown & Profit Margins */}
         <div className="col-12 col-lg-8">
-          <Card className="p-4 mb-3" title="📊 Sotuv Rentabelligi va Foyda Tahlili">
+          <Card className="p-4 mb-3" title="Sotuv Rentabelligi va Foyda Tahlili">
             <div className="row g-3 fs-7">
               <div className="col-6 col-md-4">
                 <div className="p-3 bg-body-custom rounded-3 border-custom">
@@ -168,7 +181,7 @@ export const SaleDetailPage = () => {
             </div>
           </Card>
 
-          <Card className="p-4" title="📝 Izoh va Shartlar">
+          <Card className="p-4" title="Izoh va Shartlar">
             <p className="text-muted-custom fs-7 mb-0">
               {sale.notes || "Ushbu sotuv bo'yicha qo'shimcha maxsus izoh kiritilmagan."}
             </p>

@@ -320,7 +320,7 @@ export const ProductionPage = () => {
         </Card>
       )}
 
-      {canCreate && (
+      {(canCreate || canEdit || isReadOnly) && (
         <ProductionFormModal
           isOpen={isModalOpen}
           onClose={() => {
@@ -331,6 +331,7 @@ export const ProductionPage = () => {
           productionOrder={editingOrder}
           stages={stages}
           employees={employees}
+          isReadOnly={isReadOnly || (!editingOrder && !canCreate) || (editingOrder && !canEdit)}
         />
       )}
 

@@ -119,6 +119,9 @@ class RecipeService:
             rec_num = f"BOM-{str(uuid.uuid4())[:6].upper()}"
 
         data["recipe_number"] = rec_num
+        if "recipe_name" in data and not data["recipe_name"]:
+            data["recipe_name"] = "Nomsiz Retseptura"
+
         if created_by_id and hasattr(Recipe, "created_by_id"):
             data["created_by_id"] = created_by_id
 
@@ -139,6 +142,14 @@ class RecipeService:
     def update(recipe_id: str, data: dict, updated_by_id: str = None) -> Recipe:
         recipe = RecipeService.get_by_id(recipe_id)
         items_data = data.pop("items", None)
+
+        if "recipe_number" in data and not data["recipe_number"]:
+            data.pop("recipe_number")
+        if "product_id" in data and not data["product_id"]:
+            data["product_id"] = None
+        if "recipe_name" in data and not data["recipe_name"]:
+            data["recipe_name"] = "Nomsiz Retseptura"
+
         for k, v in data.items():
             if hasattr(recipe, k) and v is not None:
                 setattr(recipe, k, v)

@@ -158,6 +158,23 @@ export const productsApi = {
       const response = await axiosInstance.post('/products', payload)
         .catch(() => axiosInstance.post('/products/', payload));
       const itemData = response?.data || response;
+      const newProductId = itemData?.id;
+
+      // Create warehouse stock entry if quantity provided
+      const qty = Number(productData.quantity);
+      if (qty > 0 && newProductId) {
+        try {
+          await axiosInstance.post('/warehouse/stock', {
+            product_id: newProductId,
+            quantity: qty,
+            unit_cost: Number(productData.purchasePrice) || 0,
+            movement_type: 'PURCHASE',
+          });
+        } catch (stockErr) {
+          console.error("Stock creation error:", stockErr);
+        }
+      }
+
       return { success: true, data: mapProduct(itemData), message: "Yangi xomashyo/mahsulot muvaffaqiyatli saqlandi." };
     } catch (err) {
       console.error("createProduct error:", err);
@@ -168,7 +185,7 @@ export const productsApi = {
   updateProduct: async (id, productData) => {
     try {
       const payload = {
-        name: productData.name || undefined,
+        name: productData.name,
         code: productData.code || productData.internalCode || undefined,
         category_id: isValidUUID(productData.categoryId) ? productData.categoryId : undefined,
         material_type_id: isValidUUID(productData.materialTypeId) ? productData.materialTypeId : undefined,
@@ -181,9 +198,40 @@ export const productsApi = {
         status: productData.status || undefined,
       };
 
+      // Remove undefined keys so backend doesn't receive them
+      Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+
       const response = await axiosInstance.put(`/products/${id}`, payload)
         .catch(() => axiosInstance.put(`/products/${id}/`, payload));
       const itemData = response?.data || response;
+
+      // Update warehouse stock quantity if provided
+      const qty = Number(productData.quantity);
+      if (qty > 0) {
+        try {
+          const stockRes = await axiosInstance.get('/warehouse/stock');
+          const stocks = Array.isArray(stockRes?.data) ? stockRes.data : Array.isArray(stockRes) ? stockRes : [];
+          const stockEntry = stocks.find(s => String(s.product_id || s.product?.id) === String(id));
+          if (stockEntry) {
+            // Update existing stock
+            await axiosInstance.put(`/warehouse/stock/${stockEntry.id}`, {
+              quantity: qty,
+              unit_cost: Number(productData.purchasePrice) || 0,
+            });
+          } else {
+            // Create new stock entry via POST
+            await axiosInstance.post('/warehouse/stock', {
+              product_id: id,
+              quantity: qty,
+              unit_cost: Number(productData.purchasePrice) || 0,
+              movement_type: 'ADJUSTMENT',
+            });
+          }
+        } catch (stockErr) {
+          console.error("Stock update error:", stockErr);
+        }
+      }
+
       return { success: true, data: mapProduct(itemData), message: "Mahsulot ma'lumotlari yangilandi." };
     } catch (err) {
       console.error("updateProduct error:", err);

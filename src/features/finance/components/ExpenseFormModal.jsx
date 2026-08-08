@@ -106,7 +106,7 @@ export const ExpenseFormModal = ({
           <span>{expenseRecord ? "Xarajat Hujjatini Tahrirlash" : "Yangi Operatsion Xarajat Kiritish"}</span>
           {isDraftRestored && (
             <span className="badge bg-success bg-opacity-10 text-success fs-8 d-flex align-items-center gap-1">
-              <LuFileCheck /> 📝 Qoralama tiklandi
+              <LuFileCheck /> Qoralama tiklandi
             </span>
           )}
         </div>

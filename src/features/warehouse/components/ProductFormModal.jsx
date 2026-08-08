@@ -7,6 +7,7 @@ import { Button } from '@/components/common/Button/Button';
 import { FileUpload } from '@/components/common/FileUpload/FileUpload';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { ROUTES } from '@/constants/routes.constants';
+import { axiosInstance } from '@/api/axiosInstance';
 
 import { getActiveCurrency } from '@/utils/currency.utils';
 
@@ -17,10 +18,10 @@ export const ProductFormModal = ({
   product = null,
   suppliers = [],
 }) => {
-  const [categoryOptions, setCategoryOptions] = useState(dynamicSettingsService.getCategoryOptions());
-  const [materialOptions, setMaterialOptions] = useState(dynamicSettingsService.getMaterialTypeOptions());
-  const [unitOptions, setUnitOptions] = useState(dynamicSettingsService.getUnitOptions());
-  const [currencyOptions, setCurrencyOptions] = useState(dynamicSettingsService.getCurrencyOptions());
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [materialOptions, setMaterialOptions] = useState([]);
+  const [unitOptions, setUnitOptions] = useState([]);
+  const [currencyOptions, setCurrencyOptions] = useState([]);
   const [supplierOptions, setSupplierOptions] = useState(suppliers.map((s) => ({ value: s.id, label: s.companyName })));
 
   useEffect(() => {
@@ -30,30 +31,82 @@ export const ProductFormModal = ({
   const [formData, setFormData] = useState({
     name: '',
     internalCode: '',
-    categoryId: categoryOptions[0]?.value || '',
-    materialTypeId: materialOptions[0]?.value || '',
-    unitId: unitOptions[0]?.value || '',
-    supplierId: supplierOptions[0]?.value || '',
+    categoryId: '',
+    materialTypeId: '',
+    unitId: '',
+    supplierId: '',
+    quantity: '',
     purchasePrice: '',
     currency: getActiveCurrency(),
-    minStock: '100',
+    minStock: '',
     currentStock: '0',
     status: 'ACTIVE',
     description: '',
   });
+
+  const loadDropdownOptions = async () => {
+    try {
+      const [catRes, matRes, unitRes, curRes] = await Promise.all([
+        axiosInstance.get('/master-data/product-categories'),
+        axiosInstance.get('/master-data/material-types'),
+        axiosInstance.get('/master-data/units'),
+        axiosInstance.get('/master-data/currencies')
+      ]);
+
+      const cats = Array.isArray(catRes?.data) ? catRes.data : Array.isArray(catRes) ? catRes : [];
+      const mats = Array.isArray(matRes?.data) ? matRes.data : Array.isArray(matRes) ? matRes : [];
+      const units = Array.isArray(unitRes?.data) ? unitRes.data : Array.isArray(unitRes) ? unitRes : [];
+      const curs = Array.isArray(curRes?.data) ? curRes.data : Array.isArray(curRes) ? curRes : [];
+
+      const catOpts = cats.map(c => ({ value: c.id, label: c.name }));
+      const matOpts = mats.map(m => ({ value: m.id, label: m.name }));
+      const unitOpts = units.map(u => ({ value: u.id, label: `${u.name} (${u.symbol || u.short_name || u.shortName || 'dona'})` }));
+      const curOpts = curs.map(c => ({ value: c.code, label: `${c.name} (${c.symbol})` }));
+
+      setCategoryOptions(catOpts);
+      setMaterialOptions(matOpts);
+      setUnitOptions(unitOpts);
+      setCurrencyOptions(curOpts);
+
+      // Save to cache
+      dynamicSettingsService.saveList('productCategories', cats);
+      dynamicSettingsService.saveList('materialTypes', mats);
+      dynamicSettingsService.saveList('units', units);
+      dynamicSettingsService.saveList('currencies', curs);
+
+      if (!product) {
+        setFormData(prev => ({
+          ...prev,
+          categoryId: prev.categoryId || catOpts[0]?.value || '',
+          materialTypeId: prev.materialTypeId || matOpts[0]?.value || '',
+          unitId: prev.unitId || unitOpts[0]?.value || '',
+          currency: prev.currency || curOpts[0]?.value || 'USD'
+        }));
+      }
+    } catch (err) {
+      console.error("Error loading dropdown options in ProductFormModal:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadDropdownOptions();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (product) {
       setFormData({
         name: product.name || '',
         internalCode: product.internalCode || '',
-        categoryId: product.categoryId || (categoryOptions[0]?.value || ''),
-        materialTypeId: product.materialTypeId || (materialOptions[0]?.value || ''),
-        unitId: product.unitId || (unitOptions[0]?.value || ''),
-        supplierId: product.supplierId || (supplierOptions[0]?.value || ''),
+        categoryId: product.categoryId || '',
+        materialTypeId: product.materialTypeId || '',
+        unitId: product.unitId || '',
+        supplierId: product.supplierId || '',
+        quantity: product.quantity || product.currentStock || '',
         purchasePrice: product.purchasePrice || '',
         currency: product.currency || getActiveCurrency(),
-        minStock: product.minStock || '100',
+        minStock: product.minStock || '',
         currentStock: product.currentStock || '0',
         status: product.status || 'ACTIVE',
         description: product.description || '',
@@ -66,9 +119,10 @@ export const ProductFormModal = ({
         materialTypeId: materialOptions[0]?.value || '',
         unitId: unitOptions[0]?.value || '',
         supplierId: supplierOptions[0]?.value || '',
+        quantity: '',
         purchasePrice: '',
         currency: getActiveCurrency(),
-        minStock: '100',
+        minStock: '',
         currentStock: '0',
         status: 'ACTIVE',
         description: '',
@@ -117,6 +171,7 @@ export const ProductFormModal = ({
       materialTypeName: selectedMat ? selectedMat.label : '',
       unitName: selectedUnit ? selectedUnit.label : '',
       supplierName: selectedSup ? selectedSup.label : '',
+      quantity: parseInt(formData.quantity) || 0,
       purchasePrice: parseFloat(formData.purchasePrice) || 0,
       minStock: parseInt(formData.minStock) || 0,
       currentStock: parseInt(formData.currentStock) || 0,
@@ -213,6 +268,17 @@ export const ProductFormModal = ({
               managePath={ROUTES.PROTECTED.SUPPLIERS}
               onAddNew={handleAddNewSupplier}
               entityTitle="Ta'minotchi"
+              required
+            />
+          </div>
+
+          <div className="col-12 col-md-4">
+            <Input
+              label="Nechta Olindi (Miqdori)"
+              placeholder="0"
+              type="number"
+              value={formData.quantity}
+              onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
               required
             />
           </div>

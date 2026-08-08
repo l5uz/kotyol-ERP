@@ -48,7 +48,7 @@ def lead_detail_view(request, id):
         return Response({"success": True, "data": LeadResponseSerializer(lead).data})
 
     if request.method in ['PUT', 'PATCH']:
-        serializer = LeadCreateSerializer(data=request.data)
+        serializer = LeadCreateSerializer(data=request.data, partial=(request.method == 'PATCH'))
         serializer.is_valid(raise_exception=True)
         body_data = serializer.validated_data
 

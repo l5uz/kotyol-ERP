@@ -26,6 +26,7 @@ export const SalesPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [archiveTab, setArchiveTab] = useState('ACTIVE'); // 'ACTIVE' or 'ARCHIVED'
 
   const [customers, setCustomers] = useState([]);
   const [boilers, setBoilers] = useState([]);
@@ -93,6 +94,34 @@ export const SalesPage = () => {
     setDeleteId(null);
     loadSalesData();
   };
+
+  const handleArchiveSale = async (sale) => {
+    const res = await salesApi.updateSale(sale.id, { ...sale, status: 'ARCHIVED' });
+    if (res.success) {
+      notifySuccess("Sotuv hujjati arxivlandi.");
+      loadSalesData();
+    } else {
+      notifyError(res.message);
+    }
+  };
+
+  const handleRestoreSale = async (sale) => {
+    const res = await salesApi.updateSale(sale.id, { ...sale, status: 'ACTIVE' });
+    if (res.success) {
+      notifySuccess("Sotuv hujjati arxivdan chiqarildi.");
+      loadSalesData();
+    } else {
+      notifyError(res.message);
+    }
+  };
+
+  const displayedSales = sales.filter((s) => {
+    if (archiveTab === 'ACTIVE') {
+      return s.status !== 'ARCHIVED';
+    } else {
+      return s.status === 'ARCHIVED';
+    }
+  });
 
   const customerOptions = [
     { value: '', label: 'Barcha Mijozlar' },
@@ -166,40 +195,77 @@ export const SalesPage = () => {
       header: 'Amallar',
       cell: (row) => (
         <div className="d-flex align-items-center gap-1">
-          <button
-            className="btn btn-sm btn-outline-primary p-1 border-0"
-            onClick={() => navigate(`${ROUTES.PROTECTED.SALES}/${row.id}`)}
-            title="Tafsilotini ko'rish"
-          >
-            <LuEye />
-          </button>
-          <button
-            className="btn btn-sm btn-outline-success p-1 border-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              setInsuranceSale(row);
-            }}
-            title="Sug'urta Polisi va Bepul Kafolat Guvohnomasi"
-          >
-            <LuAward />
-          </button>
-          {canEdit && (
-            <button
-              className="btn btn-sm btn-outline-warning p-1 border-0"
-              onClick={(e) => handleOpenEditModal(e, row)}
-              title="Tahrirlash"
-            >
-              <LuPencil />
-            </button>
-          )}
-          {canDelete && (
-            <button
-              className="btn btn-sm btn-outline-danger p-1 border-0"
-              onClick={(e) => handleOpenDeleteConfirm(e, row.id)}
-              title="O'chirish"
-            >
-              <LuTrash2 />
-            </button>
+          {row.status === 'ARCHIVED' ? (
+            <>
+              <button
+                className="btn btn-sm btn-outline-primary p-1 border-0"
+                onClick={() => navigate(`${ROUTES.PROTECTED.SALES}/${row.id}`)}
+                title="Tafsilotini ko'rish"
+              >
+                <LuEye />
+              </button>
+              <button
+                className="btn btn-sm btn-outline-success p-1 border-0"
+                onClick={() => handleRestoreSale(row)}
+                title="Arxivdan chiqarish"
+              >
+                <i className="bi bi-arrow-counterclockwise"></i>
+              </button>
+              {canDelete && (
+                <button
+                  className="btn btn-sm btn-outline-danger p-1 border-0"
+                  onClick={(e) => handleOpenDeleteConfirm(e, row.id)}
+                  title="Butkul o'chirish"
+                >
+                  <LuTrash2 />
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <button
+                className="btn btn-sm btn-outline-primary p-1 border-0"
+                onClick={() => navigate(`${ROUTES.PROTECTED.SALES}/${row.id}`)}
+                title="Tafsilotini ko'rish"
+              >
+                <LuEye />
+              </button>
+              <button
+                className="btn btn-sm btn-outline-success p-1 border-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setInsuranceSale(row);
+                }}
+                title="Sug'urta Polisi va Bepul Kafolat Guvohnomasi"
+              >
+                <LuAward />
+              </button>
+              {canEdit && (
+                <button
+                  className="btn btn-sm btn-outline-warning p-1 border-0"
+                  onClick={(e) => handleOpenEditModal(e, row)}
+                  title="Tahrirlash"
+                >
+                  <LuPencil />
+                </button>
+              )}
+              <button
+                className="btn btn-sm btn-outline-warning p-1 border-0"
+                onClick={() => handleArchiveSale(row)}
+                title="Arxivlash"
+              >
+                <i className="bi bi-archive"></i>
+              </button>
+              {canDelete && (
+                <button
+                  className="btn btn-sm btn-outline-danger p-1 border-0"
+                  onClick={(e) => handleOpenDeleteConfirm(e, row.id)}
+                  title="O'chirish"
+                >
+                  <LuTrash2 />
+                </button>
+              )}
+            </>
           )}
         </div>
       ),
@@ -225,6 +291,15 @@ export const SalesPage = () => {
         }
       />
 
+      <div className="btn-group mb-3">
+        <button className={`btn ${archiveTab === 'ACTIVE' ? 'btn-success' : 'btn-outline-success'}`} onClick={() => setArchiveTab('ACTIVE')}>
+          Faol Sotuvlar
+        </button>
+        <button className={`btn ${archiveTab === 'ARCHIVED' ? 'btn-warning text-dark' : 'btn-outline-warning'}`} onClick={() => setArchiveTab('ARCHIVED')}>
+          Arxiv (Fakturalar)
+        </button>
+      </div>
+
       <FilterBar
         search={{
           value: search,
@@ -247,8 +322,8 @@ export const SalesPage = () => {
         onReset={handleReset}
       />
 
-      <Card title={`Sotuv Hujjatlari Ro'yxati (${sales.length} ta)`}>
-        <Table columns={columns} data={sales} tableKey="sales_list" />
+      <Card title={`Sotuv Hujjatlari Ro'yxati (${displayedSales.length} ta)`}>
+        <Table columns={columns} data={displayedSales} tableKey="sales_list" />
       </Card>
 
       <SaleFormModal

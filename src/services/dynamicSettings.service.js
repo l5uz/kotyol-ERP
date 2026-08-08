@@ -1,44 +1,20 @@
 import { STORAGE_KEYS } from '@/constants/storage.constants';
 
-const DEFAULT_CURRENCIES = [
-  { code: 'USD', name: 'AQSh Dollari', symbol: '$' },
-  { code: 'UZS', name: 'O\'zbekiston So\'mi', symbol: 'so\'m' },
-];
+const DEFAULT_CURRENCIES = [];
 import { dataIntegrityService } from './dataIntegrity.service';
 
-export const DEFAULT_SUPPLIER_CATEGORIES = [
-  { id: 'raw-materials', name: 'Xom ashyo', status: 'ACTIVE' },
-  { id: 'components', name: 'Ehtiyot qismlar', status: 'ACTIVE' },
-  { id: 'equipment', name: 'Uskunalar', status: 'ACTIVE' },
-  { id: 'services', name: 'Xizmatlar', status: 'ACTIVE' },
-  { id: 'logistics', name: 'Logistika', status: 'ACTIVE' },
-];
+export const DEFAULT_SUPPLIER_CATEGORIES = [];
 
 export const INITIAL_DYNAMIC_SETTINGS = {
   productCategories: [],
   units: [],
   materialTypes: [],
-  supplierCategories: DEFAULT_SUPPLIER_CATEGORIES,
-  customerTypes: [
-    { id: 'ctype_1', name: 'Jismoniy Shaxs', status: 'ACTIVE' },
-    { id: 'ctype_2', name: 'Yuridik Shaxs', status: 'ACTIVE' },
-    { id: 'ctype_3', name: 'Ulgurji Xaridor', status: 'ACTIVE' },
-  ],
+  supplierCategories: [],
+  customerTypes: [],
   serviceTypes: [],
   warrantyTypes: [],
-  priorities: [
-    { id: 'prio_low', name: 'Past', code: 'LOW', badgeClass: 'bg-secondary' },
-    { id: 'prio_normal', name: 'Oddiy', code: 'NORMAL', badgeClass: 'bg-info' },
-    { id: 'prio_high', name: 'Yuqori', code: 'HIGH', badgeClass: 'bg-warning text-dark' },
-    { id: 'prio_urgent', name: 'Shoshilinch', code: 'URGENT', badgeClass: 'bg-danger' },
-  ],
-  orderStatuses: [
-    { id: 'ord_st_1', name: 'Yangi', code: 'NEW', badgeClass: 'bg-primary' },
-    { id: 'ord_st_2', name: 'Rezervda', code: 'RESERVED', badgeClass: 'bg-info' },
-    { id: 'ord_st_3', name: 'Ishlab Chiqarishda', code: 'IN_PRODUCTION', badgeClass: 'bg-warning text-dark' },
-    { id: 'ord_st_4', name: 'Tayyor', code: 'COMPLETED', badgeClass: 'bg-success' },
-    { id: 'ord_st_5', name: 'Bekor Qilingan', code: 'CANCELLED', badgeClass: 'bg-danger' },
-  ],
+  priorities: [],
+  orderStatuses: [],
   paymentStatuses: [
     { id: 'pay_1', name: 'To\'langan', code: 'PAID', badgeClass: 'bg-success' },
     { id: 'pay_2', name: 'Qisman To\'langan', code: 'PARTIAL', badgeClass: 'bg-warning text-dark' },
@@ -65,9 +41,7 @@ export const INITIAL_DYNAMIC_SETTINGS = {
     { id: 'reg_13', name: 'Sirdaryo viloyati' },
     { id: 'reg_14', name: 'Qoraqalpog\'iston Respublikasi' },
   ],
-  warehouses: [
-    { id: 'wh_main', name: 'Asosiy Ombor', status: 'ACTIVE' },
-  ],
+  warehouses: [],
   positions: [],
   salaryTypes: [],
   expenseTypes: [],
@@ -181,19 +155,15 @@ class DynamicSettingsService {
 
   // Currencies
   getCurrencies() {
-    return DEFAULT_CURRENCIES;
+    return this.getList('currencies');
   }
   getCurrencyOptions() {
-    return DEFAULT_CURRENCIES.map((c) => ({ value: c.code, label: `${c.name} (${c.symbol})` }));
+    return this.getCurrencies().map((c) => ({ value: c.code, label: `${c.name} (${c.symbol})` }));
   }
 
   // Warehouses
   getWarehouses() {
-    const list = this.getList('warehouses');
-    if (list && list.length > 0) return list;
-    return [
-      { id: 'wh_main', name: 'Asosiy Ombor' },
-    ];
+    return this.getList('warehouses');
   }
 
   addWarehouseOption(option) {
@@ -208,7 +178,7 @@ class DynamicSettingsService {
   }
 
   getWarehouseOptions() {
-    return this.getWarehouses().map((w) => ({ value: w.id, label: w.name }));
+    return this.getWarehouses().map((w) => ({ value: w.id || w.code, label: w.name }));
   }
 
   // Suppliers
@@ -229,9 +199,7 @@ class DynamicSettingsService {
 
   // Supplier Categories
   getSupplierCategories() {
-    const list = this.getList('supplierCategories');
-    if (list && list.length > 0) return list;
-    return DEFAULT_SUPPLIER_CATEGORIES;
+    return this.getList('supplierCategories');
   }
   getSupplierCategoryOptions() {
     return this.getSupplierCategories().map((c) => ({ value: c.id, label: c.name }));
@@ -445,12 +413,7 @@ class DynamicSettingsService {
 
   // Insurance Types
   getInsuranceTypes() {
-    const list = this.getList('insuranceTypes');
-    if (list && list.length > 0) return list;
-    return [
-      { id: 'ins_1', name: 'Zavod kafolati va yetkazib berish sug\'urtasi' },
-      { id: 'ins_2', name: 'Sanoat uskunasi to\'liq sug\'urtasi' },
-    ];
+    return this.getList('insuranceTypes');
   }
   getInsuranceTypeOptions() {
     return (this.getInsuranceTypes() || []).map((i) => ({ value: i.id, label: i.name }));

@@ -75,7 +75,6 @@ export const RecipeItemsTable = ({
   };
 
   const removeRow = (index) => {
-    if (items.length <= 1) return;
     const updated = items.filter((_, i) => i !== index);
     onItemsChange(updated);
   };
@@ -89,7 +88,7 @@ export const RecipeItemsTable = ({
           className="btn btn-outline-primary btn-sm px-2 py-1 fs-8 d-flex align-items-center gap-1"
           onClick={addRow}
         >
-          <LuPlus /> <span>+ Masalliq Qo'shish</span>
+          <LuPlus /> <span>Masalliq Qo'shish</span>
         </button>
       </div>
 
@@ -171,7 +170,6 @@ export const RecipeItemsTable = ({
                     type="button"
                     className="btn btn-sm btn-outline-danger p-1 border-0"
                     onClick={() => removeRow(index)}
-                    disabled={items.length <= 1}
                     title="Qatorni o'chirish"
                   >
                     <LuTrash2 />

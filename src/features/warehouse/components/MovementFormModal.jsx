@@ -7,12 +7,13 @@ import { Button } from '@/components/common/Button/Button';
 import { DynamicSelect } from '@/components/common/DynamicSelect/DynamicSelect';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { employeesApi } from '@/features/employees/api/employeesApi';
-import { productsApi } from '@/features/products/api/productsApi';
+import { productsApi } from '../api/productsApi';
 import { useAuthStore } from '@/store/useAuthStore';
 import { warehouseApi } from '../api/warehouseApi';
 import { notifyError } from '@/services/notification.service';
 import { getCurrencySymbol } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
+import { axiosInstance } from '@/api/axiosInstance';
 
 export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
   const user = useAuthStore((state) => state.user);
@@ -21,6 +22,7 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [materialOptions, setMaterialOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
+  const [unitOptions, setUnitOptions] = useState([]);
   const [products, setProducts] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [isNewProductMode, setIsNewProductMode] = useState(true);
@@ -34,7 +36,8 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
     warehouseId: '',
     movementTypeCode: 'PURCHASE',
     quantity: '',
-    unitName: 'dona',
+    unitId: '',
+    unitName: '',
     unitPrice: '',
     createdBy: '',
     notes: '',
@@ -54,63 +57,61 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
   }, [isOpen]);
 
   const loadDropdownData = async () => {
-    setCategoryOptions(dynamicSettingsService.getCategoryOptions());
-    setMaterialOptions(dynamicSettingsService.getMaterialTypeOptions());
+    try {
+      const [catRes, matRes, unitRes, whRes, prodRes, empRes] = await Promise.all([
+        axiosInstance.get('/master-data/product-categories').catch(() => null),
+        axiosInstance.get('/master-data/material-types').catch(() => null),
+        axiosInstance.get('/master-data/units').catch(() => null),
+        warehouseApi.getWarehouses().catch(() => null),
+        productsApi.getProducts().catch(() => null),
+        employeesApi.getEmployees().catch(() => null),
+      ]);
 
-    const [whRes, prodRes, empRes] = await Promise.all([
-      warehouseApi.getWarehouses(),
-      productsApi.getProducts(),
-      employeesApi.getEmployees(),
-    ]);
+      const cats = Array.isArray(catRes?.data) ? catRes.data : Array.isArray(catRes) ? catRes : [];
+      const mats = Array.isArray(matRes?.data) ? matRes.data : Array.isArray(matRes) ? matRes : [];
+      const units = Array.isArray(unitRes?.data) ? unitRes.data : Array.isArray(unitRes) ? unitRes : [];
+      const warehouses = whRes?.success && Array.isArray(whRes.data) ? whRes.data : [];
+      const productList = prodRes?.success && Array.isArray(prodRes.data) ? prodRes.data : [];
+      const employeeList = empRes?.success && Array.isArray(empRes.data) ? empRes.data : [];
 
-    if (whRes.success && Array.isArray(whRes.data) && whRes.data.length > 0) {
-      setWarehouseOptions(
-        whRes.data.map((w) => ({
-          value: w.id,
-          label: w.name || w.label,
-        }))
-      );
-    } else {
-      setWarehouseOptions(dynamicSettingsService.getWarehouseOptions());
-    }
+      const catOpts = cats.map(c => ({ value: c.id, label: c.name }));
+      const matOpts = mats.map(m => ({ value: m.id, label: m.name }));
+      const unitOpts = units.map(u => ({ value: u.id, label: `${u.name} (${u.symbol || u.short_name || u.shortName || 'dona'})`, symbol: u.symbol || u.short_name || u.shortName || 'dona' }));
 
-    if (prodRes.success) {
-      setProducts(prodRes.data);
-      setProductOptions(
-        prodRes.data.map((p) => ({
-          value: p.id || p.productId,
-          label: `${p.name} (${p.internalCode || 'Kodsiz'})`,
-        }))
-      );
-    }
+      setCategoryOptions(catOpts);
+      setMaterialOptions(matOpts);
+      setUnitOptions(unitOpts);
 
-    if (empRes.success) {
-      setEmployees(empRes.data);
+      if (warehouses.length > 0) {
+        setWarehouseOptions(warehouses.map(w => ({ value: w.id, label: w.name || w.label })));
+      } else {
+        setWarehouseOptions(dynamicSettingsService.getWarehouseOptions());
+      }
+
+      if (productList.length > 0) {
+        setProducts(productList);
+        setProductOptions(productList.map(p => ({ value: p.id || p.productId, label: `${p.name} (${p.internalCode || 'Kodsiz'})` })));
+      }
+
+      if (employeeList.length > 0) {
+        setEmployees(employeeList);
+      }
+
+      const defaultName = currentUser?.name || currentUser?.full_name || (employeeList[0]?.fullName || '');
+      setFormData(prev => ({
+        ...prev,
+        categoryId: prev.categoryId || catOpts[0]?.value || '',
+        materialTypeId: prev.materialTypeId || matOpts[0]?.value || '',
+        unitId: prev.unitId || unitOpts[0]?.value || '',
+        unitName: prev.unitName || unitOpts[0]?.symbol || 'dona',
+        warehouseId: prev.warehouseId || (warehouses[0]?.id || ''),
+        createdBy: prev.createdBy || defaultName,
+        internalCode: prev.internalCode || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+      }));
+    } catch (err) {
+      console.error("Error loading dropdown data in MovementFormModal:", err);
     }
   };
-
-  useEffect(() => {
-    if (isOpen) {
-      const defaultName = currentUser?.name || currentUser?.full_name || (employees[0]?.fullName || '');
-      const cats = dynamicSettingsService.getCategoryOptions();
-      const mats = dynamicSettingsService.getMaterialTypeOptions();
-      setFormData({
-        customProductName: '',
-        internalCode: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-        categoryId: cats[0]?.value || '',
-        materialTypeId: mats[0]?.value || '',
-        productId: productOptions[0]?.value || '',
-        warehouseId: warehouseOptions[0]?.value || '',
-        movementTypeCode: 'PURCHASE',
-        quantity: '',
-        unitName: 'dona',
-        unitPrice: '',
-        createdBy: defaultName,
-        notes: '',
-      });
-      setIsNewProductMode(true);
-    }
-  }, [isOpen, employees, currentUser]);
 
   const handleAddNewWarehouse = (newRecord) => {
     const newWH = { value: `wh_${Date.now()}`, label: newRecord.name };
@@ -211,21 +212,12 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Mode 1: Custom Product Name Input */}
           {isNewProductMode ? (
             <>
-              <div className="col-12 col-md-8">
+              <div className="col-12">
                 <Input
                   label="Mahsulot / Xomashyo Nomi *"
                   placeholder="Masalan: Kotyol Nasosi 25kW, Truba 50mm, Gaskat..."
                   value={formData.customProductName}
                   onChange={(e) => setFormData({ ...formData, customProductName: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="col-12 col-md-4">
-                <Input
-                  label="Ichki Kodi (SKU) *"
-                  placeholder="SKU-1001"
-                  value={formData.internalCode}
-                  onChange={(e) => setFormData({ ...formData, internalCode: e.target.value })}
                   required
                 />
               </div>
@@ -293,11 +285,21 @@ export const MovementFormModal = ({ isOpen, onClose, onSubmit }) => {
             />
           </div>
           <div className="col-12 col-md-4">
-            <Input
-              label="O'lchov Birligi Nomi"
-              placeholder="dona, kg, metr..."
-              value={formData.unitName}
-              onChange={(e) => setFormData({ ...formData, unitName: e.target.value })}
+            <DynamicSelect
+              label="O'lchov Birligi"
+              value={formData.unitId}
+              onChange={(e) => {
+                const selectedU = unitOptions.find((u) => String(u.value) === String(e.target.value));
+                setFormData({
+                  ...formData,
+                  unitId: e.target.value,
+                  unitName: selectedU ? selectedU.symbol : 'dona',
+                });
+              }}
+              options={unitOptions}
+              managePath={ROUTES.PROTECTED.SETTINGS_UNITS}
+              entityTitle="O'lchov Birligi"
+              disabled={!isNewProductMode}
             />
           </div>
           <div className="col-12 col-md-4">

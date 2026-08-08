@@ -130,7 +130,7 @@ export const ProductionKanbanBoard = ({
           description: `Ish haqi (Kanban bosqichi bajarildi): ${empName} — Topshiriq: ${targetOrder.title || targetOrder.productionNumber}`,
         });
         notifySuccess(
-          `🎉 '${targetOrder.title || targetOrder.productionNumber}' yakunlandi! Xodim (${empName}) hisobiga ${formatCurrency(salaryAmount)} ish haqi avtomatik qo'shildi!`
+          `'${targetOrder.title || targetOrder.productionNumber}' yakunlandi! Xodim (${empName}) hisobiga ${formatCurrency(salaryAmount)} ish haqi avtomatik qo'shildi!`
         );
       } catch (_err) {
         // Silently handle salary transaction creation
@@ -218,8 +218,7 @@ export const ProductionKanbanBoard = ({
                               className="btn btn-sm btn-success p-1 py-0 fs-8"
                               onClick={() => handleSaveStageName(col.id)}
                             >
-                              ✓
-                            </button>
+                              </button>
                           </div>
                         ) : (
                           <span className="fw-bold fs-7 font-heading text-main d-block text-truncate">
@@ -447,13 +446,12 @@ const KanbanCard = ({ order, onClick, onDragStart, stages = [], onMoveStage, emp
         <div className="d-flex align-items-center gap-1 min-w-0 flex-grow-1">
           <LuUsers className={hasAssignedEmployee ? "text-success flex-shrink-0" : "text-warning flex-shrink-0"} />
           <span className={`text-truncate ${hasAssignedEmployee ? "text-main fw-medium" : "text-danger fw-bold"}`}>
-            {hasAssignedEmployee ? order.assignedEmployees[0] : "⚠️ Xodim biriktirilmagan"}
+            {hasAssignedEmployee ? order.assignedEmployees[0] : "Xodim biriktirilmagan"}
           </span>
         </div>
 
         <span className="text-primary fs-9 fw-semibold text-nowrap flex-shrink-0">
-          Batafsil ➔
-        </span>
+          Batafsil </span>
       </div>
     </div>
   );

@@ -124,7 +124,7 @@ export const CustomerReceiptModal = ({
 
         {/* Customer Information Block */}
         <div className="bg-light p-3 rounded mb-3 border">
-          <h6 className="fw-bold text-dark mb-2 border-bottom pb-1">👤 Mijoz Ma'lumotlari:</h6>
+          <h6 className="fw-bold text-dark mb-2 border-bottom pb-1">Mijoz Ma'lumotlari:</h6>
           <div className="row g-2 small">
             <div className="col-6">
               <span className="text-muted">F.I.SH / Korxona:</span> <strong className="text-dark">{customerData.customerName || customerData.name || 'Mijoz'}</strong>
@@ -205,7 +205,7 @@ export const CustomerReceiptModal = ({
                   <div className="alert alert-warning py-2 px-3 mb-0 fs-8 d-flex align-items-center gap-2">
                     <LuTriangleAlert className="text-warning fs-5" />
                     <div>
-                      <div><strong>⚠️ Dinamik Kechikish Aniqlandi:</strong> Rejadagi sanadan <strong>{daysLate} kun</strong> o'tdi.</div>
+                      <div><strong>Dinamik Kechikish Aniqlandi:</strong> Rejadagi sanadan <strong>{daysLate} kun</strong> o'tdi.</div>
                       <div>Dinamik chegirma: <strong>{discountPercent}%</strong> (-{formatCurrency(lateDiscountAmount)}) kamaydi.</div>
                     </div>
                   </div>
@@ -213,7 +213,7 @@ export const CustomerReceiptModal = ({
                   <div className="alert alert-info py-2 px-3 mb-0 fs-8 d-flex align-items-center gap-2">
                     <LuClock className="text-info fs-5" />
                     <div>
-                      <strong>🚚 Yetkazib berish vaqti:</strong> Rejadagi sanagacha dinamik <strong>{daysRemaining} kun</strong> qoldi.
+                      <strong>Yetkazib berish vaqti:</strong> Rejadagi sanagacha dinamik <strong>{daysRemaining} kun</strong> qoldi.
                     </div>
                   </div>
                 )}
@@ -244,12 +244,12 @@ export const CustomerReceiptModal = ({
               </div>
 
               <div className="d-flex justify-content-between align-items-center p-2 rounded bg-success bg-opacity-10 text-success fw-bold mb-2">
-                <span>💰 Zaklad Miqdori (Avans To'landi):</span>
+                <span>Zaklad Miqdori (Avans To'landi):</span>
                 <span className="fs-6">{formatCurrency(depositAmount)}</span>
               </div>
 
               <div className="d-flex justify-content-between align-items-center p-2 rounded bg-warning bg-opacity-25 text-dark fw-bold">
-                <span>📦 Qolgan Summa (Yetkazilganda):</span>
+                <span>Qolgan Summa (Yetkazilganda):</span>
                 <span className="fs-6 text-danger">{formatCurrency(remainingAmount)}</span>
               </div>
             </div>

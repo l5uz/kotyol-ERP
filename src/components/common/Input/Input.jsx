@@ -29,6 +29,7 @@ export const Input = forwardRef(
   ) => {
     const inputId = id || `input_${Math.random().toString(36).substring(2, 7)}`;
     const isNumberType = type === 'number';
+    const isTelType = type === 'tel';
     const finalContainerClass =
       containerClass !== undefined
         ? containerClass
@@ -56,6 +57,28 @@ export const Input = forwardRef(
       }
     };
 
+    const handleTelChange = (e) => {
+      if (!onChange) return;
+      const rawInput = e.target.value;
+      // Allow only digits and '+'
+      let cleanValue = rawInput.replace(/[^\d+]/g, '');
+      // Ensure '+' is only at the beginning
+      if (cleanValue.includes('+')) {
+        const hasLeading = cleanValue.startsWith('+');
+        cleanValue = (hasLeading ? '+' : '') + cleanValue.replace(/\+/g, '');
+      }
+
+      const syntheticEvent = {
+        ...e,
+        target: {
+          ...e.target,
+          name: props.name,
+          value: cleanValue,
+        },
+      };
+      onChange(syntheticEvent);
+    };
+
     const displayValue = isNumberType
       ? formatNumberWithSpaces(value)
       : value !== undefined && value !== null
@@ -79,9 +102,9 @@ export const Input = forwardRef(
             id={inputId}
             ref={ref}
             type={isNumberType ? 'text' : type}
-            inputMode={isNumberType ? 'decimal' : undefined}
+            inputMode={isNumberType ? 'decimal' : (isTelType ? 'tel' : undefined)}
             value={displayValue}
-            onChange={isNumberType ? handleNumberChange : onChange}
+            onChange={isNumberType ? handleNumberChange : (isTelType ? handleTelChange : onChange)}
             className={`form-control ${error ? 'is-invalid' : ''} ${className}`}
             {...props}
           />

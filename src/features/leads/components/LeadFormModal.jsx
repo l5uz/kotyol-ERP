@@ -23,7 +23,15 @@ const LeadFormModal = ({ show, handleClose, handleSave, leadToEdit }) => {
   }, [leadToEdit, show]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let val = e.target.value;
+    if (e.target.name === 'phone') {
+      val = val.replace(/[^\d+]/g, '');
+      if (val.includes('+')) {
+        const hasLeading = val.startsWith('+');
+        val = (hasLeading ? '+' : '') + val.replace(/\+/g, '');
+      }
+    }
+    setFormData({ ...formData, [e.target.name]: val });
   };
 
   const onSubmit = (e) => {
@@ -36,44 +44,52 @@ const LeadFormModal = ({ show, handleClose, handleSave, leadToEdit }) => {
   return (
     <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
       <div className="modal-dialog modal-dialog-centered modal-lg">
-        <div className="modal-content glass-card border-0 shadow-lg">
+        <div className="modal-content border-custom shadow-lg">
           <div className="modal-header border-bottom-0">
-            <h5 className="modal-title text-white">{leadToEdit ? 'Lidni tahrirlash' : 'Yangi Lid'}</h5>
-            <button type="button" className="btn-close btn-close-white" onClick={handleClose}></button>
+            <h5 className="modal-title text-main">{leadToEdit ? 'Lidni tahrirlash' : 'Yangi Lid'}</h5>
+            <button type="button" className="btn-close" onClick={handleClose}></button>
           </div>
           <div className="modal-body">
             <form onSubmit={onSubmit} id="leadForm">
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label className="form-label text-white">To'liq ism *</label>
-                  <input type="text" className="form-control glass-input" name="fullName" value={formData.fullName} onChange={handleChange} required />
+                  <label className="form-label text-main">To'liq ism *</label>
+                  <input type="text" className="form-control" name="fullName" value={formData.fullName} onChange={handleChange} required />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label text-white">Telefon *</label>
-                  <input type="text" className="form-control glass-input" name="phone" value={formData.phone} onChange={handleChange} required />
+                  <label className="form-label text-main">Telefon *</label>
+                  <input type="tel" className="form-control" name="phone" value={formData.phone} onChange={handleChange} required />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label text-white">Email</label>
-                  <input type="email" className="form-control glass-input" name="email" value={formData.email} onChange={handleChange} />
+                  <label className="form-label text-main">Email</label>
+                  <input type="email" className="form-control" name="email" value={formData.email} onChange={handleChange} />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label text-white">Kompaniya nomi</label>
-                  <input type="text" className="form-control glass-input" name="companyName" value={formData.companyName} onChange={handleChange} />
+                  <label className="form-label text-main">Kompaniya nomi</label>
+                  <input type="text" className="form-control" name="companyName" value={formData.companyName} onChange={handleChange} />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label text-white">Status</label>
-                  <select className="form-select glass-input" name="status" value={formData.status} onChange={handleChange}>
-                    <option value="NEW">Yangi</option>
-                    <option value="CONTACTED">Bog'lanildi</option>
-                    <option value="OFFER">Taklif berildi</option>
-                    <option value="NEGOTIATION">Muzokara</option>
-                    <option value="WON">Yutilgan</option>
-                    <option value="LOST">Yo'qotilgan</option>
+                  <label className="form-label text-main">Status</label>
+                  <select className="form-select" name="status" value={formData.status} onChange={handleChange}>
+                    {(() => {
+                      const saved = localStorage.getItem('lead_kanban_columns');
+                      const cols = saved ? JSON.parse(saved) : [
+                        { id: 'NEW', title: 'Yangi' },
+                        { id: 'CONTACTED', title: "Bog'lanildi" },
+                        { id: 'OFFER', title: 'Taklif berildi' },
+                        { id: 'NEGOTIATION', title: 'Muzokara' },
+                        { id: 'WON', title: 'Yutilgan' },
+                        { id: 'LOST', title: "Yo'qotilgan" }
+                      ];
+                      return cols.map((col) => (
+                        <option key={col.id} value={col.id}>{col.title}</option>
+                      ));
+                    })()}
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label text-white">Manba</label>
-                  <select className="form-select glass-input" name="source" value={formData.source} onChange={handleChange}>
+                  <label className="form-label text-main">Manba</label>
+                  <select className="form-select" name="source" value={formData.source} onChange={handleChange}>
                     <option value="Telegram">Telegram</option>
                     <option value="Telefon">Telefon</option>
                     <option value="Tavsiya">Tavsiya</option>
@@ -82,19 +98,19 @@ const LeadFormModal = ({ show, handleClose, handleSave, leadToEdit }) => {
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label text-white">Keyingi aloqa sanasi</label>
-                  <input type="date" className="form-control glass-input" name="nextContactDate" value={formData.nextContactDate} onChange={handleChange} />
+                  <label className="form-label text-main">Keyingi aloqa sanasi</label>
+                  <input type="date" className="form-control" name="nextContactDate" value={formData.nextContactDate} onChange={handleChange} />
                 </div>
                 <div className="col-md-12">
-                  <label className="form-label text-white">Izoh</label>
-                  <textarea className="form-control glass-input" name="notes" value={formData.notes} onChange={handleChange} rows="3"></textarea>
+                  <label className="form-label text-main">Izoh</label>
+                  <textarea className="form-control" name="notes" value={formData.notes} onChange={handleChange} rows="3"></textarea>
                 </div>
               </div>
             </form>
           </div>
           <div className="modal-footer border-top-0">
-            <button type="button" className="btn btn-secondary glass-button" onClick={handleClose}>Bekor qilish</button>
-            <button type="submit" form="leadForm" className="btn btn-primary glass-button-primary">Saqlash</button>
+            <button type="button" className="btn btn-secondary" onClick={handleClose}>Bekor qilish</button>
+            <button type="submit" form="leadForm" className="btn btn-primary">Saqlash</button>
           </div>
         </div>
       </div>

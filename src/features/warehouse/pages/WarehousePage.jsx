@@ -13,7 +13,7 @@ import { RevaluationFormModal } from '../components/RevaluationFormModal';
 import { InventoryCountModal } from '../components/InventoryCountModal';
 import { EditStockModal } from '../components/EditStockModal';
 import { warehouseApi } from '../api/warehouseApi';
-import { productsApi } from '@/features/products/api/productsApi';
+import { productsApi } from '../api/productsApi';
 import { dynamicSettingsService } from '@/services/dynamicSettings.service';
 import { notifySuccess, notifyError } from '@/services/notification.service';
 import { formatCurrency, getCurrencySymbol } from '@/utils/currency.utils';

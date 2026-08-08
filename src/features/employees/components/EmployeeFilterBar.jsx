@@ -12,8 +12,8 @@ export const EmployeeFilterBar = ({
   positions = [],
 }) => {
   const statusOptions = [
-    { value: '', label: 'Barcha Statuslar' },
-    { value: 'ACTIVE', label: 'Faol' },
+    { value: 'ACTIVE', label: 'Faol Xodimlar' },
+    { value: 'INACTIVE', label: 'Arxiv (Nofaol)' },
     { value: 'ON_LEAVE', label: 'Ta\'tilda' },
     { value: 'SICK_LEAVE', label: 'Kasallik Ta\'tili' },
     { value: 'TERMINATED', label: 'Bo\'shatilgan' },

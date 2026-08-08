@@ -66,7 +66,12 @@ export const ProductionDetailPage = () => {
   const loadProductionDetails = async () => {
     setIsLoading(true);
     const res = await productionApi.getProductionOrderById(id);
-    if (res.success) setProduction(res.data);
+    if (res.success && res.data) {
+      setProduction(res.data);
+      if (res.data.operations && res.data.operations.length > 0) {
+        setOperations(res.data.operations);
+      }
+    }
     setIsLoading(false);
   };
 
@@ -81,18 +86,12 @@ export const ProductionDetailPage = () => {
     notifySuccess("Ishlab chiqarish marshrut xaritasini va sex naryadi chop etishga yuborildi.");
   };
 
-  const handleCompleteOperation = (opId) => {
-    setOperations((prev) =>
-      prev.map((op) => {
-        if (op.id === opId) {
-          notifySuccess(
-            `'${op.name}' operatsiyasi bajarildi! Usta (${op.workerName}) hisobiga ${op.rate.toLocaleString()} UZS ish haqi avtomatik o'tdi!`
-          );
-          return { ...op, status: 'COMPLETED' };
-        }
-        return op;
-      })
-    );
+  const handleCompleteOperation = async (opId) => {
+    const res = await productionApi.completeOperation(opId);
+    if (res.success) {
+      notifySuccess(res.message);
+      loadProductionDetails();
+    }
   };
 
   if (isLoading || !production) {
