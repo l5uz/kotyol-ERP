@@ -142,26 +142,176 @@ export const CustomerReceiptModal = ({
       {/* Printable Area */}
       <div ref={printRef} className="customer-receipt-container p-4 bg-white text-dark rounded border shadow-sm position-relative">
         <style>{`
+          /* CSS for Screen preview inside modal */
+          .customer-receipt-container {
+            max-width: 650px;
+            margin: 0 auto;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          }
+
           @media print {
-            body * {
-              visibility: hidden;
+            @page {
+              size: 80mm auto;
+              margin: 0;
             }
+            
+            /* Hide all siblings of modal at body level */
+            body > :not(.modal) {
+              display: none !important;
+            }
+            
+            .modal-backdrop,
+            .modal-header,
+            .modal-footer {
+              display: none !important;
+            }
+
+            body {
+              background: #fff !important;
+              color: #000 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: visible !important;
+              height: auto !important;
+              width: 80mm !important;
+            }
+
+            .modal {
+              position: relative !important;
+              display: block !important;
+              overflow: visible !important;
+              width: 80mm !important;
+              height: auto !important;
+              left: auto !important;
+              top: auto !important;
+              opacity: 1 !important;
+              background: none !important;
+              padding: 0 !important;
+            }
+
+            .modal-dialog {
+              max-width: 80mm !important;
+              width: 80mm !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              height: auto !important;
+            }
+
+            .modal-content {
+              border: none !important;
+              box-shadow: none !important;
+              background: none !important;
+              height: auto !important;
+              overflow: visible !important;
+            }
+
+            .modal-body {
+              padding: 0 !important;
+              overflow: visible !important;
+              height: auto !important;
+              max-height: none !important;
+            }
+
             .customer-receipt-container, .customer-receipt-container * {
               visibility: visible !important;
               color: #000 !important;
             }
+
             .customer-receipt-container {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
+              position: relative !important;
+              width: 80mm !important;
+              max-width: 80mm !important;
+              height: auto !important;
+              overflow: visible !important;
+              margin: 0 !important;
+              padding: 4mm 2mm !important;
+              box-sizing: border-box !important;
+              background: #fff !important;
+              font-family: 'Courier New', Courier, monospace !important;
+              font-size: 10px !important;
+              line-height: 1.4 !important;
               border: none !important;
               box-shadow: none !important;
-              padding: 0 !important;
-              background-color: #fff !important;
+              page-break-inside: auto !important;
             }
+
+            /* Transform visual elements into standard receipt layout */
             .no-print {
               display: none !important;
+            }
+            .border-bottom {
+              border-bottom: 1px dashed #000 !important;
+            }
+            .border-top {
+              border-top: 1px dashed #000 !important;
+            }
+
+            /* Linearize layouts to stack vertically */
+            .row {
+              display: block !important;
+              margin: 0 !important;
+            }
+            .col-12, .col-md-6, .col-6, .col-4 {
+              width: 100% !important;
+              display: block !important;
+              padding: 0 !important;
+              margin-bottom: 2mm !important;
+              border: none !important;
+            }
+
+            /* Custom styles for tables */
+            .table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+              margin-bottom: 3mm !important;
+            }
+            .table th, .table td {
+              padding: 1mm 0.5mm !important;
+              border: none !important;
+              border-bottom: 1px dashed #000 !important;
+              font-size: 9px !important;
+            }
+            .table-responsive {
+              overflow: visible !important;
+            }
+            .table-secondary {
+              background: none !important;
+              color: #000 !important;
+              border-bottom: 1px dashed #000 !important;
+            }
+
+            /* Hide large graphical representations */
+            svg, .badge {
+              display: none !important;
+            }
+
+            /* Font size tuning for print */
+            .fs-4 { font-size: 13px !important; }
+            .fs-5 { font-size: 11px !important; }
+            .fs-6 { font-size: 10px !important; }
+            .fs-7 { font-size: 9px !important; }
+            .fs-8 { font-size: 8px !important; }
+            .fs-9 { font-size: 8px !important; }
+
+            .bg-light {
+              background: none !important;
+              border: none !important;
+              border-top: 1px dashed #000 !important;
+              border-bottom: 1px dashed #000 !important;
+              border-radius: 0 !important;
+              padding: 2mm 0 !important;
+            }
+
+            .text-primary, .text-success, .text-danger, .text-dark {
+              color: #000 !important;
+            }
+
+            /* Alignment tweaks for print */
+            .text-end {
+              text-align: right !important;
+            }
+            .text-center {
+              text-align: center !important;
             }
           }
         `}</style>

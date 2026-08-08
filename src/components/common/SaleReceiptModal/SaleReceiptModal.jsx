@@ -111,28 +111,85 @@ export const SaleReceiptModal = ({
                 size: 80mm auto;
                 margin: 0;
               }
-              body * {
-                visibility: hidden !important;
+              
+              /* Hide all siblings of modal at body level */
+              body > :not(.modal) {
+                display: none !important;
               }
+              
+              .modal-backdrop,
+              .modal-header,
+              .modal-footer {
+                display: none !important;
+              }
+
+              body {
+                background: #fff !important;
+                color: #000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                height: auto !important;
+                width: 80mm !important;
+              }
+
+              .modal {
+                position: relative !important;
+                display: block !important;
+                overflow: visible !important;
+                width: 80mm !important;
+                height: auto !important;
+                left: auto !important;
+                top: auto !important;
+                opacity: 1 !important;
+                background: none !important;
+                padding: 0 !important;
+              }
+
+              .modal-dialog {
+                max-width: 80mm !important;
+                width: 80mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+              }
+
+              .modal-content {
+                border: none !important;
+                box-shadow: none !important;
+                background: none !important;
+                height: auto !important;
+                overflow: visible !important;
+              }
+
+              .modal-body {
+                padding: 0 !important;
+                overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
+              }
+
               .customer-receipt-container, .customer-receipt-container * {
                 visibility: visible !important;
                 color: #000 !important;
               }
+
               .customer-receipt-container {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
+                position: relative !important;
                 width: 80mm !important;
                 max-width: 80mm !important;
-                padding: 4mm 2mm !important;
+                height: auto !important;
+                overflow: visible !important;
                 margin: 0 !important;
+                padding: 4mm 2mm !important;
+                box-sizing: border-box !important;
                 background: #fff !important;
-                color: #000 !important;
                 font-family: 'Courier New', Courier, monospace !important;
                 font-size: 10px !important;
                 line-height: 1.4 !important;
                 border: none !important;
                 box-shadow: none !important;
+                page-break-inside: auto !important;
               }
               
               /* Transform visual elements into standard receipt layout */
