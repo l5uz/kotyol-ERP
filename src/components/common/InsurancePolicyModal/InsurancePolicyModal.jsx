@@ -13,6 +13,13 @@ export const InsurancePolicyModal = ({
   const printRef = useRef(null);
   const [warrantyTypes, setWarrantyTypes] = useState([]);
   const [insuranceTypes, setInsuranceTypes] = useState([]);
+  const [company, setCompany] = useState({
+    name: 'Kotyol Manufacturing',
+    phone: '+998 (90) 123-45-67',
+    website: 'https://kotyol.uz',
+    address: 'Toshkent sh., Chilonzor tumani, 5-daha',
+    description: 'Yuqori sifatli isitish kotyollari ishlab chiqarish zavodi.',
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -24,12 +31,14 @@ export const InsurancePolicyModal = ({
   const loadMasterData = async () => {
     setIsLoading(true);
     try {
-      const [wRes, iRes] = await Promise.all([
+      const [wRes, iRes, cRes] = await Promise.all([
         settingsApi.getWarrantyTypes().catch(() => ({ success: false, data: [] })),
         settingsApi.getInsuranceTypes().catch(() => ({ success: false, data: [] })),
+        settingsApi.getCompany().catch(() => ({ success: false, data: null })),
       ]);
       if (wRes.success && Array.isArray(wRes.data)) setWarrantyTypes(wRes.data);
       if (iRes.success && Array.isArray(iRes.data)) setInsuranceTypes(iRes.data);
+      if (cRes.success && cRes.data) setCompany(cRes.data);
     } catch (_err) {
       // API fallback empty array handled cleanly
     } finally {
@@ -149,11 +158,11 @@ export const InsurancePolicyModal = ({
           <div className="d-flex justify-content-between align-items-center border-bottom border-2 border-primary pb-3 mb-3">
             <div>
               <div className="d-flex align-items-center gap-2 mb-1">
-                <span className="fs-3 fw-bold text-primary tracking-wide">KOTYOL MANUFACTURING</span>
+                <span className="fs-3 fw-bold text-primary tracking-wide text-uppercase">{company.name}</span>
                 <span className="badge bg-success text-white fs-8 px-2 py-1">KAFOLAT KARTA</span>
               </div>
-              <p className="small text-secondary mb-0 fw-semibold">Sanoat isitish uskunalarini ishlab chiqarish va texnik sug'urtalash majmuasi</p>
-              <p className="small text-muted mb-0">Rasmiy Servis Markazi | Tel: +998 71 200-00-55 | www.kotyol-manufacturing.uz</p>
+              <p className="small text-secondary mb-0 fw-semibold">{company.description || 'Sanoat isitish uskunalarini ishlab chiqarish va texnik sug\'urtalash majmuasi'}</p>
+              <p className="small text-muted mb-0">Rasmiy Servis Markazi | Tel: {company.phone} | Vebsayt: {company.website || '—'}</p>
             </div>
 
             <div className="text-end">
@@ -281,7 +290,7 @@ export const InsurancePolicyModal = ({
           <div className="pt-3 border-top border-2 border-secondary mt-4">
             <div className="row align-items-center text-center">
               <div className="col-4">
-                <div className="small text-muted mb-4">Kotyol Manufacturing Servis Boshlig'i</div>
+                <div className="small text-muted mb-4">{company.name} Servis Boshlig'i</div>
                 <div className="border-bottom mx-auto w-75"></div>
                 <div className="fs-8 text-muted mt-1">(Imzo va Mas'ul Shaxs)</div>
               </div>

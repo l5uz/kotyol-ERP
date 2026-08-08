@@ -1,7 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { formatCurrency, getActiveCurrency } from '@/utils/currency.utils';
+import { settingsApi } from '@/features/settings/api/settingsApi';
 import { LuPrinter, LuCircleCheck, LuTriangleAlert, LuCalendar, LuDollarSign, LuShieldCheck, LuClock } from 'react-icons/lu';
 
 export const CustomerReceiptModal = ({
@@ -10,6 +11,21 @@ export const CustomerReceiptModal = ({
   customerData = null,
 }) => {
   const printRef = useRef(null);
+  const [company, setCompany] = useState({
+    name: 'Kotyol Manufacturing',
+    phone: '+998 (90) 123-45-67',
+    website: 'https://kotyol.uz',
+    address: 'Toshkent sh., Chilonzor tumani, 5-daha',
+    description: 'Yuqori sifatli isitish kotyollari ishlab chiqarish zavodi.',
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      settingsApi.getCompany().then((res) => {
+        if (res.success && res.data) setCompany(res.data);
+      }).catch(() => {});
+    }
+  }, [isOpen]);
 
   if (!customerData) return null;
 
@@ -107,11 +123,11 @@ export const CustomerReceiptModal = ({
         <div className="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
           <div>
             <div className="d-flex align-items-center gap-2 mb-1">
-              <span className="fs-4 fw-bold text-primary">KOTYOL MANUFACTURING</span>
+              <span className="fs-4 fw-bold text-primary text-uppercase">{company.name}</span>
               <span className="badge bg-primary text-white fs-9">RASMIY CHEK</span>
             </div>
-            <p className="small text-secondary mb-0">Isitish kotyollari va sanoat uskunalarini ishlab chiqarish majmuasi</p>
-            <p className="small text-secondary mb-0">Manzil: Toshkent sh., Chilonzor tumani, 5-daha | Tel: +998 90 123-45-67</p>
+            <p className="small text-secondary mb-0">{company.description || 'Isitish kotyollari va sanoat uskunalarini ishlab chiqarish majmuasi'}</p>
+            <p className="small text-secondary mb-0">Manzil: {company.address} | Tel: {company.phone}</p>
           </div>
           <div className="text-end">
             <div className="fw-bold fs-5 text-dark">CHEK № {receiptNumber}</div>
@@ -302,7 +318,7 @@ export const CustomerReceiptModal = ({
             </div>
           </div>
           <div className="text-center mt-3 fs-9 text-muted">
-            Rahmat! Kotyol Manufacturing mahsulotlarini tanlaganingiz uchun tashakkur izhor etamiz!
+            Rahmat! {company.name} mahsulotlarini tanlaganingiz uchun tashakkur izhor etamiz!
           </div>
         </div>
       </div>
