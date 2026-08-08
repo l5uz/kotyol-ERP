@@ -256,8 +256,9 @@ export const OrderDetailPage = () => {
         isOpen={isReceiptOpen}
         onClose={() => setIsReceiptOpen(false)}
         customerData={{
+          id: order.customerId,
           customerName: order.customerName,
-          phone: '+998 90 123 45 67',
+          phone: order.phone || '',
           boilerModelName: order.boilerModelName,
           totalAmount: order.totalAmount,
           depositAmount: order.depositAmount,

@@ -3,6 +3,7 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { formatCurrency, getActiveCurrency } from '@/utils/currency.utils';
 import { settingsApi } from '@/features/settings/api/settingsApi';
+import { customersApi } from '@/features/customers/api/customersApi';
 import { LuPrinter, LuShieldCheck, LuCalendar, LuAward, LuFileText, LuUser, LuPackage, LuCircleCheck, LuClock } from 'react-icons/lu';
 
 export const InsurancePolicyModal = ({
@@ -11,6 +12,24 @@ export const InsurancePolicyModal = ({
   data = null, // Can be sale object, order object, or customer record
 }) => {
   const printRef = useRef(null);
+
+  const formatAddress = (addressField) => {
+    if (!addressField) return '—';
+    try {
+      const parsed = JSON.parse(addressField);
+      if (parsed && typeof parsed === 'object') {
+        const parts = [
+          parsed.region,
+          parsed.district,
+          parsed.address
+        ].filter(Boolean);
+        return parts.join(', ') || '—';
+      }
+    } catch (e) {
+      // Fallback
+    }
+    return addressField;
+  };
   const [warrantyTypes, setWarrantyTypes] = useState([]);
   const [insuranceTypes, setInsuranceTypes] = useState([]);
   const [company, setCompany] = useState({
@@ -21,12 +40,37 @@ export const InsurancePolicyModal = ({
     description: 'Yuqori sifatli isitish kotyollari ishlab chiqarish zavodi.',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [customerPhone, setCustomerPhone] = useState('—');
+  const [customerAddress, setCustomerAddress] = useState('—');
 
   useEffect(() => {
     if (isOpen) {
       loadMasterData();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && data) {
+      const custId = data.customerId || data.customer_id || (data.customer && data.customer.id) || (data.customerName ? null : data.id);
+      if (custId) {
+        customersApi.getCustomerById(custId).then((res) => {
+          if (res.success && res.data) {
+            setCustomerPhone(res.data.phone || '—');
+            setCustomerAddress(res.data.address || '—');
+          } else {
+            setCustomerPhone(data.phone || '—');
+            setCustomerAddress(data.address || '—');
+          }
+        }).catch(() => {
+          setCustomerPhone(data.phone || '—');
+          setCustomerAddress(data.address || '—');
+        });
+      } else {
+        setCustomerPhone(data.phone || '—');
+        setCustomerAddress(data.address || '—');
+      }
+    }
+  }, [isOpen, data]);
 
   const loadMasterData = async () => {
     setIsLoading(true);
@@ -195,10 +239,10 @@ export const InsurancePolicyModal = ({
                   <div className="col-7 fw-bold text-dark">{customerName}</div>
 
                   <div className="col-5 text-muted">Telefon Raqam:</div>
-                  <div className="col-7 fw-bold text-dark">{phone}</div>
+                  <div className="col-7 fw-bold text-dark">{customerPhone}</div>
 
                   <div className="col-5 text-muted">Manzil / Hudud:</div>
-                  <div className="col-7 text-dark">{region}, {address || 'Markaz'}</div>
+                  <div className="col-7 text-dark">{data.region || 'Toshkent'}, {formatAddress(customerAddress)}</div>
                 </div>
               </div>
             </div>

@@ -523,8 +523,9 @@ export const OrdersPage = () => {
         isOpen={!!receiptOrder}
         onClose={() => setReceiptOrder(null)}
         customerData={receiptOrder ? {
+          id: receiptOrder.customerId,
           customerName: receiptOrder.customerName,
-          phone: receiptOrder.phone || '+998 90 123 45 67',
+          phone: receiptOrder.phone || '',
           boilerModelName: receiptOrder.boilerModelName,
           totalAmount: receiptOrder.totalAmount,
           depositAmount: receiptOrder.depositAmount,

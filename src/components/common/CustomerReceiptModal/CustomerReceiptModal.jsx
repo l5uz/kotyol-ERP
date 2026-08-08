@@ -3,6 +3,7 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Button } from '@/components/common/Button/Button';
 import { formatCurrency, getActiveCurrency } from '@/utils/currency.utils';
 import { settingsApi } from '@/features/settings/api/settingsApi';
+import { customersApi } from '@/features/customers/api/customersApi';
 import { LuPrinter, LuCircleCheck, LuTriangleAlert, LuCalendar, LuDollarSign, LuShieldCheck, LuClock } from 'react-icons/lu';
 
 export const CustomerReceiptModal = ({
@@ -19,15 +20,59 @@ export const CustomerReceiptModal = ({
     description: 'Yuqori sifatli isitish kotyollari ishlab chiqarish zavodi.',
   });
 
+  const [customerPhone, setCustomerPhone] = useState('—');
+  const [customerAddress, setCustomerAddress] = useState('—');
+
   useEffect(() => {
     if (isOpen) {
+      // Load company profile
       settingsApi.getCompany().then((res) => {
         if (res.success && res.data) setCompany(res.data);
       }).catch(() => {});
+
+      // Load customer details dynamically if customerId is present
+      if (customerData) {
+        const custId = customerData.id || customerData.customerId;
+        if (custId) {
+          customersApi.getCustomerById(custId).then((res) => {
+            if (res.success && res.data) {
+              setCustomerPhone(res.data.phone || '—');
+              setCustomerAddress(res.data.address || '—');
+            } else {
+              setCustomerPhone(customerData.phone || '—');
+              setCustomerAddress(customerData.address || '—');
+            }
+          }).catch(() => {
+            setCustomerPhone(customerData.phone || '—');
+            setCustomerAddress(customerData.address || '—');
+          });
+        } else {
+          setCustomerPhone(customerData.phone || '—');
+          setCustomerAddress(customerData.address || '—');
+        }
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, customerData]);
 
   if (!customerData) return null;
+
+  const formatAddress = (addressField) => {
+    if (!addressField) return '—';
+    try {
+      const parsed = JSON.parse(addressField);
+      if (parsed && typeof parsed === 'object') {
+        const parts = [
+          parsed.region,
+          parsed.district,
+          parsed.address
+        ].filter(Boolean);
+        return parts.join(', ') || '—';
+      }
+    } catch (e) {
+      // Fallback
+    }
+    return addressField;
+  };
 
   const currency = getActiveCurrency();
   const todayStr = new Date().toISOString().split('T')[0];
@@ -148,10 +193,10 @@ export const CustomerReceiptModal = ({
               <span className="text-muted">F.I.SH / Korxona:</span> <strong className="text-dark">{customerData.customerName || customerData.name || 'Mijoz'}</strong>
             </div>
             <div className="col-6">
-              <span className="text-muted">Telefon:</span> <strong className="text-dark">{customerData.phone || 'Kiritilmagan'}</strong>
+              <span className="text-muted">Telefon:</span> <strong className="text-dark">{customerPhone}</strong>
             </div>
             <div className="col-6">
-              <span className="text-muted">Hudud / Manzil:</span> <span>{customerData.region || 'Toshkent'}, {customerData.address || ''}</span>
+              <span className="text-muted">Hudud / Manzil:</span> <span>{customerData.region || 'Toshkent'}, {formatAddress(customerAddress)}</span>
             </div>
             <div className="col-6">
               <span className="text-muted">Mijoz Turi:</span> <span>{customerData.customerTypeName || 'Jismoniy Shaxs'}</span>
