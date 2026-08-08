@@ -10,3 +10,4 @@
 [build.environment]
   NODE_VERSION = "20"
   SECRETS_SCAN_ENABLED = "false"
+  VITE_API_URL = "https://kotyol.pythonanywhere.com/api/v1"
