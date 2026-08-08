@@ -282,4 +282,16 @@ export const salesApi = {
       ],
     };
   },
+
+  async getSaleReceipt(id) {
+    try {
+      const response = await axiosInstance.get(`/sales/${id}/receipt/`).catch(async () => {
+        return await axiosInstance.get(`/sales/${id}/receipt`);
+      });
+      return { success: true, data: response?.data || response };
+    } catch (err) {
+      console.error("getSaleReceipt error:", err);
+      return { success: false, message: "Chek ma'lumotlarini yuklashda xatolik yuz berdi.", error: err };
+    }
+  },
 };

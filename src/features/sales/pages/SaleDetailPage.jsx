@@ -5,6 +5,7 @@ import { Card } from '@/components/common/Card/Card';
 import { Button } from '@/components/common/Button/Button';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
 import { InsurancePolicyModal } from '@/components/common/InsurancePolicyModal/InsurancePolicyModal';
+import { SaleReceiptModal } from '@/components/common/SaleReceiptModal/SaleReceiptModal';
 import { salesApi } from '../api/salesApi';
 import { formatCurrency } from '@/utils/currency.utils';
 import { ROUTES } from '@/constants/routes.constants';
@@ -14,6 +15,7 @@ export const SaleDetailPage = () => {
   const [sale, setSale] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInsuranceModalOpen, setIsInsuranceModalOpen] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
   useEffect(() => {
     loadSaleDetail();
@@ -140,7 +142,7 @@ export const SaleDetailPage = () => {
               </div>
             </div>
 
-            <div className="mt-3">
+            <div className="mt-3 d-flex flex-column gap-2">
               <Button
                 variant="outline-success"
                 size="sm"
@@ -149,6 +151,15 @@ export const SaleDetailPage = () => {
                 onClick={() => setIsInsuranceModalOpen(true)}
               >
                 Sug'urta Polisi & Servis Guvohnomasini Chop Etish
+              </Button>
+              <Button
+                variant="outline-primary"
+                size="sm"
+                className="w-100"
+                icon={<LuPrinter />}
+                onClick={() => setIsReceiptModalOpen(true)}
+              >
+                Sotuv Chekini Chop Etish
               </Button>
             </div>
           </Card>
@@ -193,6 +204,12 @@ export const SaleDetailPage = () => {
         isOpen={isInsuranceModalOpen}
         onClose={() => setIsInsuranceModalOpen(false)}
         data={sale}
+      />
+
+      <SaleReceiptModal
+        isOpen={isReceiptModalOpen}
+        onClose={() => setIsReceiptModalOpen(false)}
+        saleId={id}
       />
     </div>
   );

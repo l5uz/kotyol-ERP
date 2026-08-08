@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LuShoppingCart, LuPlus, LuEye, LuPencil, LuTrash2, LuAward } from 'react-icons/lu';
+import { LuShoppingCart, LuPlus, LuEye, LuPencil, LuTrash2, LuAward, LuPrinter } from 'react-icons/lu';
 import { Card } from '@/components/common/Card/Card';
 import { Table } from '@/components/common/Table/Table';
 import { PageHeader } from '@/components/common/PageHeader/PageHeader';
@@ -8,6 +8,7 @@ import { FilterBar } from '@/components/common/FilterBar';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog/ConfirmDialog';
 import { SaleFormModal } from '../components/SaleFormModal';
 import { InsurancePolicyModal } from '@/components/common/InsurancePolicyModal/InsurancePolicyModal';
+import { SaleReceiptModal } from '@/components/common/SaleReceiptModal/SaleReceiptModal';
 import { salesApi } from '../api/salesApi';
 import { formatCurrency } from '@/utils/currency.utils';
 import { usePermission } from '@/hooks/usePermission';
@@ -37,6 +38,7 @@ export const SalesPage = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [insuranceSale, setInsuranceSale] = useState(null);
+  const [selectedReceiptSaleId, setSelectedReceiptSaleId] = useState(null);
 
   useEffect(() => {
     loadSalesData();
@@ -205,6 +207,16 @@ export const SalesPage = () => {
                 <LuEye />
               </button>
               <button
+                className="btn btn-sm btn-outline-primary p-1 border-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedReceiptSaleId(row.id);
+                }}
+                title="Sotuv Chekini Chop Etish"
+              >
+                <LuPrinter />
+              </button>
+              <button
                 className="btn btn-sm btn-outline-success p-1 border-0"
                 onClick={() => handleRestoreSale(row)}
                 title="Arxivdan chiqarish"
@@ -239,6 +251,16 @@ export const SalesPage = () => {
                 title="Sug'urta Polisi va Bepul Kafolat Guvohnomasi"
               >
                 <LuAward />
+              </button>
+              <button
+                className="btn btn-sm btn-outline-primary p-1 border-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedReceiptSaleId(row.id);
+                }}
+                title="Sotuv Chekini Chop Etish"
+              >
+                <LuPrinter />
               </button>
               {canEdit && (
                 <button
@@ -345,6 +367,12 @@ export const SalesPage = () => {
         isOpen={!!insuranceSale}
         onClose={() => setInsuranceSale(null)}
         data={insuranceSale}
+      />
+
+      <SaleReceiptModal
+        isOpen={!!selectedReceiptSaleId}
+        onClose={() => setSelectedReceiptSaleId(null)}
+        saleId={selectedReceiptSaleId}
       />
     </div>
   );
