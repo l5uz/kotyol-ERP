@@ -43,6 +43,24 @@ export const SaleReceiptModal = ({
   const f = receipt?.financials || {};
   const w = receipt?.warranty || {};
 
+  const formatAddress = (addressField) => {
+    if (!addressField) return '—';
+    try {
+      const parsed = JSON.parse(addressField);
+      if (parsed && typeof parsed === 'object') {
+        const parts = [
+          parsed.region,
+          parsed.district,
+          parsed.address
+        ].filter(Boolean);
+        return parts.join(', ') || '—';
+      }
+    } catch (e) {
+      // Fallback
+    }
+    return addressField;
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -129,7 +147,7 @@ export const SaleReceiptModal = ({
                 <div className="d-flex flex-column gap-1">
                   <div><span className="text-muted">Nomi / Korxona:</span> <strong className="text-dark">{cust.name}</strong></div>
                   <div><span className="text-muted">Tel:</span> <strong className="text-dark">{cust.phone || '—'}</strong></div>
-                  <div><span className="text-muted">Yetkazish manzili:</span> <strong className="text-dark">{cust.address || '—'}</strong></div>
+                  <div><span className="text-muted">Yetkazish manzili:</span> <strong className="text-dark">{formatAddress(cust.address)}</strong></div>
                 </div>
               </div>
               <div className="col-12 col-md-6">
