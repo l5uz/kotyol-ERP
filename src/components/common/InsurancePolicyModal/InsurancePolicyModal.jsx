@@ -174,20 +174,92 @@ export const InsurancePolicyModal = ({
       <div ref={printRef} className="insurance-policy-container p-4 bg-white text-dark rounded border shadow-sm position-relative">
         <style>{`
           @media print {
-            body * {
-              visibility: hidden;
+            /* Force vector text rendering and disable browser print rasterization */
+            *, *::before, *::after {
+              transition: none !important;
+              transform: none !important;
+              animation: none !important;
+              filter: none !important;
+              box-shadow: none !important;
+              text-shadow: none !important;
+              -webkit-filter: none !important;
+              perspective: none !important;
+              backface-visibility: visible !important;
             }
+            
+            /* Hide all siblings of modal at body level */
+            body > :not(.modal) {
+              display: none !important;
+            }
+            
+            .modal-backdrop,
+            .modal-header,
+            .modal-footer {
+              display: none !important;
+            }
+
+            body {
+              background: #fff !important;
+              color: #000 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: visible !important;
+              height: auto !important;
+            }
+
+            .modal {
+              position: relative !important;
+              display: block !important;
+              overflow: visible !important;
+              height: auto !important;
+              left: auto !important;
+              top: auto !important;
+              opacity: 1 !important;
+              background: none !important;
+              padding: 0 !important;
+            }
+
+            .modal-dialog {
+              max-width: 100% !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              height: auto !important;
+            }
+
+            .modal-content {
+              border: none !important;
+              box-shadow: none !important;
+              background: none !important;
+              height: auto !important;
+              overflow: visible !important;
+            }
+
+            .modal-body {
+              padding: 0 !important;
+              overflow: visible !important;
+              height: auto !important;
+              max-height: none !important;
+            }
+
             .insurance-policy-container, .insurance-policy-container * {
-              visibility: visible;
+              visibility: visible !important;
+              color: #000 !important;
             }
+
             .insurance-policy-container {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
+              position: relative !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              height: auto !important;
+              overflow: visible !important;
+              margin: 0 !important;
+              padding: 20px !important;
+              box-sizing: border-box !important;
+              background: #fff !important;
               border: 2px solid #0d6efd !important;
               box-shadow: none !important;
-              padding: 20px !important;
+              page-break-inside: avoid !important;
             }
             .no-print {
               display: none !important;

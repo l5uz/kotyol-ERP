@@ -112,6 +112,19 @@ export const SaleReceiptModal = ({
                 margin: 0;
               }
               
+              /* Force vector text rendering and disable browser print rasterization */
+              *, *::before, *::after {
+                transition: none !important;
+                transform: none !important;
+                animation: none !important;
+                filter: none !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+                -webkit-filter: none !important;
+                perspective: none !important;
+                backface-visibility: visible !important;
+              }
+              
               /* Hide all siblings of modal at body level */
               body > :not(.modal) {
                 display: none !important;
