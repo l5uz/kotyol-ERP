@@ -294,4 +294,16 @@ export const salesApi = {
       return { success: false, message: "Chek ma'lumotlarini yuklashda xatolik yuz berdi.", error: err };
     }
   },
+
+  async getSaleEscpos(id) {
+    try {
+      const response = await axiosInstance.get(`/sales/${id}/escpos/`).catch(async () => {
+        return await axiosInstance.get(`/sales/${id}/escpos`);
+      });
+      return { success: true, data: response?.data || response };
+    } catch (err) {
+      console.error("getSaleEscpos error:", err);
+      return { success: false, message: "ESC/POS ma'lumotlarini yuklashda xatolik yuz berdi.", error: err };
+    }
+  },
 };
