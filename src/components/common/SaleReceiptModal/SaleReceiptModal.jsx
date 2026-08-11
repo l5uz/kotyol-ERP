@@ -31,41 +31,9 @@ export const SaleReceiptModal = ({
 
   if (!isOpen) return null;
 
-  const handlePrint = async () => {
-    try {
-      const res = await salesApi.getSaleEscpos(saleId);
-      if (!res.success || !res.data) {
-        alert("Chek ma'lumotlarini olishda xatolik yuz berdi. Oddiy brauzer orqali chop etamiz.");
-        window.print();
-        return;
-      }
-      
-      const raw = res.data.data || res.data;
-      const { escpos_hex, raw_text } = raw;
-      
-      const agentResponse = await fetch('http://localhost:9123/print', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          escpos_hex,
-          raw_text
-        })
-      });
-      
-      const agentResult = await agentResponse.json();
-      if (agentResult.success) {
-        console.log("Chek muvaffaqiyatli chop etildi!");
-      } else {
-        alert("Printerda xatolik: " + agentResult.message);
-      }
-    } catch (error) {
-      console.error("Local POS Agentga ulanib bo'lmadi:", error);
-      if (confirm("Local POS Print Agent ishlamayapti! Kassa kompyuterida 'python pos_printer_agent.py' yoqilganligini tekshiring.\n\nOddiy brauzer orqali chop etishni xohlaysizmi?")) {
-        window.print();
-      }
-    }
+  const handlePrint = () => {
+    const baseURL = import.meta.env.VITE_API_URL || 'https://kotyol.pythonanywhere.com/api/v1';
+    window.open(`${baseURL}/sales/${saleId}/print_html/`, '_blank', 'width=400,height=600');
   };
 
   const c = receipt?.company || {};
