@@ -1,76 +1,123 @@
-# KotyoI Enterprise ERP Frontend
+# Kotyol Enterprise ERP
 
-[![Production Ready](https://img.shields.io/badge/status-production_ready-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg?logo=react&logoColor=white)](https://react.dev/)
+[![Django](https://img.shields.io/badge/Django-5.1+-092E20.svg?logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![CI](https://github.com/l5uz/kotyol-ERP/actions/workflows/ci.yml/badge.svg)](https://github.com/l5uz/kotyol-ERP/actions/workflows/ci.yml)
 [![UI Language](https://img.shields.io/badge/UI_Language-Uzbek_100%25-orange.svg)]()
 
-KotyoI Enterprise ERP is a production-grade, modular web application engineered for industrial boiler manufacturing, sales, warehouse management, production scheduling, warranty service, finance, and enterprise analytics.
+**Kotyol Enterprise ERP** is an open-source, modular, full-stack Manufacturing Resource Planning (MRP/ERP) platform built with **React + Vite** and **Django REST Framework**. Originally engineered for industrial boiler manufacturing, its domain-driven architecture covers the complete manufacturing lifecycle: Bill of Materials (BOM) recipes, procurement, warehouse inventory, order reservation, Kanban production scheduling, invoicing & 80mm thermal receipt printing, warranty service tracking, managerial finance, and immutable audit logging.
 
 ---
 
-## 🌟 Key Features & Architecture Highlights
+## Key Features & Architecture Highlights
 
-- **100% Uzbek User Interface**: Every label, table header, form modal, toast, and report card is translated into professional Uzbek language.
-- **English Codebase & Clean Architecture**: All variables, file paths, React components, and internal domain engines are cleanly structured in English.
-- **22 Production Modules**:
-  1. `auth`: JWT Authentication & Session Management
-  2. `dashboard`: Executive Executive Dashboard & Analytics
-  3. `settings`: Enterprise Settings System (14 sub-pages, D&D production stages)
-  4. `employees`: HR & Personnel Foundation
-  5. `suppliers`: Supplier Relations & Contacts
-  6. `products`: Raw Materials & Finished Product Nomenclatures
-  7. `boilers`: Industrial Boiler & Furnace Models Catalog
-  8. `recipes`: Bill of Materials (BOM) & Multi-Version Recipe Engine
-  9. `purchasing`: Automated Stock Receiving & Supplier Procurement
-  10. `warehouse`: Inventory Movements, Stock Audit & Revaluation
-  11. `customers`: Customer Profiles, Contract Ledger & CRM Integrations
-  12. `orders`: Order Reservation Engine & Material Availability Audit
-  13. `production`: Production Orders, Scheduling & Audit Trail
-  14. `kanban`: Visual D&D Production Kanban Board with Quick Card Inspection Drawer
-  15. `sales`: Invoicing, Tax (QQS 12%), Profit Margins & Automated Stock Dispatch
-  16. `services`: Warranty Tracking, Technician Master Allocation & Service Logs
-  17. `finance`: Managerial Finance, Expenses, Revenue & Profit Analytics
-  18. `reports`: Read-Only Enterprise Analytics with Recharts & PDF/Excel Export
-  19. `notifications`: Real-Time Unread Bell Counter & Slide-Over Drawer
-  20. `activities`: Global Event Audit Log & Timeline
-  21. `audit`: Immutable System Audit Log & Old vs New Values Comparison
-  22. `system`: Engine Health, Database Status & Centralized Document Numbering Previews
-- **Unified Reusable Filter System (`FilterBar`)**: Single universal filter bar across all pages with local preference persistence (`useFilterPreferencesStore`).
-- **Dynamic Entities (`DynamicSelect`)**: Uninterrupted form workflows with `+ Add New` (inline modal) and `⚙️ Manage` (direct settings link).
-- **Centralized Document Numbering (`documentNumberingService`)**: Standardized document sequences (`ORD-YYYY-000001`, `PRD-YYYY-000001`, `SAL-YYYY-000001`, `EXP-YYYY-000001`).
-- **Data Integrity & Soft Delete (`dataIntegrityService`)**: Restricts hard deletion of linked master records with clear Uzbek error feedback.
+- **Full-Stack Modular Architecture**: Clean English codebase with 22 decoupled frontend feature modules (`src/features/*`) and 11 Django backend apps (`backend/apps/*`).
+- **Complete Manufacturing & ERP Lifecycle**:
+  1. `auth` — JWT authentication, refresh tokens, role-based access & session management
+  2. `dashboard` — Executive KPI dashboard & operational analytics
+  3. `settings` — Enterprise configuration (14 sub-pages, drag-and-drop production stages, company profile)
+  4. `employees` — HR, personnel management & payroll tracking
+  5. `suppliers` — Supplier directory, balances & procurement history
+  6. `products` — Raw materials & finished goods nomenclature
+  7. `boilers` — Industrial boiler & furnace product catalog
+  8. `recipes` — Bill of Materials (BOM) & multi-version recipe engine
+  9. `purchasing` — Automated stock receiving & supplier procurement
+  10. `warehouse` — Inventory movements, stock audits & revaluation
+  11. `customers` — Customer CRM profiles, leads & contract ledger
+  12. `orders` — Order reservation engine & material availability audit
+  13. `production` — Production orders, stage transitions & audit trail
+  14. `kanban` — Visual drag-and-drop production Kanban board with quick-inspection drawer
+  15. `sales` — Invoicing, tax (QQS 12%), profit margins, automated stock dispatch & 80mm thermal receipt printing (`ESC/POS` & print popup)
+  16. `services` — Warranty tracking, technician allocation & service logs
+  17. `finance` — Managerial finance, expenses, revenue & profit analytics
+  18. `reports` — Enterprise analytics with Recharts & Excel/PDF export
+  19. `notifications` — Real-time unread notification drawer
+  20. `activities` — Global event timeline
+  21. `audit` — Immutable system audit log with old-vs-new value diffs
+  22. `system` — Engine health, database status & document numbering previews
+- **Reusable Core Engines**:
+  - **Unified Filter System (`FilterBar`)**: Universal filter bar across modules with persisted preferences (`useFilterPreferencesStore`).
+  - **Dynamic Entities (`DynamicSelect`)**: Inline `+ Add New` modals and direct settings navigation without interrupting form workflows.
+  - **Centralized Document Numbering (`documentNumberingService`)**: Standardized document codes (`ORD-YYYY-000001`, `PRD-YYYY-000001`, `SAL-YYYY-000001`, `EXP-YYYY-000001`).
+  - **Data Integrity & Soft Delete (`dataIntegrityService`)**: Protects linked master records from accidental hard deletion.
+- **100% Uzbek UI, 100% English Codebase**: Production-ready Uzbek localization for Central Asian SMEs while keeping all source code, APIs, and technical documentation in clean English for global contributors.
 
 ---
 
-## 🚀 Quick Start
+## Tech Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React 18, Vite, React Router 6, TanStack React Query, Zustand, React Hook Form, `@dnd-kit`, Recharts, Bootstrap 5 |
+| **Backend** | Python 3.11+, Django 5.1+, Django REST Framework, PyJWT, bcrypt, django-cors-headers |
+| **Database** | SQLite (default local/dev), PostgreSQL-ready configuration |
+| **Tooling** | ESLint, Prettier, GitHub Actions CI, Netlify deployment config |
+
+---
+
+## Quick Start
 
 ### Requirements
-- Node.js `v18.x` or higher
-- npm `v9.x` or higher
+- **Node.js** `>= 18` (v20 recommended) & **npm** `>= 9`
+- **Python** `>= 3.10`
 
-### Installation & Run
-
+### 1. Clone the Repository
 ```bash
-# Install dependencies
+git clone https://github.com/l5uz/kotyol-ERP.git
+cd kotyol-ERP
+```
+
+### 2. Start the Backend (Django API)
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+cp .env.example .env
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py init_db
+python manage.py runserver 8000
+```
+The API will be available at `http://127.0.0.1:8000/api/v1`.
+
+### 3. Start the Frontend (React + Vite)
+In a separate terminal from the project root:
+```bash
+cp .env.example .env
 npm install
-
-# Start local development server
 npm run dev
+```
 
-# Build production bundle
+### Production Build & Linting
+```bash
+npm run lint
 npm run build
 ```
 
 ---
 
-## 📚 Technical Documentation
+## Technical Documentation
 
-Find detailed architectural specifications inside the `docs/` folder:
-- [Architecture Specifications](file:///home/lite/Documents/projects/FrontendProjects/kotyol/docs/architecture.md)
-- [Coding Standards](file:///home/lite/Documents/projects/FrontendProjects/kotyol/docs/coding_standards.md)
-- [Folder Structure Map](file:///home/lite/Documents/projects/FrontendProjects/kotyol/docs/folder_structure.md)
-- [Backend API Integration Rules](file:///home/lite/Documents/projects/FrontendProjects/kotyol/docs/api_rules.md)
-- [Architecture Decision Records (ADRs)](file:///home/lite/Documents/projects/FrontendProjects/kotyol/docs/decisions.md)
-- [Business Workflow Models](file:///home/lite/Documents/projects/FrontendProjects/kotyol/docs/business_flow.md)
-- [Milestone Roadmap Tracker](file:///home/lite/Documents/projects/FrontendProjects/kotyol/docs/roadmap.md)
-- [Current System State](file:///home/lite/Documents/projects/FrontendProjects/kotyol/docs/current_state.md)
+Detailed architectural and API specifications are maintained in [`docs/`](docs/):
+- [Architecture Specifications](docs/architecture.md)
+- [API Endpoints Reference](docs/api_endpoints.md)
+- [Backend API Integration Rules](docs/api_rules.md)
+- [Business Workflow Models](docs/business_flow.md)
+- [Folder Structure Map](docs/folder_structure.md)
+- [Coding Standards](docs/coding_standards.md)
+- [Architecture Decision Records (ADRs)](docs/decisions.md)
+- [Pagination & Filters Guide](docs/pagination_and_filters.md)
+- [Milestone Roadmap Tracker](docs/roadmap.md)
+- [Current System State](docs/current_state.md)
+
+---
+
+## Contributing & Security
+
+- Please read [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md) before submitting a pull request.
+- To report a security vulnerability or review production hardening recommendations, see [SECURITY.md](SECURITY.md).
+
+## License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
